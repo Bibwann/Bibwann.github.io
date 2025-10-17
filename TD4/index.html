@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TD IA - SolarMotion</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.babylonjs.com/babylon.js"></script>
+  <!-- MediaPipe Hands -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.min.js"></script>
+</head>
+<body>
+  <canvas id="renderCanvas"></canvas>
+  <div id="loading">Chargement du système solaire...</div>
+
+  <!-- Flux caméra -->
+  <video id="handCam" playsinline autoplay muted></video>
+
+  <!-- Vue IA -->
+  <canvas id="aiView" width="360" height="270"></canvas>
+
+  <!-- Boutons / toggles -->
+  <div id="controls">
+    <button id="handToggle">✋ Contrôle main : OFF</button></div>
+
+  <!-- Aide gestes -->
+  <div id="help">
+    <h3>Gestes</h3>
+    <ul>
+      <li><b>Main droite</b> : orbite (tourner α / incliner β)</li>
+      <li><b>Main gauche</b> : pincer/relâcher = zoom avant/arrière</li>
+      <li><b>Aucune main</b> : retour progressif à la vue par défaut</li>
+    </ul>
+    <p>Astuce : éloigne/rapproche la main pour ajuster la sensibilité.</p>
+  </div>
+
+  <script type="module">
+    import { createScene, bindAICanvas } from './js/main.js';
+    const canvas = document.getElementById('renderCanvas');
+    const engine = new BABYLON.Engine(canvas, true);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    engine.setHardwareScalingLevel(1 / dpr);
+
+    createScene(engine, canvas).then(({ scene, camera, ctrl }) => {
+      document.getElementById('loading').style.display = 'none';
+      bindAICanvas(ctrl, document.getElementById('aiView'));
+engine.runRenderLoop(() => scene.render());
+    });
+    window.addEventListener('resize', () => engine.resize());
+  </script>
+</body>
+</html>
