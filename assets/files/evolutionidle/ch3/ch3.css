@@ -1,0 +1,130 @@
+/* ch3.css */
+
+:root {
+  --bg-color: #0d1b2a;
+  --primary-color: #1b263b;
+  --accent-color: #415a77;
+  --highlight-color: #e0e1dd;
+  --energy-color: #f4d35e;
+  --alert-color: #e63946;
+}
+
+/* Base reset */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Courier New', Courier, monospace;
+  background-color: var(--bg-color);
+  color: var(--highlight-color);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Header & Footer */
+header, footer {
+  text-align: center;
+  padding: 1em;
+  background-color: var(--primary-color);
+  border-bottom: 1px solid var(--accent-color);
+}
+
+footer {
+  border-top: 1px solid var(--accent-color);
+  margin-top: auto;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.5em;
+}
+
+.objective {
+  color: var(--energy-color);
+  font-size: 0.9em;
+}
+
+/* Layout */
+main {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  grid-template-rows: 1fr;
+  flex-grow: 1;
+  gap: 0.5em;
+  padding: 0.5em;
+}
+
+/* Panels */
+aside, section {
+  background-color: var(--primary-color);
+  border: 1px solid var(--accent-color);
+  padding: 1em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Titles */
+aside h2, section h2 {
+  color: var(--energy-color);
+  margin-bottom: 0.5em;
+}
+
+/* Buttons */
+button {
+  background-color: var(--accent-color);
+  color: var(--highlight-color);
+  border: none;
+  padding: 0.5em 1em;
+  margin: 0.3em;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  min-width: 180px;
+}
+
+button:hover {
+  background-color: var(--energy-color);
+  color: var(--bg-color);
+  transform: scale(1.05);
+}
+
+button:active {
+  transform: scale(0.95);
+}
+
+button:disabled {
+  background-color: #333;
+  color: #777;
+  cursor: not-allowed;
+}
+
+/* Alerts and Status */
+#autoGenStatus {
+  color: lime;
+  font-weight: bold;
+}
+
+#tempImpact, #efficiencyStatus {
+  font-weight: bold;
+}
+
+#tempImpact.overheat {
+  color: var(--alert-color);
+}
+
+#coolingEffect {
+  color: #88ff88;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  main {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+  }
+
+  button {
+    min-width: 140px;
+  }
+}

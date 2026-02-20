@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trieuse</title>
+    <link rel="stylesheet" href="styles.css">
+    
+    <script type="importmap">
+        { "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }}
+    </script>
+</head>
+<body>
+
+<div id="hud">
+    <div class="hud-row top-bar">
+        <button class="btn" id="btnBench" style="background:#8e44ad; border-color:#9b59b6" onclick="openBenchMenu()">🚀 BENCH</button>
+        
+        <button class="btn" id="btnRail" style="background:#f39c12; border-color:#e67e22; min-width: 100px;" onclick="toggleRailMode()">Rail: TOIT</button>
+
+        <div style="width:20px; border-right: 1px solid #555; height: 20px;"></div>
+
+        <button class="btn btn-spawn" style="border-color:#00d2d3" onclick="spawn(0)">Mini</button>
+        <button class="btn btn-spawn" style="border-color:#54a0ff" onclick="spawn(1)">Small</button>
+        <button class="btn btn-spawn" style="border-color:#5f27cd" onclick="spawn(2)">Med</button>
+        <button class="btn btn-spawn" style="border-color:#ff9f43" onclick="spawn(3)">Large</button>
+        <button class="btn btn-spawn" style="border-color:#e74c3c" onclick="spawn(4)">XL</button>
+        
+        <div style="width:20px; border-right: 1px solid #555; height: 20px;"></div>
+        
+        <div class="controls-container">
+            <button class="btn btn-auto" id="btnAuto" onclick="toggleAuto()" style="width: 80px;">Auto: OFF</button>
+            <input type="range" id="spawnRate" min="10" max="1000" step="10" value="1000" oninput="updateSpeed(this.value)">
+            <span class="speed-label" id="speedValue">1000ms</span>
+        </div>
+
+        <div style="width:10px"></div>
+        <button class="btn btn-reset" onclick="resetSim()">Clear</button>
+    </div>
+
+    <div id="clean-toast">Initialisation...</div>
+    <div class="stats-bar" id="stats-container"></div>
+</div>
+
+<div id="dashboard-right">
+    <div id="precision-container">
+        <div class="panel-title">Précision de Trie</div>
+        <div class="precision-score" id="accuracy-lbl">100%</div>
+        <div class="precision-details">
+            Succès: <span id="success-lbl" style="color:#fff">0</span> | 
+            Ratés: <span id="miss-lbl" class="miss-count">0</span>
+        </div>
+    </div>
+    <div id="graph-container">
+        <div class="panel-title">Distribution</div>
+        <canvas id="ratioCanvas" width="200" height="100"></canvas>
+    </div>
+</div>
+
+<div id="bench-choice-modal" style="display:none;" class="modal-overlay">
+    <div class="modal-content choice-content">
+        <h3>Configuration du Benchmark</h3>
+        <p>Quel type de rail voulez-vous tester ?</p>
+        <div class="choice-buttons">
+            <button class="btn" style="background:#f39c12; width:100%; margin-bottom:10px;" onclick="runBenchmarkSequence('toit')">Test Rail TOIT</button>
+            <button class="btn" style="background:#3498db; width:100%; margin-bottom:10px;" onclick="runBenchmarkSequence('tige')">Test Rail TIGE</button>
+            <button class="btn" style="background:#9b59b6; width:100%; margin-bottom:10px; border: 2px solid #fff;" onclick="runBenchmarkSequence('both')">⚡ TESTER LES DEUX</button>
+        </div>
+        <button class="btn btn-reset" style="margin-top:10px; width:100%" onclick="closeBenchMenu()">Annuler</button>
+    </div>
+</div>
+
+<div id="report-modal" style="display:none;" class="modal-overlay">
+    <div class="modal-content">
+        <h2>Rapport de Performance</h2>
+        <div id="report-content"></div>
+        <button class="btn" style="margin-top:20px; width:100%" onclick="closeReport()">Fermer</button>
+    </div>
+</div>
+
+<script type="module" src="./js/main.js"></script>
+
+</body>
+</html>

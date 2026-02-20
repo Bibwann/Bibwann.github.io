@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EvolutionIdle - Chapter 3: Interface Evolution</title>
+    <link rel="stylesheet" href="ch3.css">
+    <script src="ch3.js" defer></script>
+</head>
+<body>
+    <header>
+        <h1>EvolutionIdle - Chapter 3: Interface Evolution</h1>
+        <p class="objective">Objective: Sustain high Ops/sec while managing heat and energy. Install the framework to unlock Chapter 4.</p>
+    </header>
+
+    <main>
+        <aside id="left-panel">
+            <h2>System Overview</h2>
+            <p>Operations: <span id="ops">0</span></p>
+            <p>Compute Clusters: <span id="clusters">0</span></p>
+            <p>Cooling Systems: <span id="cooling">0</span></p>
+            <p>Energy Units: <span id="energy">0</span></p>
+            <p>Temperature: <span id="temperature">25</span>°C</p>
+            <p>Efficiency: <span id="efficiency">100%</span></p>
+            <p>Auto Compute Daemon: <span id="autoGenStatus">LOCKED</span></p>
+        </aside>
+
+        <section id="center-panel">
+            <h2>Production Control</h2>
+            <p>Ops/sec: <span id="opsPerSec">0</span></p>
+            <p>Energy Drain/sec: <span id="energyDrain">0</span></p>
+            <p>Temperature Impact: <span id="tempImpact">Stable</span></p>
+            <p>Efficiency Status: <span id="efficiencyStatus">100%</span></p>
+            <p>Cooling Effect: <span id="coolingEffect">None</span></p>
+
+            <button id="addCluster">Add Compute Cluster (100 Energy)</button>
+            <button id="addCooling">Add Cooling System (75 Energy)</button>
+            <button id="buyEnergy">Buy Energy Unit (1000 Ops)</button>
+            <button id="toggleAutobuy">Enable Energy Autobuy</button>
+
+            <h2>Framework Installation</h2>
+            <button id="installFramework">Install Framework (5M Ops)</button>
+            <button id="goToChapter4" disabled onclick="window.location.href='../ch4/ch4.html';">Web servers processing</button>
+        </section>
+
+        <aside id="right-panel">
+            <h2>System Status</h2>
+            <p>Monitor your system performance, optimize the balance between clusters and cooling, and prevent overheating to maintain maximum efficiency.</p>
+        </aside>
+    </main>
+
+    <footer>
+        <p>EvolutionIdle - Chapter 3: Balance performance, energy, and heat to evolve your system.</p>
+    </footer>
+</body>
+</html>

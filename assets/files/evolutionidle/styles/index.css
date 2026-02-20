@@ -1,0 +1,11 @@
+body {
+    background-color: black;
+    color: #33FF33;
+    font-family: monospace;
+    font-size: 18px;
+    padding: 50px;
+  }
+  .intro {
+    white-space: pre-wrap;
+  }
+  

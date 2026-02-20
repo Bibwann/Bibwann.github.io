@@ -1,0 +1,13 @@
+node_modules
+npm-debug.log
+yarn.lock
+.git
+.gitignore
+.vscode
+.idea
+.DS_Store
+*.md
+docker-compose.yml
+Dockerfile
+dockerfile
+logs

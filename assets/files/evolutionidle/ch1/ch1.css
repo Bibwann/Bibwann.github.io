@@ -1,0 +1,58 @@
+body {
+  margin: 0;
+  background: black;
+}
+
+  
+  #terminal {
+    height: 100vh;
+    overflow-y: auto;
+    background: #000;
+    color: #33ff33;
+    font-family: monospace;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+  
+  
+  #output {
+    flex: 1;
+    white-space: pre-wrap;
+    overflow-y: auto;
+  }
+  
+  #input-line {
+    display: flex;
+  }
+  
+  #prompt {
+    margin-right: 5px;
+  }
+  
+  #command-input {
+    background: none;
+    border: none;
+    color: #33FF33;
+    outline: none;
+    flex: 1;
+  }
+  
+  .cursor {
+    display: inline-block;
+  width: 10px;
+  background-color: #33FF33;
+  height: 18px;
+  margin-left: 2px;
+  animation: blink 1s infinite;
+  }
+  
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+  50.01%, 100% { opacity: 0; }
+
+    
+  }
+  .output-line, .input-line {
+    min-height: 1.2em;
+  }
+  

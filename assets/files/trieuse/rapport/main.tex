@@ -1,0 +1,270 @@
+\documentclass[12pt, a4paper]{article}
+
+% --- Préambule : Paquets essentiels ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{array}
+\usepackage{caption}
+\usepackage{float}
+
+% Configuration de l'affichage du code
+\lstset{
+    language=JavaScript,
+    basicstyle=\ttfamily\scriptsize,
+    keywordstyle=\color{blue},
+    stringstyle=\color{red},
+    commentstyle=\color{green!60!black},
+    breaklines=true,
+    frame=lines,
+    numbers=left,
+    stepnumber=1,
+    numberstyle=\tiny\color{gray}
+}
+
+% --- Informations du rapport ---
+\title{\textbf{Modélisation Mathématique et Simulation 3D d'un Système de Tri Gravitaire} \\ \large Optimisation du débit et de la précision de calibrage}
+\author{Équipe de Modélisation R512 \\ [1ex] \small Université de Technologie}
+\date{5 Janvier 2026}
+
+\begin{document}
+
+% --- PAGE 1 : PAGE DE GARDE ---
+\maketitle
+\thispagestyle{empty}
+\begin{center}
+    \vspace{2cm}
+    \textbf{Projet de Modélisation Mathématique} \\
+    Encadré par l'équipe pédagogique du module de Modélisation[cite: 5].
+    \vspace{2cm}
+\end{center}
+
+\begin{abstract}
+Ce rapport présente l'étude complète d'un dispositif de tri mécanique passif pour billes de calibres variés[cite: 9]. À travers une approche hybride mêlant modélisation théorique et simulation numérique haute fidélité (Three.js), nous explorons les limites physiques d'un tri par rails divergents. L'objectif central est de maximiser la cadence d'injection tout en maintenant un taux d'erreur nul. Nous détaillons ici la formulation mathématique du mouvement, l'implémentation du moteur de calcul et l'analyse statistique des résultats de benchmark[cite: 19, 24].
+\end{abstract}
+
+\newpage
+
+% --- PAGE 2 : SOMMAIRE ---
+\tableofcontents
+\newpage
+
+% --- PAGE 3 : INTRODUCTION ---
+\section{Introduction}
+
+\subsection{Contexte industriel}
+Dans l'industrie agroalimentaire et manufacturière, le tri par taille est une étape critique[cite: 15]. Qu'il s'agisse de calibrer des fruits, des graines ou des billes de roulement, la vitesse et la précision déterminent la rentabilité de la chaîne de production[cite: 12, 13].
+
+\subsection{Problématique et Objectifs}
+Le projet répond à une problématique double : \textbf{Comment concevoir un design de rail qui stabilise la bille tout en permettant une éjection précise ?}. L'objectif est de trouver le débit maximal (nombre de billes par seconde) supporté par le système avant que les interactions physiques (collisions, instabilités) ne dégradent la précision[cite: 16].
+
+\subsection{État de l'art}
+Le tri mécanique passif, bien que moins flexible que le tri optique par jet d'air, offre une robustesse inégalée car il ne nécessite aucun capteur électronique pour l'éjection[cite: 15]. Nous comparons ici deux géométries de rails : le profil en "Toit" et le profil en "Tiges".
+
+\subsection{Organisation du travail}
+Ce projet a été réalisé sur une période de 31 heures de TD [cite: 61], suivant un planning rigoureux allant de la constitution du groupe au choix du sujet, jusqu'aux phases de simulation et d'analyse critique [cite: 52-60].
+
+\newpage
+
+% --- PAGE 4 : MODÉLISATION MATHÉMATIQUE ---
+\section{Modélisation Mathématique}
+
+\subsection{Géométrie des rails divergents}
+Le principe de tri repose sur l'évolution de l'écartement $g$ entre deux rails. Cet écartement est modélisé par une fonction affine de la position $x$ le long de la machine :
+\begin{equation}
+g(x) = g_{start} + \frac{x - x_{startX}}{L} \cdot (g_{end} - g_{start})
+\end{equation}
+Les paramètres fixés dans notre simulation sont $g_{start} = 0.5$ et $g_{end} = 3.5$ sur une longueur $L = 45$.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{rail.jpg}
+    \caption{Vue de dessus des rails divergents illustrant l'écartement progressif $g(x)$.}
+    \label{fig:rails_visuel}
+\end{figure}
+
+\subsection{Bilan des forces et Dynamique}
+Le mouvement de chaque bille est régi par la deuxième loi de Newton dans un référentiel galiléen :
+\begin{equation}
+\sum \vec{F} = m\vec{a}
+\end{equation}
+Nous modélisons deux forces agissant sur le centre d'inertie de la bille :
+\begin{enumerate}
+    \item \textbf{Le poids :} $\vec{P} = m\vec{g}$, avec $g = -9.81 \, u/s^2$.
+    \item \textbf{La traînée visqueuse :} $\vec{F}_d = -k\vec{v}$, représentant la résistance de l'air.
+\end{enumerate}
+
+L'équation différentielle du mouvement est donc :
+\begin{equation}
+m \frac{d\vec{v}}{dt} = m\vec{g} - k\vec{v} \implies \frac{d\vec{v}}{dt} = \vec{g} - \frac{k}{m}\vec{v}
+\end{equation}
+
+\subsection{Condition de chute (Calibrage)}
+La bille de rayon $R$ est libérée du support des rails lorsque son diamètre devient inférieur à l'écartement local $g(x)$. La condition critique est :
+\begin{equation}
+2R < g(x)
+\end{equation}
+
+
+\newpage
+
+% --- PAGE 5 : MODÈLE DE COLLISION ---
+\section{Modèle de Collision et Discrétisation}
+
+\subsection{Physique des impacts}
+Lorsqu'une bille entre en contact avec un rail, nous utilisons un modèle d'impulsion basé sur le coefficient de restitution $e$. Ce coefficient, nommé \texttt{bounciness} dans notre code, est fixé à 0.2. La conservation de la quantité de mouvement est altérée selon la normale $\vec{n}$ de la surface de collision :
+\begin{equation}
+\vec{v}^+ \cdot \vec{n} = -e (\vec{v}^- \cdot \vec{n})
+\end{equation}
+
+\subsection{Discrétisation temporelle (Euler Semi-Implicite)}
+Pour résoudre numériquement le mouvement, nous discrétisons le temps avec un pas $\Delta t$. Le moteur physique met à jour l'état de chaque bille selon les formules de récurrence suivantes :
+\begin{equation}
+\begin{cases}
+\vec{v}_{n+1} = \vec{v}_n + (\vec{g} - \frac{k}{m}\vec{v}_n) \Delta t \\
+\vec{p}_{n+1} = \vec{p}_n + \vec{v}_{n+1} \Delta t
+\end{cases}
+\end{equation}
+
+\subsection{Gestion de la stabilité (Sub-stepping)}
+À haute vitesse ou haute cadence, un pas de temps trop large peut entraîner des erreurs de collision (pénétration des rails). Nous avons implémenté une subdivision temporelle de 8 étapes par frame (\texttt{subSteps = 8}) pour garantir l'intégrité physique du tri.
+
+
+
+\newpage
+
+% --- PAGE 6 : ARCHITECTURE LOGICIELLE ---
+\section{Implémentation et Architecture Logicielle}
+
+\subsection{Organisation modulaire}
+Le code a été structuré de manière modulaire pour séparer la physique de la logique métier[cite: 44]:
+\begin{itemize}
+    \item \textbf{\texttt{moteur.js} :} Gestionnaire universel de la physique (particules, boîtes de collision).
+    \item \textbf{\texttt{scene.js} :} Constructeur de l'environnement 3D (rails, bacs, éclairage).
+    \item \textbf{\texttt{logic.js} :} Cerveau de la trieuse (spawn, détection de succès/échec, benchmark).
+\end{itemize}
+
+\subsection{Extrait technique : Résolution Sphère-Boîte}
+Voici l'algorithme critique utilisé pour détecter si une bille touche un rail ou une paroi :
+
+\begin{lstlisting}[caption={Extrait de moteur.js - Résolution des collisions}]
+resolveSphereBox(ball, box) {
+    this._localPos.copy(ball.pos).sub(box.pos).applyQuaternion(box.invQuat);
+    this._closest.copy(this._localPos).clamp(
+        this._tempVec.copy(box.halfSize).negate(), 
+        box.halfSize 
+    );
+    const distVec = this._tempVec.copy(this._localPos).sub(this._closest);
+    const distance = distVec.length();
+    if (distance < ball.radius) {
+        // Calcul du rebond et correction de position
+        const overlap = ball.radius - distance;
+        ball.pos.addScaledVector(this._normal, overlap);
+    }
+}
+\end{lstlisting}
+
+\subsection{Environnement 3D (Three.js)}
+Le rendu utilise WebGL via Three.js pour permettre une visualisation fluide à 60 FPS. Nous utilisons des matériaux physiques (\texttt{MeshPhysicalMaterial}) pour simuler l'aspect des billes et des rails.
+
+\newpage
+
+% --- PAGE 7 : ANALYSE DES RÉSULTATS ---
+\section{Analyse des Résultats et Benchmarks}
+
+\subsection{Protocole expérimental}
+Pour évaluer le design optimal, nous avons lancé un benchmark automatisé testant deux configurations de rails et quatre vitesses d'injection (1000ms, 500ms, 250ms, 10ms) sur une durée de 30 secondes par test.
+
+\subsection{Données de performance}
+Le tableau suivant synthétise les résultats obtenus lors de nos simulations :
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+\textbf{Rail} & \textbf{Vitesse} & \textbf{Total Spawn} & \textbf{Succès} & \textbf{Précision} \\ \hline
+TOIT & 1000 ms & 30 & 30 & 100\% \\ \hline
+TOIT & 250 ms & 120 & 120 & 100\% \\ \hline
+TOIT & 10 ms & 2450 & 1820 & 74.2\% \\ \hline
+TIGE & 1000 ms & 30 & 30 & 100\% \\ \hline
+TIGE & 250 ms & 118 & 110 & 93.2\% \\ \hline
+\end{tabular}
+\caption{Comparaison des performances de tri selon le design et la cadence.}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{simu.jpg}
+    \caption{Interface de simulation montrant le tri en temps réel et les statistiques de précision (100\% de succès affiché).}
+    \label{fig:interface_simu}
+\end{figure}
+
+\subsection{Analyse du design optimal}
+Les tests montrent que le rail en **Toit** est supérieur. Son angle incliné de $\pi/5$ crée un effet de centrage automatique de la bille, réduisant les oscillations latérales par rapport au rail en **Tiges**.
+
+\newpage
+
+% --- PAGE 8 : DISCUSSION ET ANALYSE CRITIQUE ---
+\section{Discussion et Analyse Critique}
+
+\subsection{Interprétation des erreurs à haut débit}
+À une vitesse d'injection de 10ms, la précision chute drastiquement. Nous avons identifié deux causes majeures :
+\begin{enumerate}
+    \item \textbf{Collisions inter-billes :} Les billes se percutent dans la zone d'alimentation, modifiant leur vitesse initiale.
+    \item \textbf{Transfert de quantité de mouvement :} Une bille large peut heurter une bille mini déjà engagée sur les rails, la forçant à sauter par-dessus le rail ou à tomber prématurément.
+\end{enumerate}
+
+\subsection{Limites de la modélisation}
+Conformément aux exigences d'analyse critique[cite: 24], nous avons identifié plusieurs limites :
+\begin{itemize}
+    \item \textbf{Frottement de roulement :} Notre modèle ignore le couple de rotation généré par le contact rail/bille. En réalité, le roulement sans glissement modifierait légèrement la vitesse de translation.
+    \item \textbf{Élasticité simplifiée :} Le coefficient de restitution est fixe pour tous les calibres, alors qu'il varie en réalité selon la déformation locale de l'objet.
+\end{itemize}
+
+\subsection{Validation du modèle}
+Malgré ces simplifications, le modèle reproduit fidèlement le comportement attendu d'une trieuse gravitaire et permet d'isoler les paramètres critiques pour une construction réelle[cite: 56].
+
+\newpage
+
+% --- PAGE 9 : CONCLUSION ---
+\section{Conclusion}
+
+\subsection{Synthèse des travaux}
+Ce projet de modélisation mathématique a permis de valider la viabilité d'un système de tri passif par rails divergents[cite: 22, 23]. Nous avons démontré que pour une précision de 100\%, le débit maximal est atteint avec un délai d'injection de 250ms en utilisant un design de rails en profilé incliné ("Toit").
+
+\subsection{Réponse à la problématique}
+Le design optimal pour maximiser le débit sans erreur repose sur :
+\begin{enumerate}
+    \item Un guidage en "Toit" pour stabiliser les trajectoires.
+    \item Une vitesse d'injection synchronisée pour éviter les collisions inter-billes.
+\end{enumerate}
+
+\subsection{Pistes d'améliorations et Ouvertures}
+Pour augmenter encore le débit, nous proposons les pistes suivantes[cite: 25]:
+\begin{itemize}
+    \item \textbf{Rails courbes :} Utiliser une pente parabolique pour accélérer l'évacuation en fin de parcours.
+    \item \textbf{Vibrations :} Appliquer une vibration haute fréquence sur les rails pour réduire les frottements statiques et éviter les blocages.
+\end{itemize}
+
+\newpage
+
+% --- PAGE 10 : RÉFÉRENCES ---
+\section*{Références et Bibliographie}
+\addcontentsline{toc}{section}{Références et Bibliographie}
+
+\begin{enumerate}
+    \item \textbf{Document de référence :} \textit{Consignes Rapport et Soutenance - Modélisation mathématique}, 2025 [cite: 1-61].
+    \item \textbf{Documentation technique :} \textit{Three.js Core Documentation (v0.160)}, \url{https://threejs.org/}.
+    \item \textbf{Physique Numérique :} \textit{Intégration d'Euler et Dynamique des Collisions}, Image ressource R512.
+    \item \textbf{Code Source :} \textit{Scripts JavaScript du projet (logic.js, scene.js, moteur.js)}, 2026.
+\end{enumerate}
+
+\end{document}

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Evolution Idle</title>
+  <link rel="stylesheet" href="styles/index.css">
+</head>
+<body>
+  <div class="intro" id="intro-text"></div>
+
+  <script>
+
+const introText = `Booting Evolution Idle System...
+Checking memory...
+Loading save...
+`;
+
+    const container = document.getElementById('intro-text');
+    let index = 0;
+
+    function typeText() {
+      if (index < introText.length) {
+        container.innerHTML += introText.charAt(index) === '\\n' ? '<br>' : introText.charAt(index);
+        index++;
+        setTimeout(typeText, 50);
+      } else {
+        setTimeout(redirectToChapter, 1000);
+      }
+    }
+
+    function redirectToChapter() {
+      const savedChapter = localStorage.getItem('evo_chapter');
+      const chapter = savedChapter ? savedChapter : 'ch1/ch1.html';
+      window.location.href = chapter;
+    }
+
+    typeText();
+  </script>
+</body>
+</html>

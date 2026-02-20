@@ -1,0 +1,41 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: 'Orbitron', sans-serif;
+  background: radial-gradient(circle at center, #0a0f23 0%, #05070d 80%);
+  color: #f4f4f4;
+  height: 100vh;
+  width: 100vw;
+}
+
+#overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  padding: 2rem;
+  background: rgba(13, 13, 13, 0.6);
+  z-index: 10;
+}
+
+#overlay h1 {
+  font-size: 2.5rem;
+  color: #f4d35e;
+  text-shadow: 0 0 15px rgba(244, 211, 94, 1);
+  letter-spacing: 0.15em;
+  margin: 0;
+  animation: glowText 2s ease-in-out infinite alternate;
+}
+
+@keyframes glowText {
+  from { text-shadow: 0 0 10px rgba(244, 211, 94, 0.6); }
+  to   { text-shadow: 0 0 25px rgba(244, 211, 94, 1); }
+}
+
+canvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}

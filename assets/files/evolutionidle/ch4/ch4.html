@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EvolutionIdle – Chapter 4: Self-Optimization Core</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Vanta.js (NET effect) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
+
+  <!-- tsParticles (bundle version => FIX OK) -->
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.11.1/tsparticles.bundle.min.js"></script>
+
+  <!-- Chart.js + Streaming -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script> <!-- Adapter nécessaire -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-streaming@2.0.0"></script>
+    <!-- GSAP / Anime.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+
+  <link rel="stylesheet" href="ch4.css" />
+</head>
+<body class="flex flex-col min-h-screen overflow-hidden">
+
+  <!-- Background Layers -->
+  <div id="vanta-bg" class="fixed inset-0 -z-30"></div>
+  <div id="particles" class="fixed inset-0 -z-20"></div>
+
+  <!-- Header -->
+  <header class="relative flex items-center justify-center py-6">
+    <h1 class="text-4xl font-extrabold text-white drop-shadow-lg">EvolutionIdle – Chapter 4: Self-Optimization Core</h1>
+    <button id="themeToggle" class="absolute right-6 top-6 px-4 py-2 bg-yellow-400 text-black font-semibold rounded-lg shadow-lg hover:bg-yellow-300 transition">Toggle Theme</button>
+  </header>
+
+  <p class="text-center text-gray-200 mb-4 px-4">
+    Objective: Let the system optimize itself while monitoring real-time performance. Adjust clusters, cooling, and energy allocation.
+  </p>
+
+  <!-- Main Grid -->
+  <main class="flex-grow grid grid-cols-1 lg:grid-cols-2 gap-6 px-6 pb-6">
+    <!-- Resources -->
+    <section id="resources" class="panel text-center">
+      <h2 class="panel-title">System Resources</h2>
+      <ul class="space-y-2 text-white">
+        <li>Compute Clusters: <span id="clusters">1</span></li>
+        <li>Cooling Units: <span id="cooling">1</span></li>
+        <li>Energy Units: <span id="energy">500</span></li>
+        <li>Temperature: <span id="temperature">25</span>°C</li>
+        <li>Efficiency: <span id="efficiency">100%</span></li>
+        <li>FLOPS/sec: <span id="flops">20.00 MFLOPS</span></li>
+      </ul>
+      <button id="copyMetrics" class="mt-4 bg-gray-600 px-3 py-1 rounded">Copy Metrics</button>
+    </br>
+      <h2 class="panel-title">System Controls</h2>
+      <div class="space-y-4">
+        <label class="flex items-center space-x-4 text-white">
+          <span class="w-32">Clusters</span>
+          <input id="sliderClusters" type="range" min="1" max="10" value="1" class="slider" />
+        </label>
+        <label class="flex items-center space-x-4 text-white">
+          <span class="w-32">Cooling</span>
+          <input id="sliderCooling" type="range" min="1" max="10" value="1" class="slider" />
+        </label>
+        <button id="toggleLoop" class="w-full py-2 bg-blue-500 text-white font-bold rounded-lg shadow-lg hover:bg-blue-400 transition">Start Production</button>
+      </div>
+    </section>
+
+    <!-- Graph -->
+    <section id="chart" class="panel flex flex-col">
+      <h2 class="panel-title">Performance Monitoring (FLOPS/sec)</h2>
+      <canvas id="flopsChart" class="flex-grow bg-gray-800 rounded"></canvas>
+    </section>
+  </main>
+
+
+  <!-- Your JS -->
+  <script src="ch4.js"></script>
+</body>
+</html>

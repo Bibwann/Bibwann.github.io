@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>EvolutionIdle - Chapter 2: First Interfaces</title>
+    <link rel="stylesheet" href="ch2.css">
+    <script src="ch2.js" defer></script>
+</head>
+<body>
+    <header>
+        <h1>EvolutionIdle - Chapter 2: First Interfaces</h1>
+        <p class="objective">Goal: Reach stable Ops/sec to unlock the Graphical Interface (Chapter 3).</p>
+    </header>
+
+    <main style="display: flex; flex-direction: row; align-items: flex-start;">
+        <div id="interface" style="flex: 3; padding-right: 20px; display: flex; flex-wrap: wrap; align-items: flex-start;">
+
+            <section id="resources" style="min-width: 250px; margin-right: 20px;">
+                <h2>Resources</h2>
+                <p>Operations: <span id="ops">0</span></p>
+                <p>Compute Units: <span id="computeUnits">1</span> (Generates Ops/sec)</p>
+                <p>Memory Banks: <span id="memoryBanks">1</span> (Enables simultaneous processes)</p>
+                <p id="autoGenStatus" style="color: lime;">Auto Compute Daemon: LOCKED (Unlock via Upgrade)</p>
+                <p id="optimizationInfo">Optimization Algorithm: Logarithmic cost scaling</p>
+            </section>
+
+            <section id="actions" style="min-width: 250px; margin-right: 20px;">
+                <h2>Actions</h2>
+                <button id="runLoop">Generate Ops</button>
+            </section>
+
+            <section id="upgrades" style="min-width: 250px; margin-right: 20px;">
+                <h2>Compute & Memory Upgrades</h2>
+                <button id="upgradeCompute">+1 Compute Unit (Cost: 50 Ops)</button>
+                <button id="upgradeMemory">+1 Memory Bank (Cost: 75 Ops)</button>
+                <button id="unlockAutoGen">Unlock Auto Compute Daemon (Cost: 30 Ops)</button>
+            </section>
+
+            <section id="algoUpgrades" style="min-width: 250px; margin-right: 20px;">
+                <h2>Algorithm Optimization</h2>
+                <button id="optimizeAlgo">Optimize Algorithm (Boost Efficiency, Cost: 150 Ops)</button>
+                <button id="upgradeEfficiency">Advanced Algorithm Tuning (Boost Efficiency, Cost: 300 Ops)</button>
+            </section>
+
+            <section id="navigation" style="min-width: 300px;">
+                <h2>Interface Upgrade Protocol</h2>
+                <button id="initiateUpgrade" disabled>Launch Upgrade Protocol (Locked)</button>
+                <div id="upgradeStatus"></div>
+                <button id="goToChapter3" disabled onclick="window.location.href='../ch3/ch3.html';">Enables  graphics drivers</button>
+            </section>
+
+        </div>
+
+        <div id="log" style="flex: 1; border-left: 1px dashed #555; padding-left: 20px;">
+            <h2>System Log</h2>
+            <div id="logOutput" style="height: 400px; overflow-y: auto; background-color: black; color: lime; padding: 5px; font-family: monospace;">
+                [INFO] System initialized. Ready for input...
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>EvolutionIdle - Chapter 2: Building the foundation for advanced interfaces.</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,94 @@
+/* ch4.css */
+
+/* Background layers handled via Vanta.js + tsParticles */
+
+/* Panel styling */
+.panel {
+  background: rgba(44, 62, 80, 0.4); 
+  backdrop-filter: blur(8px);  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(12px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.panel:hover {
+  transform: translateY(-8px) scale(1.04);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+}
+
+.panel-title {
+  color: #f4d35e;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  position: relative;
+}
+.panel-title::after {
+  content: '';
+  display: block;
+  width: 0;
+  height: 0.3rem;
+  background: #f4d35e;
+  border-radius: 0.15rem;
+  position: absolute;
+  bottom: -0.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: underlineGrow 1s ease forwards;
+}
+@keyframes underlineGrow {
+  to { width: 4rem; }
+}
+
+/* Slider glow effect */
+.slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 8px;
+  background: rgba(244, 211, 94, 0.3);
+  border-radius: 4px;
+  box-shadow: 0 0 8px rgba(244, 211, 94, 0.7);
+  cursor: pointer;
+}
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 24px;
+  height: 24px;
+  background: #f4d35e;
+  border-radius: 50%;
+  border: none;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.slider::-webkit-slider-thumb:hover {
+  background: #fff;
+  transform: scale(1.2);
+}
+
+/* Chart canvas styling */
+#chart canvas {
+  background: rgba(27, 38, 59, 0.8);
+  border-radius: 0.5rem;
+}
+
+/* Footer stick */
+footer { margin-top: auto; }
+
+/* Theme toggle light mode overrides */
+body.light .panel {
+  background: rgba(255, 255, 255, 0.9);
+  color: #1a1a1a;
+}
+body.light header h1 { color: #1a1a1a; }
+body.light .panel-title::after { background: #1a1a1a; }
+body.light .slider::-webkit-slider-thumb { background: #1a1a1a; }
+
+/* Button style */
+button {
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+button:hover {
+  transform: scale(1.05);
+}
+button:active {
+  transform: scale(0.95);
+}
