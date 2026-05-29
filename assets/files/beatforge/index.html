@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BeatForge — Rhythm Game</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- ========== SPLASH SCREEN ========== -->
+    <div id="splash-screen" class="screen active">
+        <div class="screen-bg splash-bg"></div>
+        <div class="splash-content">
+            <h1 class="game-title">BEAT<span class="accent">FORGE</span></h1>
+            <div class="title-underline"></div>
+            <p class="subtitle">RHYTHM REDEFINED</p>
+            <div class="loading-bar">
+                <div class="loading-fill" id="loading-fill"></div>
+            </div>
+            <p class="press-start" id="press-start">PRESS ANY KEY TO START</p>
+        </div>
+        <canvas id="bg-canvas"></canvas>
+    </div>
+
+    <!-- ========== MAIN MENU ========== -->
+    <div id="main-menu" class="screen">
+        <div class="screen-bg menu-bg"></div>
+        <canvas id="menu-canvas" class="bg-anim-canvas"></canvas>
+        <div class="menu-content">
+            <h1 class="menu-title">BEAT<span class="accent">FORGE</span></h1>
+            <nav class="menu-nav">
+                <button class="menu-btn" data-action="play">
+                    <span class="btn-icon">▶</span>
+                    <span class="btn-text">PLAY</span>
+                </button>
+                <button class="menu-btn" data-action="settings">
+                    <span class="btn-icon">⚙</span>
+                    <span class="btn-text">SETTINGS</span>
+                </button>
+                <button class="menu-btn" data-action="howto">
+                    <span class="btn-icon">?</span>
+                    <span class="btn-text">HOW TO PLAY</span>
+                </button>
+                <button class="menu-btn" data-action="credits">
+                    <span class="btn-icon">★</span>
+                    <span class="btn-text">CREDITS</span>
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- ========== LEVEL SELECT ========== -->
+    <div id="level-select" class="screen">
+        <div class="screen-bg"></div>
+        <div class="screen-header">
+            <button class="back-btn" data-action="menu">◀ BACK</button>
+            <h2>SELECT TRACK</h2>
+        </div>
+        <div class="level-grid" id="level-grid">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+
+    <!-- ========== SETTINGS ========== -->
+    <div id="settings-screen" class="screen">
+        <div class="screen-bg"></div>
+        <div class="screen-header">
+            <button class="back-btn" data-action="menu">◀ BACK</button>
+            <h2>SETTINGS</h2>
+        </div>
+        <div class="settings-content">
+            <div class="setting-item">
+                <label>Music Volume</label>
+                <input type="range" id="music-volume" min="0" max="100" value="70">
+                <span class="setting-value" id="music-value">70%</span>
+            </div>
+            <div class="setting-item">
+                <label>SFX Volume</label>
+                <input type="range" id="sfx-volume" min="0" max="100" value="80">
+                <span class="setting-value" id="sfx-value">80%</span>
+            </div>
+            <div class="setting-item">
+                <label>Note Speed</label>
+                <input type="range" id="note-speed" min="1" max="10" value="5">
+                <span class="setting-value" id="speed-value">5</span>
+            </div>
+            <div class="setting-item">
+                <label>Visual Effects</label>
+                <div class="toggle-group">
+                    <button class="toggle-btn active" data-setting="effects" data-value="on">ON</button>
+                    <button class="toggle-btn" data-setting="effects" data-value="off">OFF</button>
+                </div>
+            </div>
+            <div class="setting-item">
+                <label>Input Offset</label>
+                <input type="range" id="note-offset" min="-150" max="150" value="0">
+                <span class="setting-value" id="offset-value">0ms</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== HOW TO PLAY ========== -->
+    <div id="howto-screen" class="screen">
+        <div class="screen-bg"></div>
+        <div class="screen-header">
+            <button class="back-btn" data-action="menu">◀ BACK</button>
+            <h2>HOW TO PLAY</h2>
+        </div>
+        <div class="howto-content">
+            <div class="howto-section">
+                <h3>Controls</h3>
+                <div class="key-display">
+                    <div class="key-item"><span class="key key-color-0">D</span><span class="key-label">Lane 1</span></div>
+                    <div class="key-item"><span class="key key-color-1">F</span><span class="key-label">Lane 2</span></div>
+                    <div class="key-item"><span class="key key-color-2">J</span><span class="key-label">Lane 3</span></div>
+                    <div class="key-item"><span class="key key-color-3">K</span><span class="key-label">Lane 4</span></div>
+                </div>
+                <p class="howto-hint">Press <span class="key key-small">ESC</span> to pause during gameplay</p>
+            </div>
+            <div class="howto-section">
+                <h3>Timing</h3>
+                <div class="timing-info">
+                    <div class="timing-row"><span class="timing-badge perfect">PERFECT</span><span>Maximum points + combo</span></div>
+                    <div class="timing-row"><span class="timing-badge great">GREAT</span><span>Good points + combo</span></div>
+                    <div class="timing-row"><span class="timing-badge good">GOOD</span><span>Some points + combo</span></div>
+                    <div class="timing-row"><span class="timing-badge miss">MISS</span><span>No points, combo reset</span></div>
+                </div>
+            </div>
+            <div class="howto-section">
+                <h3>Tips</h3>
+                <p>Watch the notes fall and press the matching key when they reach the glowing hit zone. Build combos for score multipliers!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== GAME SCREEN ========== -->
+    <div id="game-screen" class="screen">
+        <div class="game-bg" id="game-bg"></div>
+        <div class="scanlines-overlay"></div>
+
+        <!-- HUD Top Bar -->
+        <div class="game-hud">
+            <div class="hud-left">
+                <div class="score-display">
+                    <span class="score-label">SCORE</span>
+                    <span class="score-value" id="score-value">0</span>
+                </div>
+                <div class="multiplier-display">
+                    <span class="multiplier-label">MULT</span>
+                    <span class="multiplier-value" id="multiplier-value">×1</span>
+                </div>
+            </div>
+            <div class="hud-center">
+                <span class="song-name" id="hud-song-name">—</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+            <div class="hud-right">
+                <div class="health-bar">
+                    <div class="health-fill" id="health-fill"></div>
+                </div>
+                <span class="accuracy-value" id="accuracy-value">100.0%</span>
+            </div>
+        </div>
+
+        <!-- Combo display (centered, large) -->
+        <div class="combo-display" id="combo-display">
+            <span class="combo-value" id="combo-value">0</span>
+            <span class="combo-label">COMBO</span>
+        </div>
+
+        <div class="milestone-display" id="milestone-display"></div>
+
+        <!-- Game Lanes -->
+        <div class="game-area" id="game-area">
+            <div class="game-grid"></div>
+            <div class="lane" data-lane="0">
+                <div class="lane-glow"></div>
+            </div>
+            <div class="lane" data-lane="1">
+                <div class="lane-glow"></div>
+            </div>
+            <div class="lane" data-lane="2">
+                <div class="lane-glow"></div>
+            </div>
+            <div class="lane" data-lane="3">
+                <div class="lane-glow"></div>
+            </div>
+            <div class="hit-line" id="hit-line"></div>
+            <div class="receptors">
+                <div class="hit-receptor" id="receptor-0" data-lane="0"><span>D</span></div>
+                <div class="hit-receptor" id="receptor-1" data-lane="1"><span>F</span></div>
+                <div class="hit-receptor" id="receptor-2" data-lane="2"><span>J</span></div>
+                <div class="hit-receptor" id="receptor-3" data-lane="3"><span>K</span></div>
+            </div>
+        </div>
+
+        <!-- Judgment text -->
+        <div class="judgment-display" id="judgment-display"></div>
+
+        <!-- Particle canvas overlay -->
+        <canvas id="particle-canvas"></canvas>
+
+        <!-- Pause Overlay -->
+        <div class="pause-overlay" id="pause-overlay">
+            <div class="pause-content">
+                <h2>PAUSED</h2>
+                <button class="menu-btn pause-btn" data-action="resume"><span class="btn-icon">▶</span><span class="btn-text">RESUME</span></button>
+                <button class="menu-btn pause-btn" data-action="restart"><span class="btn-icon">↺</span><span class="btn-text">RESTART</span></button>
+                <button class="menu-btn pause-btn" data-action="quit"><span class="btn-icon">✕</span><span class="btn-text">QUIT</span></button>
+            </div>
+        </div>
+
+        <!-- Countdown overlay -->
+        <div class="countdown-overlay" id="countdown-overlay">
+            <span class="countdown-number" id="countdown-number">3</span>
+        </div>
+    </div>
+
+    <!-- ========== RESULTS SCREEN ========== -->
+    <div id="results-screen" class="screen">
+        <div class="screen-bg results-bg"></div>
+        <div class="results-content">
+            <h2 class="results-title" id="results-title">STAGE CLEAR!</h2>
+            <div class="results-rank" id="results-rank">S</div>
+            <div class="results-song" id="results-song">Song Name</div>
+            <div id="result-badges" class="result-badges"></div>
+            <div class="results-stats">
+                <div class="stat-row">
+                    <span class="stat-label">Final Score</span>
+                    <span class="stat-value" id="result-score">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Max Combo</span>
+                    <span class="stat-value" id="result-combo">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Accuracy</span>
+                    <span class="stat-value" id="result-accuracy">0%</span>
+                </div>
+                <hr class="stat-divider">
+                <div class="stat-row perfect">
+                    <span class="stat-label">Perfect</span>
+                    <span class="stat-value" id="result-perfect">0</span>
+                </div>
+                <div class="stat-row great">
+                    <span class="stat-label">Great</span>
+                    <span class="stat-value" id="result-great">0</span>
+                </div>
+                <div class="stat-row good">
+                    <span class="stat-label">Good</span>
+                    <span class="stat-value" id="result-good">0</span>
+                </div>
+                <div class="stat-row miss">
+                    <span class="stat-label">Miss</span>
+                    <span class="stat-value" id="result-miss">0</span>
+                </div>
+            </div>
+            <div class="results-actions">
+                <button class="menu-btn" data-action="retry"><span class="btn-icon">↺</span><span class="btn-text">RETRY</span></button>
+                <button class="menu-btn" data-action="levels"><span class="btn-icon">♫</span><span class="btn-text">TRACKS</span></button>
+                <button class="menu-btn" data-action="menu"><span class="btn-icon">⌂</span><span class="btn-text">MENU</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== CREDITS ========== -->
+    <div id="credits-screen" class="screen">
+        <div class="screen-bg"></div>
+        <div class="screen-header">
+            <button class="back-btn" data-action="menu">◀ BACK</button>
+            <h2>CREDITS</h2>
+        </div>
+        <div class="credits-content">
+            <div class="credit-section">
+                <h3>BEATFORGE</h3>
+                <p>A Complete Rhythm Game Experience</p>
+            </div>
+            <div class="credit-section">
+                <h3>Design & Development</h3>
+                <p>Built with Web Technologies</p>
+                <p>HTML5 • CSS3 • JavaScript • Web Audio API</p>
+            </div>
+            <div class="credit-section">
+                <h3>Audio</h3>
+                <p>All music procedurally generated</p>
+                <p>using the Web Audio API synthesizer</p>
+            </div>
+            <div class="credit-section">
+                <h3>Version</h3>
+                <p>BeatForge v1.0 — © 2026</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts (loaded in order) -->
+    <script src="js/audio.js"></script>
+    <script src="js/levels.js"></script>
+    <script src="js/particles.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

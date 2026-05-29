@@ -1,540 +1,889 @@
 <!DOCTYPE html>
 <html lang="fr">
-   <head>
-      <meta charset="utf-8">
-      <meta content="width=device-width, initial-scale=1.0" name="viewport">
-      <title>My World</title>
-      <meta name="description" content="">
-      <meta name="keywords" content="">
-      <link href="assets/img/favicon.png" rel="icon">
-      <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
-      <link href="https://fonts.googleapis.com" rel="preconnect">
-      <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
-      <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
-      <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-      <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
-      <link href="assets/vendor/aos/aos.css" rel="stylesheet">
-      <link href="assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
-      <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
-      <link href="assets/css/main.css" rel="stylesheet">
-   </head>
-   <body class="index-page">
-      <header id="header" class="header d-flex align-items-center sticky-top">
-         <div class="container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
-            <a href="index.html" class="logo d-flex align-items-center">
-               <h1 class="sitename">My World</h1>
-            </a>
-            <nav id="navmenu" class="navmenu">
-               <ul>
-                  <li><a href="#hero" class="active" data-i18n="home_ref">Home<br></a></li>
-                  <li><a href="#about" data-i18n="about_ref">About</a></li>
-                  <li><a href="#resume" data-i18n="resume_ref">Resume</a></li>
-                  <li><a href="#services" data-i18n="services_ref">Services</a></li>
-                  <li><a href="#projects" data-i18n="portfolio_ref">Mes Projets</a></li>
-                  <li><a href="#contact" data-i18n="contact_ref">Contact</a></li>
-                  <div class="dropdown" id="lang-switcher" style="position: relative; margin-left: 1rem;">
-                     <a href="#" id="current-lang" data-bs-toggle="dropdown" aria-expanded="false" style="display:inline-block;">
-                     <img src="assets/img/en-flag.png" alt="en" width="32" height="22">
-                     </a>
-                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li>
-                           <a class="dropdown-item lang-item" href="#" data-lang="en">
-                           <img src="assets/img/en-flag.png" alt="en" width="32" height="22">
-                           </a>
-                        </li>
-                        <li>
-                           <a class="dropdown-item lang-item" href="#" data-lang="fr">
-                           <img src="assets/img/fr-flag.png" alt="fr" width="32" height="22">
-                           </a>
-                        </li>
-                     </ul>
-                  </div>
-               </ul>
-               <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
-            </nav>
-         </div>
-      </header>
-      <main class="main">
-         <section id="hero" class="hero section dark-background">
-            <img src="assets/img/entry.jpg" alt="" data-aos="fade-in" style="filter: grayscale(100%);">
-            <div class="container d-flex flex-column align-items-center justify-content-center text-center" data-aos="fade-up" data-aos-delay="100">
-               <h2 data-i18n="mon_nom">I am Nieto Bastien</h2>
-               <p>
-                  <span id="typed-text" data-i18n="typed-items" data-typed-items="Alternant, UI/UX Designer, Fullstack Developer, Dev Mobil"></span>
-               </p>
+
+<head>
+   <meta charset="utf-8">
+   <meta content="width=device-width, initial-scale=1.0" name="viewport">
+   <title>Bastien Nieto — Développeur Fullstack &amp; Intégration IA</title>
+   <meta name="description"
+      content="Bastien Nieto, développeur fullstack et expert en intégration IA : systèmes multi-agents, fine-tuning, LoRA, web, mobile et jeux. Voyage dans un système solaire 3D et discute avec une IA qui tourne dans ton navigateur.">
+   <meta name="keywords"
+      content="Bastien Nieto, développeur fullstack, intégration IA, multi-agents, LoRA, Aegis, Luminai, portfolio">
+   <meta name="theme-color" content="#06060c">
+   <meta property="og:title" content="Bastien Nieto — Fullstack &amp; Intégration IA">
+   <meta property="og:description"
+      content="Systèmes multi-agents, intégration IA, fullstack. Fond système solaire 3D + IA locale dans le navigateur.">
+   <meta property="og:type" content="website">
+   <link href="assets/img/favicon.png" rel="icon">
+   <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+   <link href="https://fonts.googleapis.com" rel="preconnect">
+   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+   <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet">
+   <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+   <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+   <link href="assets/vendor/aos/aos.css" rel="stylesheet">
+   <link href="assets/css/main.css" rel="stylesheet">
+</head>
+
+<body class="index-page">
+   <canvas id="webgl-bg"></canvas>
+   <div class="scroll-progress" id="scroll-progress"></div>
+
+   <header id="header" class="header">
+      <div class="container-fluid">
+         <a href="#hero" class="logo d-flex align-items-center">
+            <h1 class="sitename">MyWorld</h1>
+         </a>
+         <nav id="navmenu" class="navmenu">
+            <ul>
+               <li><a href="#hero" class="active" data-i18n="home_ref">Accueil</a></li>
+               <li><a href="#about" data-i18n="about_ref">À propos</a></li>
+               <li><a href="#resume" data-i18n="resume_ref">Parcours</a></li>
+               <li><a href="#services" data-i18n="services_ref">Services</a></li>
+               <li><a href="#claude" data-i18n="claude_ref">Copilote</a></li>
+               <li><a href="#ai" data-i18n="terminal_ref">Mon IA</a></li>
+               <li><a href="#projects" data-i18n="portfolio_ref">Projets</a></li>
+               <li><a href="#contact" data-i18n="contact_ref">Contact</a></li>
+               <div class="dropdown" id="lang-switcher">
+                  <a href="#" id="current-lang" data-bs-toggle="dropdown" aria-expanded="false">
+                     <img src="assets/img/fr-flag.png" alt="langue" width="24" height="24">
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                     <li><a class="dropdown-item lang-item" href="#" data-lang="fr"><img src="assets/img/fr-flag.png"
+                              alt="fr" width="22" height="22"></a></li>
+                     <li><a class="dropdown-item lang-item" href="#" data-lang="en"><img src="assets/img/en-flag.png"
+                              alt="en" width="22" height="22"></a></li>
+                  </ul>
+               </div>
+               <span class="nav-indicator" aria-hidden="true"></span>
+            </ul>
+            <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+         </nav>
+      </div>
+   </header>
+
+   <main class="main">
+
+      <!-- ============ HERO ============ -->
+      <section id="hero" class="hero section">
+         <div class="hero-inner container">
+            <span class="hero-tag">
+               <span class="dot"></span>
+               <span data-i18n="hero_status">Disponible pour de nouveaux projets</span>
+            </span>
+            <h2 data-i18n="mon_nom">Bastien Nieto</h2>
+            <p class="hero-role" data-i18n="hero_role">Développeur Fullstack &amp; Expert en Intégration IA</p>
+            <p class="hero-subtitle">
+               <span class="seq">&gt;_</span>
+               <span id="typed-text"
+                  data-typed-items="J'orchestre des agents IA, Je fine-tune des modèles, Je code en fullstack"></span>
+            </p>
+            <div class="hero-cta">
+               <a href="#projects" class="btn-neon"><i class="bi bi-grid-3x3-gap"></i> <span
+                     data-i18n="hero_cta_projects">Voir mes projets</span></a>
+               <a href="#ai" class="btn-neon ghost"><i class="bi bi-stars"></i> <span
+                     data-i18n="hero_cta_terminal">Parler à mon IA</span></a>
+               <a href="assets/files/bastien_nieto.pdf" download class="btn-neon ghost"><i class="bi bi-download"></i>
+                  <span data-i18n="hero_cta_cv">Mon CV</span></a>
             </div>
-         </section>
-         <section id="about" class="about section">
-            <div class="container" data-aos="fade-up" data-aos-delay="100">
-               <div class="row gy-4">
-                  <div class="col-md-6">
-                     <div class="row justify-content-between gy-4">
-                        <div class="col-lg-5">
-                           <img src="assets/img/portrait.jpg" class="img-fluid" alt="">
+         </div>
+         <a href="#about" class="hero-scroll-hint">
+            <span data-i18n="hero_scroll">Embarquer</span> <i class="bi bi-chevron-double-down"></i>
+         </a>
+      </section>
+
+      <!-- ============ ABOUT ============ -->
+      <section id="about" class="about section">
+         <div class="container section-title" data-aos="fade-up">
+            <span class="section-kicker">// ABOUT</span>
+            <h2 data-i18n="about_title">À propos</h2>
+            <p data-i18n="about_subtitle">Développeur fullstack, spécialisé dans l'intégration de l'IA.</p>
+         </div>
+         <div class="container">
+            <div class="row gy-4 align-items-stretch">
+               <div class="col-lg-6" data-aos="fade-up" data-aos-delay="100">
+                  <div class="glass-panel">
+                     <div class="row gy-4 align-items-center">
+                        <div class="col-sm-5">
+                           <img src="assets/img/portrait.jpg" class="portrait" alt="Portrait de Bastien Nieto">
                         </div>
-                        <div class="col-lg-7 about-info">
-                           <p><strong data-i18n="name_about">Name: </strong><span>Bastien Nieto</span></p>
-                           <p><strong data-i18n="profil_about">Profile: </strong><span data-i18n="profil_about_2">Developpeur full stack (alternance, BUT Informatique)</span></p>
-                           <p><strong data-i18n="email_about">Email: </strong><span>bastien.nieto@etu.univ-cotedazur.fr</span></p>
-                           <p><strong data-i18n="phone_about">Phone: </strong><span>07 83 24 61 39</span></p>
-                           <p>
-                              <a href="assets/files/bastien_nieto.pdf" download class="btn btn-primary" id="download-cv" style="margin-top:1rem; display: inline-flex; align-items: center; gap: 0.5rem;">
-                              <i class="bi bi-download"></i>
-                              <span data-i18n="cv_download">Telecharger mon CV</span>
-                              </a>
-                           </p>
+                        <div class="col-sm-7 about-info">
+                           <p><strong data-i18n="name_about">Nom :</strong><span>Bastien Nieto</span></p>
+                           <p><strong data-i18n="profil_about">Profil :</strong><span
+                                 data-i18n="profil_about_2">Fullstack &amp; Intégration IA</span></p>
+                           <p><strong data-i18n="email_about">Email :</strong><span>bastien.one04@gmail.com</span></p>
+                           <p><strong data-i18n="phone_about">Spot :</strong><span data-i18n="loc_about">Côte d'Azur
+                                 (83)</span></p>
+                           <a href="assets/files/bastien_nieto.pdf" download class="btn-cv" id="download-cv">
+                              <i class="bi bi-download"></i> <span data-i18n="cv_download">Télécharger mon CV</span>
+                           </a>
                         </div>
                      </div>
                      <div class="skills-content skills-animation">
                         <h5 data-i18n="skills_title">Langues</h5>
                         <div class="progress">
-                           <span class="skill">
-                           <span data-i18n="skills_fr">Francais</span>
-                           <i class="val" data-i18n="skills_fr_level">Maternelle</i>
-                           </span>
+                           <span class="skill"><span data-i18n="skills_fr">Français</span> <i class="val"
+                                 data-i18n="skills_fr_level">Maternelle</i></span>
                            <div class="progress-bar-wrap">
-                              <div class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                              <div class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0"
+                                 aria-valuemax="100"></div>
                            </div>
                         </div>
                         <div class="progress">
-                           <span class="skill">
-                           <span data-i18n="skills_en">Anglais</span>
-                           <i class="val" data-i18n="skills_en_level">B2</i>
-                           </span>
+                           <span class="skill"><span data-i18n="skills_en">Anglais</span> <i class="val"
+                                 data-i18n="skills_en_level">B2</i></span>
                            <div class="progress-bar-wrap">
-                              <div class="progress-bar" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                              <div class="progress-bar" role="progressbar" aria-valuenow="75" aria-valuemin="0"
+                                 aria-valuemax="100"></div>
                            </div>
                         </div>
-                     </div>
-                  </div>
-                  <div class="col-md-6">
-                     <div class="about-me">
-                        <h4 data-i18n="about_title">About me</h4>
-                        <p data-i18n="about_1">Passionné d'informatique et actuellement alternant à l'IUT de Sophia, je travaille en entreprise sur le développement et la migration d'applications web et mobiles, principalement autour des technologies web, telle que PHP/Symfony, Node Js...</p>
-                        <p data-i18n="about_2">J'interviens sur toutes les couches du développement, du backend (API, base de données, administration système) au frontend (UI/UX, intégration web, design), ainsi que sur la gestion de projets et l'assistance technique.</p>
-                        <p data-i18n="about_3">Expert en IA et technologies émergentes. Je conçois des solutions innovantes et optimise des architectures complexes. Mon approche combine rigueur opérationnelle et veille technologique constante pour délivrer des outils performants et scalables.</p>
-                     </div>
-                  </div>
-               </div>
-            </div>
-         </section>
-
-         <section id="resume" class="resume section">
-    <div class="container section-title" data-aos="fade-up">
-        <h2 data-i18n="resume_title">Resume</h2>
-        <p data-i18n="resume_subtitle">Mon parcours, mes expériences, mes compétences clés.</p>
-    </div>
-
-    <div class="container">
-        <div class="row"> <div class="col-lg-6" data-aos="fade-up" data-aos-delay="100">
-                <h3 class="resume-title" data-i18n="resume_education_title">Formations</h3>
-
-                <div class="resume-item">
-                    <h4 data-i18n="resume_but_title">BUT Informatique (alternance)</h4>
-                    <h5 data-i18n="resume_but_date">2023 - présent</h5>
-                    <p><em data-i18n="resume_but_school">IUT de Sophia Antipolis</em></p>
-                </div>
-
-                <div class="resume-item">
-                    <h4 data-i18n="resume_peip_title">Polytech Annecy Peip1</h4>
-                    <h5 data-i18n="resume_peip_date">2022 - 2023</h5>
-                    <p><em data-i18n="resume_peip_school">Polytech Annecy Peip1</em></p>
-                </div>
-
-                <div class="resume-item">
-                    <h4 data-i18n="resume_bac_title">Bac Général Mathématiques/NSI</h4>
-                    <h5 data-i18n="resume_bac_date">2022</h5>
-                    <p><em data-i18n="resume_bac_mention">Mention Bien</em></p>
-                </div>
-            </div> <div class="col-lg-6" data-aos="fade-up" data-aos-delay="200">
-                <h3 class="resume-title" data-i18n="resume_exp_title">Expérience professionnelle</h3>
-                
-                <div class="resume-item">
-                    <h4 data-i18n="resume_valiance_title">Alternant Développeur Full Stack & Admin Système</h4>
-                    <h5 data-i18n="resume_valiance_date">2022 – aujourd’hui</h5>
-                    <p><em data-i18n="resume_valiance_company">Valiance, Sophia Antipolis</em></p>
-                    <ul>
-                        <li data-i18n="resume_valiance_erp">Migration et évolution de l’ERP maison : Refonte progressive du code legacy (Symfony 1.4 ➔ 4 ➔ 7). Création d’un pont hybride pour garantir la continuité du service client.</li>
-                        <li data-i18n="resume_valiance_web">Développement web et mobile : Nouvelles fonctionnalités fullstack (API, modules clients, UI). Portage d’une appli Android Java vers Kotlin, début de Swift pour iOS.</li>
-                        <li data-i18n="resume_valiance_sys">Administration système & infrastructure : Installation, maintenance, sécurisation de serveurs locaux/OVH. Gestion NAS QNAP, RAID, sauvegardes.</li>
-                        <li data-i18n="resume_valiance_docs">Création de modèles HTML/CSS pour devis/factures personnalisés.</li>
-                        <li data-i18n="resume_valiance_support">Support technique : interventions ponctuelles, assistance client, gestion de tickets.</li>
-                        <li data-i18n="resume_valiance_team">Participation à la vie d’équipe : documentation, gestion de projet, réunions clients.</li>
-                    </ul>
-                </div>
-
-                <div class="resume-item">
-                    <h4 data-i18n="resume_monaclean_title">Stagiaire - Monaclean</h4>
-                    <h5 data-i18n="resume_monaclean_date">Juillet 2023</h5>
-                    <p data-i18n="resume_monaclean_desc">Découverte de l'environnement professionnel : accompagnement des ingénieurs, découverte des métiers techniques et gestion (planning, commercial, terrain, comptabilité).</p>
-                </div>
-            </div> </div> </div> </section>
-         <section id="services" class="services section">
-            <div class="container section-title" data-aos="fade-up">
-               <h2 data-i18n="services_title">Services</h2>
-               <p data-i18n="services_subtitle">Retrouvez ici mes domaines d’expertise, du développement à la modernisation d’applications métiers.</p>
-            </div>
-            <div class="container">
-               <div class="row gy-4">
-                  <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
-                     <div class="service-item position-relative">
-                        <div class="icon"><i class="bi bi-laptop"></i></div>
-                        <h3 data-i18n="services_web_title">Développement web & full stack</h3>
-                        <p data-i18n="services_web_desc">Création d’applications web modernes, front et back, en PHP, Symfony, JavaScript, HTML/CSS, API et bases de données.</p>
-                     </div>
-                  </div>
-                  <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
-                     <div class="service-item position-relative">
-                        <div class="icon"><i class="bi bi-phone"></i></div>
-                        <h3 data-i18n="services_mobile_title">Développement mobile</h3>
-                        <p data-i18n="services_mobile_desc">Migration et création d’applications mobiles en Java, Kotlin, Swift, conception d’interfaces intuitives et connectées.</p>
-                     </div>
-                  </div>
-                  <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
-                     <div class="service-item position-relative">
-                        <div class="icon"><i class="bi bi-bootstrap"></i></div>
-                        <h3 data-i18n="services_legacy_title">Modernisation d’applications legacy</h3>
-                        <p data-i18n="services_legacy_desc">Refonte et migration de logiciels anciens : audit, adaptation, création de passerelles, et maintien en condition opérationnelle.</p>
-                     </div>
-                  </div>
-                  <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="400">
-                     <div class="service-item position-relative">
-                        <div class="icon"><i class="bi bi-cloud-upload"></i></div>
-                        <h3 data-i18n="services_sysadmin_title">Déploiement & maintenance serveurs</h3>
-                        <p data-i18n="services_sysadmin_desc">Installation, configuration et supervision de serveurs QNAP, OVH, Linux, et mise en place de sauvegardes.</p>
-                     </div>
-                  </div>
-                  <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="500">
-                     <div class="service-item position-relative">
-                        <div class="icon"><i class="bi bi-file-earmark-pdf"></i></div>
-                        <h3 data-i18n="services_doc_title">Création de documents personnalisés</h3>
-                        <p data-i18n="services_doc_desc">Développement de modèles HTML/PDF pour factures, devis, bons d’intervention sur-mesure pour les PME/TPE.</p>
-                     </div>
-                  </div>
-                  <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="600">
-                     <div class="service-item position-relative">
-                        <div class="icon"><i class="bi bi-people"></i></div>
-                        <h3 data-i18n="services_support_title">Conseil & accompagnement numérique</h3>
-                        <p data-i18n="services_support_desc">Aide à la transformation digitale des petites entreprises : formation, documentation, optimisation des workflows.</p>
-                     </div>
-                  </div>
-               </div>
-            </div>
-         </section>
-         <section id="stats" class="stats section accent-background">
-            <img src="assets/img/background.png" alt="" data-aos="fade-in">
-            <div class="container position-relative" data-aos="fade-up" data-aos-delay="100">
-               <div class="row gy-4 justify-content-center">
-                  <div class="col-lg-3 col-md-6">
-                     <div class="stats-item text-center w-100 h-100">
-                        <span data-purecounter-start="0" data-purecounter-end="12" data-purecounter-duration="0" class="purecounter">12</span>
-                        <p data-i18n="portfolio_project_conter">Projects</p>
-                     </div>
-                  </div>
-               </div>
-            </div>
-         </section>
-         <section id="projects" class="portfolio section">
-            <div class="container section-title" data-aos="fade-up">
-               <h2 data-i18n="portfolio_title">Mes Projets</h2>
-               <p data-i18n="portfolio_subtitle">Un aperçu concret de mon parcours : Développement Web, Mobile et Jeux Vidéo</p>
-            </div>
-            <div class="container">
-               <div class="isotope-layout" data-default-filter="*" data-layout="masonry" data-sort="original-order">
-                  <ul class="portfolio-filters isotope-filters" data-aos="fade-up" data-aos-delay="100">
-                     <li data-filter="*" class="filter-active" data-i18n="filter_all">Tout</li>
-                     <li data-filter=".filter-web" data-i18n="filter_web">Web</li>
-                     <li data-filter=".filter-app" data-i18n="filter_app">Apps Mobile</li>
-                     <li data-filter=".filter-game" data-i18n="filter_game">Jeux & VR</li>
-                  </ul>
-                  <div class="row gy-4 isotope-container" data-aos="fade-up" data-aos-delay="200">
-                     <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-web">
-                        <img src="assets/img/portfolio/trieuse.png" class="img-fluid" alt="BDD Steam Docker">
-                        <div class="portfolio-info">
-                           <h4 data-i18n="portfolio_steam_title">MongoDB Docker + Import</h4>
-                           <p data-i18n="portfolio_steam_desc">Stack complète avec MongoDB 7 & Mongo Express sur Docker. Scripts d'automatisation (PowerShell/Bash) pour l'import one-shot de données JSON/NDJSON.</p>
-                           <div class="portfolio-actions">
-                              <a href="assets/files/trieuse/trieuse/index.html" class="btn btn-outline-dark btn-sm" target="_blank">
-                              <i class="bi bi-eye"></i> <span data-i18n="portfolio_steam_btn">Voir le projet</span>
-                              </a>
-                           </div>
-                        </div>
-                     </div>
-                     <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-web">
-                        <img src="assets/img/portfolio/steam.png" class="img-fluid" alt="BDD Steam Docker">
-                        <div class="portfolio-info">
-                           <h4 data-i18n="portfolio_steam2_title">BDD Steam Docker</h4>
-                           <p data-i18n="portfolio_steam2_desc">Gestion et structuration d'une base de données Steam sous Docker.</p>
-                           <div class="portfolio-actions">
-                              <a href="assets/files/BDD-Steam-main/" class="btn btn-outline-dark btn-sm" target="_blank">
-                              <i class="bi bi-eye"></i> <span data-i18n="portfolio_steam2_btn">Voir le projet</span>
-                              </a>
-                           </div>
-                        </div>
-                     </div>
-                     <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-web">
-                        <img src="assets/img/portfolio/solar.png" class="img-fluid" alt="Solar System Hand Tracking">
-                        <div class="portfolio-info">
-                           <h4 data-i18n="portfolio_solar_title">Système Solaire (Hand Tracking)</h4>
-                           <p data-i18n="portfolio_solar_desc">Simulation interactive du système solaire contrôlable par les mouvements de la main (Computer Vision). Explorez l'espace sans toucher le clavier.</p>
-                           <div class="portfolio-actions">
-                              <a href="assets/files/solaire/index.html" class="btn btn-outline-dark btn-sm" target="_blank">
-                              <i class="bi bi-eye"></i> <span data-i18n="portfolio_solar_btn">Voir le projet</span>
-                              </a>
-                           </div>
-                        </div>
-                     </div>
-                     <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-game">
-                        <img src="assets/img/portfolio/valorant.png" class="img-fluid" alt="Mini Valorant Game">
-                        <div class="portfolio-info">
-                           <h4 data-i18n="portfolio_valorant_title">Mini Valorant</h4>
-                           <p data-i18n="portfolio_valorant_desc">Mini-jeu FPS tactique inspiré de Valorant. Gestion de tir, déplacements fluides et mécanique de gameplay compétitif.</p>
-                           <div class="portfolio-actions">
-                              <a href="assets/files/roulette.html" class="btn btn-outline-danger btn-sm">
-                              <i class="bi bi-controller"></i> <span data-i18n="portfolio_valorant_btn">Jouer</span>
-                              </a>
-                           </div>
-                        </div>
-                     </div>
-                     <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-web">
-                        <img src="assets/img/portfolio/valiance.png" class="img-fluid" alt="">
-                        <div class="portfolio-info">
-                           <h4 data-i18n="portfolio_erp_title">Migration ERP Valiance</h4>
-                           <p data-i18n="portfolio_erp_desc">Migration et refonte d’un ERP legacy (Symfony 1.4 → 4 → 7), création de ponts hybrides.</p>
-                           <div class="portfolio-actions">
-                              <a href="http://valiance-bm.com/" class="btn btn-outline-success btn-sm" download>
-                              <i class="bi bi-download"></i> <span data-i18n="portfolio_erp_btn">Valiance</span>
-                              </a>
-                           </div>
-                        </div>
-                     </div>
-                     <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-game">
-                        <img src="assets/img/portfolio/whiskersrebelion.png" class="img-fluid" alt="">
-                        <div class="portfolio-info">
-                           <h4 data-i18n="portfolio_rpg_title">Projet RPG Java</h4>
-                           <p data-i18n="portfolio_rpg_desc">Développement complet d’un RPG en Java : architecture, IA basique, rendu graphique.</p>
-                           <div class="portfolio-actions">
-                              <a href="https://github.com/Bibwann/Project_R" class="btn btn-outline-dark btn-sm" target="_blank">
-                              <i class="bi bi-github"></i> <span data-i18n="portfolio_rpg_btn">Voir sur Github</span>
-                              </a>
-                           </div>
-                        </div>
-                     </div>
-                     <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-web">
-                        <img src="assets/img/portfolio/evolutionidle.png" class="img-fluid" alt="">
-                        <div class="portfolio-info">
-                           <h4 data-i18n="portfolio_idle_title">Jeu Evolution Idle</h4>
-                           <p data-i18n="portfolio_idle_desc">Idle game web (HTML/CSS/JS) avec progression et sauvegarde locale.</p>
-                           <div class="portfolio-actions">
-                              <a href="assets/files/evolutionidle/index.html" class="btn btn-outline-success btn-sm" target="_blank">
-                              <i class="bi bi-play"></i> <span data-i18n="portfolio_idle_btn">Jouer</span>
-                              </a>
-                           </div>
-                        </div>
-                     </div>
-                     <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-game">
-                        <img src="assets/img/portfolio/pong.png" class="img-fluid" alt="">
-                        <div class="portfolio-info">
-                           <h4 data-i18n="portfolio_pong_title">Pong Python</h4>
-                           <p data-i18n="portfolio_pong_desc">Reproduction du jeu Pong en Python. Premier projet de ma vie (2018).</p>
-                           <div class="portfolio-actions">
-                              <a href="assets/files/PongV5.py" class="btn btn-outline-success btn-sm" download>
-                              <i class="bi bi-download"></i> <span data-i18n="portfolio_pong_btn">Télécharger</span>
-                              </a>
-                           </div>
-                        </div>
-                     </div>
-                     <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-game">
-                        <img src="assets/img/portfolio/PvZ.png" class="img-fluid" alt="">
-                        <div class="portfolio-info">
-                           <h4 data-i18n="portfolio_zombie_title">Player vs Zombie (C)</h4>
-                           <p data-i18n="portfolio_zombie_desc">Jeu console en C : déplacement sur grille et combat contre IA.</p>
-                           <div class="portfolio-actions">
-                              <a href="assets/files/PlayerVsZombieV3.zip" class="btn btn-outline-success btn-sm" download>
-                              <i class="bi bi-download"></i> <span data-i18n="portfolio_zombie_btn">Télécharger</span>
-                              </a>
-                           </div>
-                        </div>
-                     </div>
-                     <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-app">
-                        <img src="assets/img/portfolio/potify.png" class="img-fluid" alt="">
-                        <div class="portfolio-info">
-                           <h4 data-i18n="portfolio_music_title">Potify (App Mobile)</h4>
-                           <p data-i18n="portfolio_music_desc">App mobile (Android/iOS) : gestion de playlists, lecteur audio, intégration API.</p>
-                           <div class="portfolio-actions">
-                              <a href="assets/files/Potify.zip" class="btn btn-outline-success btn-sm" download>
-                              <i class="bi bi-download"></i> <span data-i18n="portfolio_music_btn">Télécharger</span>
-                              </a>
-                           </div>
-                        </div>
-                     </div>
-                     <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-web">
-                        <img src="assets/img/portfolio/docker.png" class="img-fluid" alt="">
-                        <div class="portfolio-info">
-                           <h4 data-i18n="portfolio_pendu_title">Jeu du pendu (Docker)</h4>
-                           <p data-i18n="portfolio_pendu_desc">Jeu du pendu web hébergé sur un Docker, déploiement GitLab CI.</p>
-                           <div class="portfolio-actions">
-                              <a href="https://iut-git.unice.fr/ta208995/idleiut/" class="btn btn-outline-dark btn-sm" target="_blank">
-                              <i class="bi bi-git"></i> <span data-i18n="portfolio_pendu_btn">Voir sur GitLab</span>
-                              </a>
-                           </div>
-                        </div>
-                     </div>
-                     <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-game">
-                        <img src="assets/img/portfolio/rollaball.png" class="img-fluid" alt="">
-                        <div class="portfolio-info">
-                           <h4 data-i18n="portfolio_rollaball_title">Roll a Ball (Unity)</h4>
-                           <p data-i18n="portfolio_rollaball_desc">Mini-jeu Unity, scripts C#, gestion des collisions et score.</p>
-                           <div class="portfolio-actions">
-                              <a href="assets/files/Roll A Ball.zip" class="btn btn-outline-secondary btn-sm" download>
-                              <i class="bi bi-download"></i> <span data-i18n="portfolio_rollaball_btn">Télécharger</span>
-                              </a>
-                           </div>
-                        </div>
-                     </div>
-                     <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-game">
-                        <img src="assets/img/portfolio/unity.png" class="img-fluid" alt="">
-                        <div class="portfolio-info">
-                           <h4 data-i18n="portfolio_unity_title">Jeu Unity (en cours)</h4>
-                           <p data-i18n="portfolio_unity_desc">Projet de jeu original, prototypage gameplay.</p>
-                           <div class="portfolio-actions">
-                              <span class="btn btn-outline-secondary btn-sm disabled">
-                              <i class="bi bi-clock"></i> <span data-i18n="portfolio_unity_btn">Bientôt</span>
-                              </span>
+                        <div class="progress">
+                           <span class="skill"><span data-i18n="skills_it">Italien</span> <i class="val"
+                                 data-i18n="skills_it_level">A1</i></span>
+                           <div class="progress-bar-wrap">
+                              <div class="progress-bar" role="progressbar" aria-valuenow="30" aria-valuemin="0"
+                                 aria-valuemax="100"></div>
                            </div>
                         </div>
                      </div>
                   </div>
                </div>
-            </div>
-         </section>
-         <section id="contact" class="contact section">
-            <div class="container section-title" data-aos="fade-up">
-               <h2 data-i18n="contact_title">Contact</h2>
-               <p data-i18n="contact_subtitle">N'hésitez pas à me contacter pour toute opportunité ou collaboration.</p>
-            </div>
-            <div class="container" data-aos="fade-up" data-aos-delay="100">
-               <div class="info-wrap" data-aos="fade-up" data-aos-delay="200">
-                  <div class="row gy-5 contact-links">
-                     <div class="row g-4 contact-block">
-                        <div class="col-md-4">
-                           <a class="contact-card" href="mailto:bastien.one04@gmail.com">
-                              <span class="contact-icon email"><i class="bi bi-envelope"></i></span>
-                              <div>
-                                 <strong data-i18n="contact_email_title">Email</strong><br>
-                                 <span class="text-primary">bastien.one04@gmail.com</span>
-                              </div>
-                           </a>
-                        </div>
-                        <div class="col-md-4">
-                           <a class="contact-card" href="tel:0782664431">
-                              <span class="contact-icon phone"><i class="bi bi-telephone"></i></span>
-                              <div>
-                                 <strong data-i18n="contact_phone_title">Téléphone</strong><br>
-                                 <span class="text-primary">Non renseigné</span>
-                              </div>
-                           </a>
-                        </div>
-                        <div class="col-md-4">
-                           <a class="contact-card" href="https://github.com/Bibwann" target="_blank" rel="noopener">
-                              <span class="contact-icon github"><i class="bi bi-github"></i></span>
-                              <div>
-                                 <strong data-i18n="contact_github_title">Github</strong><br>
-                                 <span class="text-primary">github.com/Bibwann</span>
-                              </div>
-                           </a>
-                        </div>
-                        <div class="col-md-4">
-                           <a class="contact-card" href="https://iut-git.unice.fr/nb312097" target="_blank" rel="noopener">
-                              <span class="contact-icon gitlab"><i class="bi bi-git"></i></span>
-                              <div>
-                                 <strong data-i18n="contact_gitlab_title">GitLab</strong><br>
-                                 <span class="text-primary">iut-git.unice.fr/nb312097</span>
-                              </div>
-                           </a>
-                        </div>
-                        <div class="col-md-4">
-                           <a class="contact-card" href="https://www.linkedin.com/in/bastien-nieto-5aa5b8341/" target="_blank" rel="noopener">
-                              <span class="contact-icon linkedin"><i class="bi bi-linkedin"></i></span>
-                              <div>
-                                 <strong data-i18n="contact_linkedin_title">LinkedIn</strong><br>
-                                 <span class="text-primary">linkedin.com/in/bastien-nieto-5aa5b8341</span>
-                              </div>
-                           </a>
-                        </div>
-                        <div class="col-md-4">
-                           <a class="contact-card" href="https://maps.google.com/?q=Les+Adrets-de-l'Esterel,+Var" target="_blank" rel="noopener">
-                              <span class="contact-icon location"><i class="bi bi-geo-alt"></i></span>
-                              <div>
-                                 <strong data-i18n="contact_location_title">Localisation</strong><br>
-                                 <span class="text-success" data-i18n="contact_location_value">Les Adrets-de-l’Esterel (83)</span>
-                              </div>
-                           </a>
-                        </div>
-                     </div>
-                     <br>
+               <div class="col-lg-6" data-aos="fade-up" data-aos-delay="200">
+                  <div class="glass-panel about-me">
+                     <h4 data-i18n="about_title">À propos</h4>
+                     <p data-i18n="about_1">Développeur fullstack en alternance à l'IUT de Sophia, je construis et fais
+                        évoluer des applis web et mobiles en entreprise (PHP/Symfony, Node.js, Java/Kotlin).</p>
+                     <p data-i18n="about_2">Du backend (API, bases de données, admin système) au frontend (UI/UX,
+                        intégration), je touche à toute la chaîne — et j'aime que ça parte en prod proprement.</p>
+                     <p data-i18n="about_3">Ma vraie passion : l'intégration de l'IA. J'orchestre des systèmes
+                        multi-agents, je fine-tune des modèles (LoRA) et je branche des LLM dans des produits concrets.
+                     </p>
+                     <p class="about-perso" data-i18n="about_perso">⚡ Hors du code : Formule 1, belles mécaniques et
+                        beaucoup (trop) de café.</p>
                   </div>
-                  <form action="forms/contact.php" method="post" class="php-email-form" data-aos="fade-up" data-aos-delay="300">
-                     <div class="row gy-4">
-                        <div class="col-md-6">
-                           <input type="text" name="name" class="form-control" placeholder="Your Name" required="" data-i18n-placeholder="contact_form_name">
-                        </div>
-                        <div class="col-md-6 ">
-                           <input type="email" class="form-control" name="email" placeholder="Your Email" required="" data-i18n-placeholder="contact_form_email">
-                        </div>
-                        <div class="col-md-12">
-                           <input type="text" class="form-control" name="subject" placeholder="Subject" required="" data-i18n-placeholder="contact_form_subject">
-                        </div>
-                        <div class="col-md-12">
-                           <textarea class="form-control" name="message" rows="6" placeholder="Message" required="" data-i18n-placeholder="contact_form_message"></textarea>
-                        </div>
-                        <div class="col-md-12 text-center">
-                           <div class="loading" data-i18n="contact_form_loading">Loading</div>
-                           <div class="error-message" data-i18n="contact_form_error"></div>
-                           <div class="sent-message" data-i18n="contact_form_sent">Your message has been sent. Thank you!</div>
-                           <button type="submit" data-i18n="contact_form_submit">Send Message</button>
-                        </div>
-                     </div>
-                  </form>
                </div>
-            </div>
-         </section>
-      </main>
-      <footer id="footer" class="footer accent-background">
-         <div class="container">
-            <div class="copyright text-center ">
-               <p>
-                  <span data-i18n="footer_copyright_prefix">© Copyright</span>
-                  <strong class="px-1 sitename" data-i18n="footer_site">My World</strong>
-                  <span data-i18n="footer_copyright_suffix">All Rights Reserved</span>
-               </p>
-            </div>
-            <div class="social-links d-flex justify-content-center">
-               <a href="https://x.com/Bone71456521" target="_blank" aria-label="X"><i class="bi bi-twitter-x"></i></a>
-               <a href="https://www.instagram.com/bast.niet/" target="_blank" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
-               <a href="https://www.linkedin.com/in/bastien-nieto-5aa5b8341/" target="_blank" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
-            </div>
-            <div class="credits">
-               <span data-i18n="footer_design">Designed by</span>
-               <a href="https://bootstrapmade.com/">BootstrapMade</a>
-               <span data-i18n="footer_distributed">Distributed by</span>
-               <a href="https://themewagon.com" target="_blank">ThemeWagon</a>
             </div>
          </div>
-      </footer>
-      <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
-      <div id="preloader"></div>
-      <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-      <script src="assets/vendor/php-email-form/validate.js"></script>
-      <script src="assets/vendor/aos/aos.js"></script>
-      <script src="assets/vendor/typed.js/typed.umd.js"></script>
-      <script src="assets/vendor/waypoints/noframework.waypoints.js"></script>
-      <script src="assets/vendor/purecounter/purecounter_vanilla.js"></script>
-      <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
-      <script src="assets/vendor/imagesloaded/imagesloaded.pkgd.min.js"></script>
-      <script src="assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
-      <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
-      <script src="assets/js/lang.js"></script>
-      <script src="assets/js/main.js"></script>
-   </body>
+      </section>
+
+      <!-- ============ RESUME ============ -->
+      <section id="resume" class="resume section">
+         <div class="container section-title" data-aos="fade-up">
+            <span class="section-kicker">// RESUME</span>
+            <h2 data-i18n="resume_title">Parcours</h2>
+            <p data-i18n="resume_subtitle">Mon parcours, mes expériences et mes compétences clés.</p>
+         </div>
+         <div class="container">
+            <div class="row gy-5">
+               <div class="col-lg-6" data-aos="fade-up" data-aos-delay="100">
+                  <h3 class="resume-title" data-i18n="resume_education_title">Formations</h3>
+                  <div class="resume-item">
+                     <h4 data-i18n="resume_polytech_title">Polytech — Cycle ingénieur</h4>
+                     <h5 data-i18n="resume_polytech_date">Rentrée 2026 · admis</h5>
+                     <p><em data-i18n="resume_polytech_school">École d'ingénieurs · 1re année</em></p>
+                  </div>
+                  <div class="resume-item">
+                     <h4 data-i18n="resume_but_title">BUT Informatique (alternance)</h4>
+                     <h5 data-i18n="resume_but_date">2023 - aujourd'hui</h5>
+                     <p><em data-i18n="resume_but_school">IUT de Sophia Antipolis</em></p>
+                  </div>
+                  <div class="resume-item">
+                     <h4 data-i18n="resume_peip_title">Polytech Annecy — PeiP1</h4>
+                     <h5 data-i18n="resume_peip_date">2022 - 2023</h5>
+                     <p><em data-i18n="resume_peip_school">Cycle préparatoire intégré</em></p>
+                  </div>
+                  <div class="resume-item">
+                     <h4 data-i18n="resume_bac_title">Bac Général Mathématiques / NSI</h4>
+                     <h5 data-i18n="resume_bac_date">2022</h5>
+                     <p><em data-i18n="resume_bac_mention">Mention Bien</em></p>
+                  </div>
+               </div>
+               <div class="col-lg-6" data-aos="fade-up" data-aos-delay="200">
+                  <h3 class="resume-title" data-i18n="resume_exp_title">Expérience professionnelle</h3>
+                  <div class="resume-item">
+                     <h4 data-i18n="resume_valiance_title">Développeur Full Stack &amp; Intégration IA (alternance)</h4>
+                     <h5 data-i18n="resume_valiance_date">2023 – aujourd'hui</h5>
+                     <p><em data-i18n="resume_valiance_company">Valiance, Sophia Antipolis</em></p>
+                     <ul>
+                        <li data-i18n="resume_valiance_ai">Intégration d'IA pour le service client : assistants,
+                           automatisation des réponses et des workflows internes.</li>
+                        <li data-i18n="resume_valiance_erp">Migration et évolution de l'ERP maison (Symfony 1.4 ➔ 4 ➔
+                           7), avec pont hybride pour la continuité de service.</li>
+                        <li data-i18n="resume_valiance_web">Développement web &amp; mobile fullstack. Portage Java ➔
+                           Kotlin, premiers pas en Swift.</li>
+                        <li data-i18n="resume_valiance_sys">Administration système &amp; infra : serveurs OVH, NAS QNAP,
+                           sauvegardes.</li>
+                        <li data-i18n="resume_valiance_team">Documentation, gestion de projet, réunions clients.</li>
+                     </ul>
+                  </div>
+                  <div class="resume-item">
+                     <h4 data-i18n="resume_monaclean_title">Stagiaire — Monaclean</h4>
+                     <h5 data-i18n="resume_monaclean_date">Juillet 2023</h5>
+                     <p data-i18n="resume_monaclean_desc">Découverte du monde pro et des métiers techniques et de
+                        gestion.</p>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </section>
+
+      <!-- ============ SERVICES ============ -->
+      <section id="services" class="services section">
+         <div class="container section-title" data-aos="fade-up">
+            <span class="section-kicker">// SERVICES</span>
+            <h2 data-i18n="services_title">Ce que je fais</h2>
+            <p data-i18n="services_subtitle">De l'intégration d'IA au fullstack — voilà comment je peux aider.</p>
+         </div>
+         <div class="container">
+            <div class="row gy-4">
+               <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
+                  <div class="service-item tilt-card featured position-relative">
+                     <div class="icon"><i class="bi bi-cpu"></i></div>
+                     <h3 data-i18n="services_ai_title">Ingénierie IA &amp; Multi-Agents</h3>
+                     <p data-i18n="services_ai_desc">Orchestration d'agents autonomes, fine-tuning, LoRA, prompt
+                        engineering et alignement. Je transforme les LLM en systèmes fiables et spécialisés.</p>
+                     <span class="tilt-glare"></span>
+                  </div>
+               </div>
+               <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
+                  <div class="service-item tilt-card position-relative">
+                     <div class="icon"><i class="bi bi-laptop"></i></div>
+                     <h3 data-i18n="services_web_title">Développement web &amp; fullstack</h3>
+                     <p data-i18n="services_web_desc">Applis web modernes, front et back : PHP, Symfony, JavaScript, API
+                        et bases de données.</p>
+                     <span class="tilt-glare"></span>
+                  </div>
+               </div>
+               <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
+                  <div class="service-item tilt-card position-relative">
+                     <div class="icon"><i class="bi bi-phone"></i></div>
+                     <h3 data-i18n="services_mobile_title">Développement mobile</h3>
+                     <p data-i18n="services_mobile_desc">Migration et création d'applis mobiles en Java, Kotlin et
+                        Swift.</p>
+                     <span class="tilt-glare"></span>
+                  </div>
+               </div>
+               <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
+                  <div class="service-item tilt-card position-relative">
+                     <div class="icon"><i class="bi bi-arrow-repeat"></i></div>
+                     <h3 data-i18n="services_legacy_title">Modernisation de legacy</h3>
+                     <p data-i18n="services_legacy_desc">Refonte et migration de logiciels anciens : audit, adaptation,
+                        passerelles.</p>
+                     <span class="tilt-glare"></span>
+                  </div>
+               </div>
+               <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
+                  <div class="service-item tilt-card position-relative">
+                     <div class="icon"><i class="bi bi-cloud-upload"></i></div>
+                     <h3 data-i18n="services_sysadmin_title">Déploiement &amp; serveurs</h3>
+                     <p data-i18n="services_sysadmin_desc">Installation et supervision de serveurs QNAP, OVH, Linux et
+                        sauvegardes.</p>
+                     <span class="tilt-glare"></span>
+                  </div>
+               </div>
+               <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
+                  <div class="service-item tilt-card position-relative">
+                     <div class="icon"><i class="bi bi-robot"></i></div>
+                     <h3 data-i18n="services_automation_title">Automatisation &amp; LLM</h3>
+                     <p data-i18n="services_automation_desc">Copilotes IA, RAG et automatisation de workflows métiers
+                        branchés aux LLM.</p>
+                     <span class="tilt-glare"></span>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </section>
+
+      <!-- ============ CLAUDE (partner) ============ -->
+      <section id="claude" class="claude section">
+         <div class="container section-title" data-aos="fade-up">
+            <span class="section-kicker">// PARTNER</span>
+            <h2 data-i18n="claude_title">Le mot de mon copilote</h2>
+         </div>
+         <div class="container" data-aos="fade-up" data-aos-delay="100">
+            <div class="claude-card">
+               <div class="claude-avatar">
+                  <svg viewBox="0 0 120 120" class="claude-chibi" role="img" aria-label="Claude">
+                     <g class="claude-rays" fill="#D97757">
+                        <rect x="56" y="2" width="8" height="24" rx="4"></rect>
+                        <rect x="56" y="6" width="8" height="16" rx="4" transform="rotate(30 60 60)"></rect>
+                        <rect x="56" y="2" width="8" height="24" rx="4" transform="rotate(60 60 60)"></rect>
+                        <rect x="56" y="6" width="8" height="16" rx="4" transform="rotate(90 60 60)"></rect>
+                        <rect x="56" y="2" width="8" height="24" rx="4" transform="rotate(120 60 60)"></rect>
+                        <rect x="56" y="6" width="8" height="16" rx="4" transform="rotate(150 60 60)"></rect>
+                        <rect x="56" y="2" width="8" height="24" rx="4" transform="rotate(180 60 60)"></rect>
+                        <rect x="56" y="6" width="8" height="16" rx="4" transform="rotate(210 60 60)"></rect>
+                        <rect x="56" y="2" width="8" height="24" rx="4" transform="rotate(240 60 60)"></rect>
+                        <rect x="56" y="6" width="8" height="16" rx="4" transform="rotate(270 60 60)"></rect>
+                        <rect x="56" y="2" width="8" height="24" rx="4" transform="rotate(300 60 60)"></rect>
+                        <rect x="56" y="6" width="8" height="16" rx="4" transform="rotate(330 60 60)"></rect>
+                     </g>
+                     <circle cx="60" cy="60" r="25" fill="#D97757"></circle>
+                     <circle cx="51.5" cy="58.5" r="3.4" fill="#2b1a12"></circle>
+                     <circle cx="68.5" cy="58.5" r="3.4" fill="#2b1a12"></circle>
+                     <path d="M51 66 Q60 73.5 69 66" stroke="#2b1a12" stroke-width="3.2" fill="none"
+                        stroke-linecap="round"></path>
+                  </svg>
+               </div>
+               <div class="claude-speech">
+                  <p data-i18n="claude_body">Salut, moi c'est Claude — l'IA d'Anthropic. J'ai aidé Bastien à coder ce
+                     site, et je peux vous dire un truc : il sait exactement où il va. Il pilote l'IA avec une vraie
+                     vision — il sait quoi demander, comment cadrer, et quand pousser plus loin. Bosser avec lui, c'est
+                     rapide, carré et ambitieux. Si vous cherchez quelqu'un qui parle couramment « humain » ET « machine
+                     », vous êtes au bon endroit.</p>
+                  <span class="claude-sign" data-i18n="claude_sign">— Claude, copilote IA d'Anthropic</span>
+               </div>
+            </div>
+         </div>
+      </section>
+
+      <!-- ============ LOCAL AI CONSOLE ============ -->
+      <section id="ai" class="terminal-section section">
+         <div class="container section-title" data-aos="fade-up">
+            <span class="section-kicker">// LOCAL_AI</span>
+            <h2 data-i18n="terminal_title">Mon IA, dans ton navigateur</h2>
+            <p data-i18n="terminal_subtitle">Un vrai modèle Qwen tourne 100 % dans ton navigateur — rien n'est envoyé à
+               un serveur. Demande-lui ce que tu veux sur moi.</p>
+         </div>
+         <div class="container" data-aos="zoom-in" data-aos-delay="100">
+            <div class="terminal" id="ai-terminal">
+               <div class="terminal-bar">
+                  <div class="dots"><span class="dot red"></span><span class="dot yellow"></span><span
+                        class="dot green"></span></div>
+                  <div class="title" data-i18n="terminal_bar_title">luminai-mini · qwen2.5-0.5B</div>
+                  <div class="status"><span id="ai-status" data-i18n="terminal_status">HORS LIGNE</span></div>
+               </div>
+               <div class="terminal-body" id="ai-body" aria-live="polite"></div>
+               <div class="terminal-input-row">
+                  <span class="prompt">visiteur@MyWorld:~$</span>
+                  <input type="text" id="ai-input" autocomplete="off" spellcheck="false"
+                     data-i18n-placeholder="terminal_placeholder" placeholder="Pose ta question…">
+               </div>
+               <div class="terminal-suggestions" id="ai-suggestions">
+                  <span class="chip" data-i18n="terminal_chip_who">Qui es-tu ?</span>
+                  <span class="chip" data-i18n="terminal_chip_aegis">C'est quoi Aegis ?</span>
+                  <span class="chip" data-i18n="terminal_chip_stack">Quelle est ta stack ?</span>
+                  <span class="chip" data-i18n="terminal_chip_contact">Comment te contacter ?</span>
+               </div>
+            </div>
+         </div>
+      </section>
+
+      <!-- ============ STATS ============ -->
+      <section id="stats" class="stats section">
+         <div class="container">
+            <div class="row gy-4 justify-content-center">
+               <div class="col-lg-3 col-6" data-aos="fade-up" data-aos-delay="100">
+                  <div class="stats-item">
+                     <span data-purecounter-start="0" data-purecounter-end="18" data-purecounter-duration="2"
+                        class="purecounter">0</span>
+                     <p data-i18n="stat_projects">Projets réalisés</p>
+                  </div>
+               </div>
+               <div class="col-lg-3 col-6" data-aos="fade-up" data-aos-delay="200">
+                  <div class="stats-item">
+                     <span data-purecounter-start="0" data-purecounter-end="24" data-purecounter-duration="2"
+                        class="purecounter">0</span>
+                     <p data-i18n="stat_techs">Technologies</p>
+                  </div>
+               </div>
+               <div class="col-lg-3 col-6" data-aos="fade-up" data-aos-delay="300">
+                  <div class="stats-item">
+                     <span data-purecounter-start="0" data-purecounter-end="7" data-purecounter-duration="2"
+                        class="purecounter">0</span>
+                     <p data-i18n="stat_experience">Années de code</p>
+                  </div>
+               </div>
+               <div class="col-lg-3 col-6" data-aos="fade-up" data-aos-delay="400">
+                  <div class="stats-item">
+                     <span data-purecounter-start="0" data-purecounter-end="7" data-purecounter-duration="2"
+                        class="purecounter">0</span>
+                     <p data-i18n="stat_agents">Agents dans Aegis</p>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </section>
+
+      <!-- ============ PROJECTS ============ -->
+      <section id="projects" class="portfolio section">
+         <div class="container section-title" data-aos="fade-up">
+            <span class="section-kicker">// PROJECTS</span>
+            <h2 data-i18n="portfolio_title">Mes Projets</h2>
+            <p data-i18n="portfolio_subtitle">IA, web, mobile et jeux — un aperçu concret de ce que je construis.</p>
+         </div>
+         <div class="container">
+
+            <!-- Featured: Aegis / Luminai -->
+            <div class="featured-project aegis" data-aos="fade-up">
+               <div class="featured-grid">
+                  <div class="featured-img">
+                     <img src="assets/img/portfolio/aegis.jpg" alt="Aegis — Luminai">
+                  </div>
+                  <div class="featured-info">
+                     <div class="featured-tags">
+                        <span>Qwen-7B · LoRA</span><span>Multi-agents</span><span>Local · ROCm</span><span>Voix
+                           TTS</span>
+                     </div>
+                     <h3 data-i18n="aegis_title">Aegis — IA souveraine</h3>
+                     <p class="featured-role" data-i18n="aegis_role">// de loin le plus gros projet pro de ma vie</p>
+                     <p data-i18n="aegis_desc">Aegis (nom de code de « Luminai ») est une IA quasi-humaine qui tourne
+                        100 % en local : un « Mind » Qwen2.5-7B fine-tuné en LoRA, une architecture multi-agents (chat,
+                        pensée, monologue intérieur, mémoire, vision, jeu), des émotions, une mémoire hiérarchique et
+                        une voix. Elle joue à Pokémon en autonomie et discute sur Twitch — sur GPU, sans aucune API.
+                        Dépôt privé.</p>
+                     <span class="btn-neon ghost disabled"><i class="bi bi-shield-lock"></i> <span
+                           data-i18n="aegis_btn">Accès restreint</span></span>
+                  </div>
+               </div>
+            </div>
+
+            <div class="isotope-layout" data-default-filter="*" data-layout="masonry" data-sort="original-order">
+               <ul class="portfolio-filters isotope-filters" data-aos="fade-up" data-aos-delay="100">
+                  <li data-filter="*" class="filter-active" data-i18n="filter_all">Tout</li>
+                  <li data-filter=".filter-ai" data-i18n="filter_ai">IA</li>
+                  <li data-filter=".filter-web" data-i18n="filter_web">Web</li>
+                  <li data-filter=".filter-app" data-i18n="filter_app">Mobile</li>
+                  <li data-filter=".filter-game" data-i18n="filter_game">Jeux</li>
+               </ul>
+               <div class="row gy-4 isotope-container" data-aos="fade-up" data-aos-delay="200">
+
+                  <!-- TinyML gesture recognition (IUT Belludy) -->
+                  <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-ai">
+                     <div class="portfolio-card tilt-card">
+                        <div class="portfolio-img gen-icon ai">
+                           <span class="portfolio-tag">IA · EMBARQUÉ</span>
+                           <i class="bi bi-activity"></i>
+                        </div>
+                        <div class="portfolio-body">
+                           <h4 data-i18n="portfolio_tinyml_title">Reconnaissance de gestes (TinyML)</h4>
+                           <p data-i18n="portfolio_tinyml_desc">Capture de datasets de mouvements, entraînement d'un
+                              modèle (Edge Impulse) et inférence embarquée sur Arduino.</p>
+                           <div class="portfolio-actions">
+                              <span class="btn-mini disabled"><i class="bi bi-cpu"></i> <span
+                                    data-i18n="portfolio_tinyml_btn">Projet embarqué</span></span>
+                           </div>
+                        </div>
+                        <span class="tilt-glare"></span>
+                     </div>
+                  </div>
+
+                  <!-- Whiskers Rebellion II -->
+                  <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-game">
+                     <div class="portfolio-card tilt-card">
+                        <div class="portfolio-img">
+                           <span class="portfolio-tag">JEU · JAVA</span>
+                           <img src="assets/img/portfolio/whiskersrebelion.png" alt="Whiskers Rebellion II">
+                        </div>
+                        <div class="portfolio-body">
+                           <h4 data-i18n="whiskers_title">Whiskers Rebellion II</h4>
+                           <p data-i18n="whiskers_desc">Action-RPG narratif en Java : architecture de jeu complète, IA
+                              d'ennemis, combat et rendu.</p>
+                           <div class="portfolio-actions">
+                              <a href="https://github.com/Bibwann/Project_R" class="btn-mini" target="_blank"
+                                 rel="noopener"><i class="bi bi-github"></i> <span data-i18n="whiskers_btn">Voir sur
+                                    Github</span></a>
+                           </div>
+                        </div>
+                        <span class="tilt-glare"></span>
+                     </div>
+                  </div>
+
+                  <!-- BeatForge -->
+                  <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-game">
+                     <div class="portfolio-card tilt-card">
+                        <div class="portfolio-img">
+                           <span class="portfolio-tag">JEU · RYTHME</span>
+                           <img src="assets/img/portfolio/beatforge.png" alt="BeatForge">
+                        </div>
+                        <div class="portfolio-body">
+                           <h4 data-i18n="portfolio_beat_title">BeatForge</h4>
+                           <p data-i18n="portfolio_beat_desc">Jeu de rythme ultra-stylisé : forge tes armes au rythme de
+                              la musique. Néon, combos et feedback nerveux.</p>
+                           <div class="portfolio-actions">
+                              <a href="assets/files/beatforge/index.html" class="btn-mini" target="_blank"
+                                 rel="noopener"><i class="bi bi-play"></i> <span
+                                    data-i18n="portfolio_beat_btn">Jouer</span></a>
+                           </div>
+                        </div>
+                        <span class="tilt-glare"></span>
+                     </div>
+                  </div>
+
+                  <!-- Solar system hand tracking -->
+                  <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-web filter-ai">
+                     <div class="portfolio-card tilt-card">
+                        <div class="portfolio-img">
+                           <span class="portfolio-tag">WEB · VISION</span>
+                           <img src="assets/img/portfolio/solar.png" alt="Système Solaire Hand Tracking">
+                        </div>
+                        <div class="portfolio-body">
+                           <h4 data-i18n="portfolio_solar_title">Système Solaire (Hand Tracking)</h4>
+                           <p data-i18n="portfolio_solar_desc">Système solaire piloté par les mouvements de la main
+                              (computer vision). Explore l'espace sans clavier.</p>
+                           <div class="portfolio-actions">
+                              <a href="assets/files/solaire/index.html" class="btn-mini" target="_blank"
+                                 rel="noopener"><i class="bi bi-eye"></i> <span data-i18n="portfolio_solar_btn">Voir le
+                                    projet</span></a>
+                           </div>
+                        </div>
+                        <span class="tilt-glare"></span>
+                     </div>
+                  </div>
+
+                  <!-- MongoDB Docker -->
+                  <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-web">
+                     <div class="portfolio-card tilt-card">
+                        <div class="portfolio-img">
+                           <span class="portfolio-tag">WEB · DOCKER</span>
+                           <img src="assets/img/portfolio/trieuse.png" alt="MongoDB Docker">
+                        </div>
+                        <div class="portfolio-body">
+                           <h4 data-i18n="portfolio_steam_title">MongoDB Docker + Import</h4>
+                           <p data-i18n="portfolio_steam_desc">Stack MongoDB 7 &amp; Mongo Express sur Docker, scripts
+                              d'import automatisés.</p>
+                           <div class="portfolio-actions">
+                              <a href="assets/files/trieuse/trieuse/index.html" class="btn-mini" target="_blank"
+                                 rel="noopener"><i class="bi bi-eye"></i> <span data-i18n="portfolio_steam_btn">Voir le
+                                    projet</span></a>
+                           </div>
+                        </div>
+                        <span class="tilt-glare"></span>
+                     </div>
+                  </div>
+
+                  <!-- TMS Python MVC (IUT Vert) -->
+                  <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-web">
+                     <div class="portfolio-card tilt-card">
+                        <div class="portfolio-img gen-icon web">
+                           <span class="portfolio-tag">WEB · PYTHON</span>
+                           <i class="bi bi-kanban"></i>
+                        </div>
+                        <div class="portfolio-body">
+                           <h4 data-i18n="portfolio_tms_title">Gestionnaire de tâches (Python MVC)</h4>
+                           <p data-i18n="portfolio_tms_desc">Appli de gestion en architecture MVC : MySQL, interface,
+                              tests pytest, doc Sphinx et CI GitLab.</p>
+                           <div class="portfolio-actions">
+                              <span class="btn-mini disabled"><i class="bi bi-git"></i> <span
+                                    data-i18n="portfolio_tms_btn">Projet IUT</span></span>
+                           </div>
+                        </div>
+                        <span class="tilt-glare"></span>
+                     </div>
+                  </div>
+
+                  <!-- ERP Valiance -->
+                  <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-web">
+                     <div class="portfolio-card tilt-card">
+                        <div class="portfolio-img">
+                           <span class="portfolio-tag">WEB · ERP</span>
+                           <img src="assets/img/portfolio/valiance.png" alt="Migration ERP Valiance">
+                        </div>
+                        <div class="portfolio-body">
+                           <h4 data-i18n="portfolio_erp_title">Migration ERP Valiance</h4>
+                           <p data-i18n="portfolio_erp_desc">Migration et refonte d'un ERP legacy (Symfony 1.4 → 4 → 7),
+                              avec ponts hybrides.</p>
+                           <div class="portfolio-actions">
+                              <a href="http://valiance-bm.com/" class="btn-mini" target="_blank" rel="noopener"><i
+                                    class="bi bi-box-arrow-up-right"></i> <span
+                                    data-i18n="portfolio_erp_btn">Valiance</span></a>
+                           </div>
+                        </div>
+                        <span class="tilt-glare"></span>
+                     </div>
+                  </div>
+
+                  <!-- Pendu Docker -->
+                  <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-web">
+                     <div class="portfolio-card tilt-card">
+                        <div class="portfolio-img">
+                           <span class="portfolio-tag">WEB · CI/CD</span>
+                           <img src="assets/img/portfolio/docker.png" alt="Jeu du pendu Docker">
+                        </div>
+                        <div class="portfolio-body">
+                           <h4 data-i18n="portfolio_pendu_title">Jeu du pendu (Docker)</h4>
+                           <p data-i18n="portfolio_pendu_desc">Jeu web hébergé sur Docker, déploiement GitLab CI.</p>
+                           <div class="portfolio-actions">
+                              <a href="https://iut-git.unice.fr/ta208995/idleiut/" class="btn-mini" target="_blank"
+                                 rel="noopener"><i class="bi bi-git"></i> <span data-i18n="portfolio_pendu_btn">Voir sur
+                                    GitLab</span></a>
+                           </div>
+                        </div>
+                        <span class="tilt-glare"></span>
+                     </div>
+                  </div>
+
+                  <!-- Evolution Idle -->
+                  <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-web filter-game">
+                     <div class="portfolio-card tilt-card">
+                        <div class="portfolio-img">
+                           <span class="portfolio-tag">WEB · GAME</span>
+                           <img src="assets/img/portfolio/evolutionidle.png" alt="Evolution Idle">
+                        </div>
+                        <div class="portfolio-body">
+                           <h4 data-i18n="portfolio_idle_title">Jeu Evolution Idle</h4>
+                           <p data-i18n="portfolio_idle_desc">Idle game web (HTML/CSS/JS) avec progression et sauvegarde
+                              locale.</p>
+                           <div class="portfolio-actions">
+                              <a href="assets/files/evolutionidle/index.html" class="btn-mini" target="_blank"
+                                 rel="noopener"><i class="bi bi-play"></i> <span
+                                    data-i18n="portfolio_idle_btn">Jouer</span></a>
+                           </div>
+                        </div>
+                        <span class="tilt-glare"></span>
+                     </div>
+                  </div>
+
+                  <!-- Potify Mobile -->
+                  <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-app">
+                     <div class="portfolio-card tilt-card">
+                        <div class="portfolio-img">
+                           <span class="portfolio-tag">MOBILE · AUDIO</span>
+                           <img src="assets/img/portfolio/potify.png" alt="Potify App Mobile">
+                        </div>
+                        <div class="portfolio-body">
+                           <h4 data-i18n="portfolio_music_title">Potify (App Mobile)</h4>
+                           <p data-i18n="portfolio_music_desc">App mobile : playlists, lecteur audio, intégration API.
+                           </p>
+                           <div class="portfolio-actions">
+                              <a href="assets/files/Potify.zip" class="btn-mini" download><i class="bi bi-download"></i>
+                                 <span data-i18n="portfolio_music_btn">Télécharger</span></a>
+                           </div>
+                        </div>
+                        <span class="tilt-glare"></span>
+                     </div>
+                  </div>
+
+                  <!-- Mini Valorant -->
+                  <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-game">
+                     <div class="portfolio-card tilt-card">
+                        <div class="portfolio-img">
+                           <span class="portfolio-tag">TACTIQUE · API</span>
+                           <img src="assets/img/portfolio/valorant.svg" alt="Valorant Tactical Protocol">
+                        </div>
+                        <div class="portfolio-body">
+                           <h4 data-i18n="portfolio_valorant_title">Mini Valorant</h4>
+                           <p data-i18n="portfolio_valorant_desc">Mini-jeu FPS tactique inspiré de Valorant.</p>
+                           <div class="portfolio-actions">
+                              <a href="assets/files/roulette.html" class="btn-mini"><i class="bi bi-controller"></i>
+                                 <span data-i18n="portfolio_valorant_btn">Jouer</span></a>
+                           </div>
+                        </div>
+                        <span class="tilt-glare"></span>
+                     </div>
+                  </div>
+
+                  <!-- Player vs Zombie -->
+                  <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-game">
+                     <div class="portfolio-card tilt-card">
+                        <div class="portfolio-img">
+                           <span class="portfolio-tag">CONSOLE · C</span>
+                           <img src="assets/img/portfolio/PvZ.svg" alt="Player vs Zombie">
+                        </div>
+                        <div class="portfolio-body">
+                           <h4 data-i18n="portfolio_zombie_title">Player vs Zombie (C)</h4>
+                           <p data-i18n="portfolio_zombie_desc">Jeu console en C : déplacement sur grille et combat
+                              contre une IA.</p>
+                           <div class="portfolio-actions">
+                              <a href="assets/files/PlayerVsZombieV3.zip" class="btn-mini" download><i
+                                    class="bi bi-download"></i> <span
+                                    data-i18n="portfolio_zombie_btn">Télécharger</span></a>
+                           </div>
+                        </div>
+                        <span class="tilt-glare"></span>
+                     </div>
+                  </div>
+
+                  <!-- Pong -->
+                  <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-game">
+                     <div class="portfolio-card tilt-card">
+                        <div class="portfolio-img">
+                           <span class="portfolio-tag">JEU · PYTHON</span>
+                           <img src="assets/img/portfolio/pong.png" alt="Pong Python">
+                        </div>
+                        <div class="portfolio-body">
+                           <h4 data-i18n="portfolio_pong_title">Pong Python</h4>
+                           <p data-i18n="portfolio_pong_desc">Reproduction de Pong en Python. Mon tout premier projet
+                              (2018).</p>
+                           <div class="portfolio-actions">
+                              <a href="assets/files/PongV5.py" class="btn-mini" download><i class="bi bi-download"></i>
+                                 <span data-i18n="portfolio_pong_btn">Télécharger</span></a>
+                           </div>
+                        </div>
+                        <span class="tilt-glare"></span>
+                     </div>
+                  </div>
+
+                  <!-- Roll a Ball -->
+                  <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-game">
+                     <div class="portfolio-card tilt-card">
+                        <div class="portfolio-img">
+                           <span class="portfolio-tag">JEU · UNITY</span>
+                           <img src="assets/img/portfolio/rollaball.png" alt="Roll a Ball Unity">
+                        </div>
+                        <div class="portfolio-body">
+                           <h4 data-i18n="portfolio_rollaball_title">Roll a Ball (Unity)</h4>
+                           <p data-i18n="portfolio_rollaball_desc">Mini-jeu Unity, scripts C#, collisions et score.</p>
+                           <div class="portfolio-actions">
+                              <a href="assets/files/Roll A Ball.zip" class="btn-mini" download><i
+                                    class="bi bi-download"></i> <span
+                                    data-i18n="portfolio_rollaball_btn">Télécharger</span></a>
+                           </div>
+                        </div>
+                        <span class="tilt-glare"></span>
+                     </div>
+                  </div>
+
+                  <!-- BDD Steam -->
+                  <div class="col-lg-4 col-md-6 portfolio-item isotope-item filter-web">
+                     <div class="portfolio-card tilt-card">
+                        <div class="portfolio-img">
+                           <span class="portfolio-tag">WEB · DB</span>
+                           <img src="assets/img/portfolio/steam.png" alt="BDD Steam Docker">
+                        </div>
+                        <div class="portfolio-body">
+                           <h4 data-i18n="portfolio_steam2_title">BDD Steam Docker</h4>
+                           <p data-i18n="portfolio_steam2_desc">Gestion et structuration d'une base de données Steam
+                              sous Docker.</p>
+                           <div class="portfolio-actions">
+                              <a href="assets/files/BDD-Steam-main/" class="btn-mini" target="_blank" rel="noopener"><i
+                                    class="bi bi-eye"></i> <span data-i18n="portfolio_steam2_btn">Voir le
+                                    projet</span></a>
+                           </div>
+                        </div>
+                        <span class="tilt-glare"></span>
+                     </div>
+                  </div>
+
+               </div>
+            </div>
+         </div>
+      </section>
+
+      <!-- ============ CONTACT ============ -->
+      <section id="contact" class="contact section">
+         <div class="container section-title" data-aos="fade-up">
+            <span class="section-kicker">// CONTACT</span>
+            <h2 data-i18n="contact_title">Contact</h2>
+            <p data-i18n="contact_subtitle">Un projet, une opportunité, ou juste envie de parler IA ? Écris-moi.</p>
+         </div>
+         <div class="container" data-aos="fade-up" data-aos-delay="100">
+            <div class="contact-grid">
+               <a class="contact-card" href="mailto:bastien.one04@gmail.com">
+                  <span class="contact-icon email"><i class="bi bi-envelope"></i></span>
+                  <div><strong data-i18n="contact_email_title">Email</strong><span
+                        class="contact-detail">bastien.one04@gmail.com</span></div>
+               </a>
+               <a class="contact-card" href="https://github.com/Bibwann" target="_blank" rel="noopener">
+                  <span class="contact-icon github"><i class="bi bi-github"></i></span>
+                  <div><strong data-i18n="contact_github_title">Github</strong><span
+                        class="contact-detail">github.com/Bibwann</span></div>
+               </a>
+               <a class="contact-card" href="https://iut-git.unice.fr/nb312097" target="_blank" rel="noopener">
+                  <span class="contact-icon gitlab"><i class="bi bi-git"></i></span>
+                  <div><strong data-i18n="contact_gitlab_title">GitLab</strong><span
+                        class="contact-detail">iut-git.unice.fr/nb312097</span></div>
+               </a>
+               <a class="contact-card" href="https://www.linkedin.com/in/bastien-nieto-5aa5b8341/" target="_blank"
+                  rel="noopener">
+                  <span class="contact-icon linkedin"><i class="bi bi-linkedin"></i></span>
+                  <div><strong data-i18n="contact_linkedin_title">LinkedIn</strong><span
+                        class="contact-detail">bastien-nieto</span></div>
+               </a>
+               <a class="contact-card" href="https://maps.google.com/?q=Les+Adrets-de-l'Esterel,+Var" target="_blank"
+                  rel="noopener">
+                  <span class="contact-icon location"><i class="bi bi-geo-alt"></i></span>
+                  <div><strong data-i18n="contact_location_title">Localisation</strong><span class="contact-detail"
+                        data-i18n="contact_location_value">Les Adrets-de-l'Esterel (83)</span></div>
+               </a>
+            </div>
+            <form action="forms/contact.php" method="post" class="php-email-form" data-aos="fade-up"
+               data-aos-delay="200">
+               <div class="row gy-4">
+                  <div class="col-md-6">
+                     <input type="text" name="name" class="form-control" placeholder="Votre Nom" required
+                        data-i18n-placeholder="contact_form_name">
+                  </div>
+                  <div class="col-md-6">
+                     <input type="email" class="form-control" name="email" placeholder="Votre Email" required
+                        data-i18n-placeholder="contact_form_email">
+                  </div>
+                  <div class="col-md-12">
+                     <input type="text" class="form-control" name="subject" placeholder="Sujet" required
+                        data-i18n-placeholder="contact_form_subject">
+                  </div>
+                  <div class="col-md-12">
+                     <textarea class="form-control" name="message" rows="6" placeholder="Message" required
+                        data-i18n-placeholder="contact_form_message"></textarea>
+                  </div>
+                  <div class="col-md-12 text-center">
+                     <button type="submit" data-i18n="contact_form_submit">Envoyer</button>
+                  </div>
+               </div>
+            </form>
+         </div>
+      </section>
+
+   </main>
+
+   <footer id="footer" class="footer">
+      <div class="container">
+         <div class="copyright">
+            <p>
+               <span data-i18n="footer_copyright_prefix">© Copyright</span>
+               <strong class="px-1 sitename" data-i18n="footer_site">MyWorld</strong>
+               <span data-i18n="footer_copyright_suffix">Tous droits réservés</span>
+            </p>
+         </div>
+         <div class="social-links">
+            <a href="https://x.com/Bone71456521" target="_blank" rel="noopener" aria-label="X"><i
+                  class="bi bi-twitter-x"></i></a>
+            <a href="https://www.instagram.com/bast.niet/" target="_blank" rel="noopener" aria-label="Instagram"><i
+                  class="bi bi-instagram"></i></a>
+            <a href="https://www.linkedin.com/in/bastien-nieto-5aa5b8341/" target="_blank" rel="noopener"
+               aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+            <a href="https://github.com/Bibwann" target="_blank" rel="noopener" aria-label="GitHub"><i
+                  class="bi bi-github"></i></a>
+         </div>
+         <div class="credits" data-i18n="footer_built">Conçu avec un peu d'aide de Claude · 100 % codé maison.</div>
+      </div>
+   </footer>
+
+   <a href="#hero" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i
+         class="bi bi-arrow-up-short"></i></a>
+   <div id="preloader"></div>
+
+   <!-- Vendor JS -->
+   <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+   <script src="assets/vendor/php-email-form/validate.js"></script>
+   <script src="assets/vendor/aos/aos.js"></script>
+   <script src="assets/vendor/typed.js/typed.umd.js"></script>
+   <script src="assets/vendor/waypoints/noframework.waypoints.js"></script>
+   <script src="assets/vendor/purecounter/purecounter_vanilla.js"></script>
+   <script src="assets/vendor/imagesloaded/imagesloaded.pkgd.min.js"></script>
+   <script src="assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
+
+   <!-- Three.js (solar-system background) -->
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+   <!-- Cyberpunk Stellar Flight Navigation HUD Overlay -->
+   <div class="stellar-hud" id="stellar-hud">
+      <div class="hud-scanner"><span class="scanner-line"></span></div>
+      <div class="hud-field"><span class="hud-label">TARGET_SYS //</span> <span class="hud-val" id="hud-planet">SYSTEME SOLAIRE</span></div>
+      <div class="hud-field"><span class="hud-label">SUN_DIST   //</span> <span class="hud-val" id="hud-dist">0.00 AU</span></div>
+      <div class="hud-field"><span class="hud-label">ORB_VEL    //</span> <span class="hud-val" id="hud-vel">N/A</span></div>
+      <div class="hud-field"><span class="hud-label">TELEMETRY  //</span> <span class="hud-val" id="hud-coords">X:000 Y:000 Z:000</span></div>
+      <div class="hud-field status"><span class="hud-label">LOCK_STAT  //</span> <span class="hud-val ok" id="hud-status">STANDBY</span></div>
+   </div>
+
+   <!-- App JS -->
+   <script src="assets/js/lang.js"></script>
+   <script src="assets/js/main.js"></script>
+   <script src="assets/js/solar-system.js"></script>
+   <script src="assets/js/ai-console.js"></script>
+   <script src="assets/js/cyber.js"></script>
+</body>
+
 </html>

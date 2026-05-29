@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
+  <defs>
+    <!-- Dark slate gradient typical of Valorant UI -->
+    <radialGradient id="bg-grad" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#1c252e"/>
+      <stop offset="100%" stop-color="#0f1923"/>
+    </radialGradient>
+
+    <!-- Neon Crimson glow for the central logo -->
+    <filter id="glow-crimson" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="10" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background in official slate gray -->
+  <rect width="800" height="600" fill="url(#bg-grad)"/>
+
+  <!-- Iconic Valorant diagonal background slash (sober dark crimson) -->
+  <polygon points="180,0 350,0 0,600 -170,600" fill="#ff4655" fill-opacity="0.05"/>
+  <polygon points="650,0 800,0 800,250" fill="#ff4655" fill-opacity="0.04"/>
+
+  <!-- Outer HUD framing border -->
+  <rect x="30" y="30" width="740" height="540" fill="none" stroke="#ece8e1" stroke-opacity="0.08" stroke-width="1.5"/>
+
+  <!-- Corner tech markings -->
+  <!-- Top Left -->
+  <path d="M 45,30 L 45,45 M 30,45 L 45,45" fill="none" stroke="#ff4655" stroke-width="2"/>
+  <!-- Top Right -->
+  <path d="M 755,30 L 755,45 M 770,45 L 755,45" fill="none" stroke="#ece8e1" stroke-opacity="0.3" stroke-width="1.5"/>
+  <!-- Bottom Left -->
+  <path d="M 45,570 L 45,555 M 30,555 L 45,555" fill="none" stroke="#ece8e1" stroke-opacity="0.3" stroke-width="1.5"/>
+  <!-- Bottom Right -->
+  <path d="M 755,570 L 755,555 M 770,555 L 755,555" fill="none" stroke="#ff4655" stroke-width="2"/>
+
+  <!-- CENTRAL EMBLEM: OFFICIAL VALORANT LOGO (Sober & High Contrast) -->
+  <g transform="translate(400, 300) scale(1.6)" filter="url(#glow-crimson)">
+    <!-- Shadow background of logo for depth -->
+    <g opacity="0.15" transform="translate(4, 4)">
+      <!-- Left thick slash of the V -->
+      <polygon points="-35,-45 -5,-45 -25,45 -55,45" fill="#000000" />
+      <!-- Right chevron corner of the V -->
+      <polygon points="10,-45 55,-45 55,0 35,0 35,-20 10,-20" fill="#000000"/>
+    </g>
+    
+    <!-- Left thick slash of the V (Official Crimson Red) -->
+    <polygon points="-35,-45 -5,-45 -25,45 -55,45" fill="#ff4655" />
+    
+    <!-- Right chevron corner of the V (Official White/Off-white) -->
+    <polygon points="10,-45 55,-45 55,0 35,0 35,-20 10,-20" fill="#ece8e1" />
+  </g>
+
+  <!-- Typography and labels (Official Valorant Teko/Roboto Mono inspired style) -->
+  <!-- Top Title -->
+  <text x="400" y="470" fill="#ece8e1" font-family="'Courier New', monospace" font-size="20" font-weight="900" letter-spacing="4" text-anchor="middle">VALORANT // TACTICAL PROTOCOL</text>
+  <text x="400" y="495" fill="#ff4655" font-family="'Courier New', monospace" font-size="11" font-weight="bold" letter-spacing="2" text-anchor="middle">CHALLENGE GENERATOR &amp; TRAINING HUB</text>
+
+  <!-- Small details/decorations -->
+  <!-- Left Side vertical text -->
+  <g transform="translate(50, 300) rotate(-90)">
+    <text x="0" y="0" fill="#ece8e1" fill-opacity="0.3" font-family="'Courier New', monospace" font-size="9" font-weight="bold" letter-spacing="2" text-anchor="middle">SYSTEM // ACTIVE_PORTFOLIO</text>
+  </g>
+  <!-- Right Side vertical text -->
+  <g transform="translate(750, 300) rotate(90)">
+    <text x="0" y="0" fill="#ff4655" fill-opacity="0.4" font-family="'Courier New', monospace" font-size="9" font-weight="bold" letter-spacing="2" text-anchor="middle">API.V1_CONNECT // PROTOCOL_V4.4</text>
+  </g>
+
+  <!-- Top Center tiny details -->
+  <line x1="360" y1="30" x2="440" y2="30" stroke="#ff4655" stroke-width="3" />
+  <text x="400" y="52" fill="#ff4655" font-family="'Courier New', monospace" font-size="9" font-weight="bold" letter-spacing="1" text-anchor="middle">04</text>
+</svg>

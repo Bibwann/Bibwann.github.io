@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <radialGradient id="bg-grad" cx="50%" cy="50%" r="75%">
+      <stop offset="0%" stop-color="#0e1712"/>
+      <stop offset="100%" stop-color="#040605"/>
+    </radialGradient>
+
+    <!-- Glowing Filters -->
+    <filter id="glow-green" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="glow-white" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="glow-red" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Grid overlay -->
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#ffffff" stroke-width="1" stroke-opacity="0.03"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="600" fill="url(#bg-grad)"/>
+  <rect width="800" height="600" fill="url(#grid)"/>
+
+  <!-- Subtle horizontal dividing HUD lines -->
+  <line x1="100" y1="300" x2="280" y2="300" stroke="#ffffff" stroke-opacity="0.2" stroke-width="1" stroke-dasharray="5 5"/>
+  <line x1="520" y1="300" x2="700" y2="300" stroke="#00ff66" stroke-opacity="0.2" stroke-width="1" stroke-dasharray="5 5"/>
+
+  <!-- LEFT SIDE: SOBER MINIMALIST PLAYER (White/Cyan Theme) -->
+  <g transform="translate(200, 300)" filter="url(#glow-white)">
+    <!-- Outer defensive circle -->
+    <circle cx="0" cy="0" r="70" fill="none" stroke="#ffffff" stroke-width="2" stroke-opacity="0.3"/>
+    <circle cx="0" cy="0" r="60" fill="none" stroke="#ffffff" stroke-width="1" stroke-opacity="0.1"/>
+    
+    <!-- Stylized Human Player Token (Ultra-Minimalist) -->
+    <!-- Head -->
+    <circle cx="0" cy="-20" r="18" fill="#ffffff"/>
+    <!-- Body/Shoulders -->
+    <path d="M -30,22 C -30,5 -15,5 0,5 C 15,5 30,5 30,22 Z" fill="#ffffff"/>
+    
+    <!-- Console prompt overlay next to player -->
+    <text x="-35" y="55" fill="#ffffff" font-family="'Courier New', monospace" font-size="10" font-weight="bold" letter-spacing="1" text-anchor="middle">@PLAYER_HERO</text>
+  </g>
+
+  <!-- RIGHT SIDE: SOBER MINIMALIST ZOMBIE (Green Theme) -->
+  <g transform="translate(600, 300)" filter="url(#glow-green)">
+    <!-- Outer zombie hazard circle -->
+    <circle cx="0" cy="0" r="70" fill="none" stroke="#00ff66" stroke-width="2" stroke-opacity="0.3"/>
+    <circle cx="0" cy="0" r="60" fill="none" stroke="#00ff66" stroke-width="1" stroke-opacity="0.1"/>
+    
+    <!-- Stylized Minimalist Zombie Token (Angry polygonal cuts) -->
+    <!-- Head -->
+    <polygon points="-16,-38 16,-38 20,-10 12,2 -12,2 -20,-10" fill="#00ff66"/>
+    <!-- Angry Eye slashes -->
+    <polygon points="-12,-26 -4,-26 -7,-20 -11,-20" fill="#030805"/>
+    <polygon points="4,-26 12,-26 11,-20 7,-20" fill="#030805"/>
+    <!-- Body/Shoulders -->
+    <path d="M -32,22 C -32,8 -15,8 0,8 C 15,8 32,8 32,22 Z" fill="#00ff66"/>
+    
+    <!-- Zombie label -->
+    <text x="35" y="55" fill="#00ff66" font-family="'Courier New', monospace" font-size="10" font-weight="bold" letter-spacing="1" text-anchor="middle">@ZOMBIE_MOB</text>
+  </g>
+
+  <!-- MIDDLE: THE "VS" (Red / Crimson Neon Theme) -->
+  <g transform="translate(400, 300)">
+    <!-- Radial aura behind VS -->
+    <circle cx="0" cy="0" r="45" fill="#140608" fill-opacity="0.6"/>
+    
+    <!-- Outer framing bracket left -->
+    <path d="M -45,-30 L -55,-30 L -55,30 L -45,30" fill="none" stroke="#ff3344" stroke-opacity="0.5" stroke-width="2"/>
+    <!-- Outer framing bracket right -->
+    <path d="M 45,-30 L 55,-30 L 55,30 L 45,30" fill="none" stroke="#ff3344" stroke-opacity="0.5" stroke-width="2"/>
+
+    <!-- Glowing VS Text -->
+    <text x="0" y="15" fill="#ff3344" font-family="'Courier New', monospace" font-size="42" font-weight="bold" letter-spacing="2" text-anchor="middle" filter="url(#glow-red)">VS</text>
+  </g>
+
+  <!-- Technical border accents for console vibe -->
+  <rect x="20" y="20" width="760" height="560" fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="2"/>
+  <text x="40" y="45" fill="#ffffff" fill-opacity="0.3" font-family="'Courier New', monospace" font-size="11" font-weight="bold">SYSTEM.C // SIMULATION.ACTIVE</text>
+  <text x="760" y="45" fill="#00ff66" fill-opacity="0.4" font-family="'Courier New', monospace" font-size="11" font-weight="bold" text-anchor="end">MAP: ACTIVE</text>
+</svg>

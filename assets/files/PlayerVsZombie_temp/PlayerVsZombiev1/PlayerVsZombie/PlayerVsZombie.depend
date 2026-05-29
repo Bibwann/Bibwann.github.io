@@ -1,0 +1,182 @@
+# depslib dependency file v1.0
+1700731546 source:c:\users\enzom\desktop\iut\sae\player vs zombie\playervszombie\main.c
+	<stdio.h>
+	<stdlib.h>
+	"bibliotheque.h"
+	<dos.h>
+	<dir.h>
+
+1700732421 c:\users\enzom\desktop\iut\sae\player vs zombie\playervszombie\bibliotheque.h
+
+1700727256 source:c:\users\enzom\desktop\iut\sae\player vs zombie\playervszombie\fonctions.c
+	<stdio.h>
+	<stdlib.h>
+	"bibliotheque.h"
+	<dos.h>
+	<dir.h>
+	<time.h>
+
+1704644379 source:c:\users\enzom\desktop\jsais pas moi\iut\sae\player vs zombie\playervszombie\main.c
+	<stdio.h>
+	<stdlib.h>
+	"bibliotheque.h"
+	<dos.h>
+	<dir.h>
+
+1704644411 c:\users\enzom\desktop\jsais pas moi\iut\sae\player vs zombie\playervszombie\bibliotheque.h
+
+1704644090 source:c:\users\enzom\desktop\jsais pas moi\iut\sae\player vs zombie\playervszombie\fonctions.c
+	<stdio.h>
+	<stdlib.h>
+	"bibliotheque.h"
+	<dos.h>
+	<dir.h>
+	<time.h>
+
+1704793542 source:c:\users\lieut\downloads\playervszombie (1)\playervszombie\fonctions.c
+	<stdio.h>
+	<stdlib.h>
+	"bibliotheque.h"
+	<dos.h>
+	<dir.h>
+	<time.h>
+
+1704793542 c:\users\lieut\downloads\playervszombie (1)\playervszombie\bibliotheque.h
+
+1704793788 source:c:\users\lieut\downloads\playervszombie (1)\playervszombie\main.c
+	<stdio.h>
+	<stdlib.h>
+	"bibliotheque.h"
+	<dos.h>
+	<dir.h>
+
+1704793542 source:c:\users\lieut\downloads\playervszombie (1)\fonctions.c
+	<stdio.h>
+	<stdlib.h>
+	"bibliotheque.h"
+	<dos.h>
+	<dir.h>
+	<time.h>
+
+1704793542 c:\users\lieut\downloads\playervszombie (1)\bibliotheque.h
+
+1704805769 source:c:\users\lieut\downloads\playervszombie (1)\main.c
+	<stdio.h>
+	<stdlib.h>
+	"bibliotheque.h"
+	<dos.h>
+	<dir.h>
+
+1705269663 source:c:\users\enzom\desktop\jsais pas moi\iut\sae\player vs zombie\playervszombie\playervszombie (1)\fonctions.c
+	<stdio.h>
+	<stdlib.h>
+	<conio.h>
+	<unistd.h>
+	"bibliotheque.h"
+	<dos.h>
+	<dir.h>
+	<time.h>
+
+1705269686 c:\users\enzom\desktop\jsais pas moi\iut\sae\player vs zombie\playervszombie\playervszombie (1)\bibliotheque.h
+
+1705269592 source:c:\users\enzom\desktop\jsais pas moi\iut\sae\player vs zombie\playervszombie\playervszombie (1)\main.c
+	<stdio.h>
+	<stdlib.h>
+	<conio.h>
+	<unistd.h>
+	"bibliotheque.h"
+	<dos.h>
+	<dir.h>
+
+1705575594 source:c:\users\enzom\desktop\jsais pas moi\iut\sae\playervszombie\main.c
+	<stdio.h>
+	<stdlib.h>
+	<conio.h>
+	<unistd.h>
+	<time.h>
+	"bibliotheque.h"
+	<dos.h>
+	<dir.h>
+
+1705574570 c:\users\enzom\desktop\jsais pas moi\iut\sae\playervszombie\bibliotheque.h
+
+1705575837 source:c:\users\enzom\desktop\jsais pas moi\iut\sae\playervszombie\fonctions.c
+	<stdio.h>
+	<stdlib.h>
+	<conio.h>
+	<unistd.h>
+	<time.h>
+	"bibliotheque.h"
+	<dos.h>
+	<dir.h>
+	<time.h>
+
+1705564163 source:c:\users\lieut\downloads\versionsansmenu2\playervszombie\main.c
+	<stdio.h>
+	<stdlib.h>
+	<conio.h>
+	<unistd.h>
+	<time.h>
+	"bibliotheque.h"
+	<dos.h>
+	<dir.h>
+
+1705564323 c:\users\lieut\downloads\versionsansmenu2\playervszombie\bibliotheque.h
+
+1705564308 source:c:\users\lieut\downloads\versionsansmenu2\playervszombie\fonctions.c
+	<stdio.h>
+	<stdlib.h>
+	<conio.h>
+	<unistd.h>
+	<time.h>
+	"bibliotheque.h"
+	<dos.h>
+	<dir.h>
+	<time.h>
+
+1705564770 source:c:\users\enzom\desktop\jsais pas moi\iut\playervszombie (1)\playervszombie\fonctions.c
+	<stdio.h>
+	<stdlib.h>
+	<conio.h>
+	<unistd.h>
+	<time.h>
+	"bibliotheque.h"
+	<dos.h>
+	<dir.h>
+	<time.h>
+
+1705564524 c:\users\enzom\desktop\jsais pas moi\iut\playervszombie (1)\playervszombie\bibliotheque.h
+
+1705564524 source:c:\users\enzom\desktop\jsais pas moi\iut\playervszombie (1)\playervszombie\main.c
+	<stdio.h>
+	<stdlib.h>
+	<conio.h>
+	<unistd.h>
+	<time.h>
+	"bibliotheque.h"
+	<dos.h>
+	<dir.h>
+
+1706468261 source:c:\users\basti\onedrive\bureau\playervszombiev1\playervszombie\fonctions.c
+	<stdio.h>
+	<stdlib.h>
+	<conio.h>
+	<unistd.h>
+	<time.h>
+	"bibliotheque.h"
+	<dos.h>
+	<dir.h>
+	<time.h>
+
+1706465861 c:\users\basti\onedrive\bureau\playervszombiev1\playervszombie\bibliotheque.h
+
+1706467644 source:c:\users\basti\onedrive\bureau\playervszombiev1\playervszombie\main.c
+	<stdio.h>
+	<stdlib.h>
+	<conio.h>
+	<unistd.h>
+	<time.h>
+	"bibliotheque.h"
+	<dos.h>
+	<dir.h>
+
