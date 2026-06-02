@@ -42,9 +42,10 @@
                <li><a href="#about" data-i18n="about_ref">À propos</a></li>
                <li><a href="#resume" data-i18n="resume_ref">Parcours</a></li>
                <li><a href="#services" data-i18n="services_ref">Services</a></li>
-               <li><a href="#claude" data-i18n="claude_ref">Copilote</a></li>
+               <li><a href="#copilots" data-i18n="claude_ref">Copilotes</a></li>
                <li><a href="#ai" data-i18n="terminal_ref">Mon IA</a></li>
                <li><a href="#projects" data-i18n="portfolio_ref">Projets</a></li>
+               <li><a href="#passions" data-i18n="passions_ref">Passions</a></li>
                <li><a href="#contact" data-i18n="contact_ref">Contact</a></li>
                <div class="dropdown" id="lang-switcher">
                   <a href="#" id="current-lang" data-bs-toggle="dropdown" aria-expanded="false">
@@ -160,9 +161,6 @@
                      <p data-i18n="about_3">Ma vraie passion : l'intégration de l'IA. J'orchestre des systèmes
                         multi-agents, je fine-tune des modèles (LoRA) et je branche des LLM dans des produits concrets.
                      </p>
-                     <p class="about-perso" data-i18n="about_perso">⚡ Hors du code : Formule 1, belles mécaniques et
-                        beaucoup (trop) de café.</p>
-                  </div>
                </div>
             </div>
          </div>
@@ -296,35 +294,35 @@
          </div>
       </section>
 
-      <!-- ============ CLAUDE (partner) ============ -->
-      <section id="claude" class="claude section">
+      <!-- ============ COPILOTS (partners) ============ -->
+      <section id="copilots" class="claude section">
          <div class="container section-title" data-aos="fade-up">
-            <span class="section-kicker">// PARTNER</span>
-            <h2 data-i18n="claude_title">Le mot de mon copilote</h2>
+            <span class="section-kicker">// PARTNERS</span>
+            <h2 data-i18n="claude_title">Le mot de mes copilotes</h2>
          </div>
          <div class="container" data-aos="fade-up" data-aos-delay="100">
             <div class="claude-card">
                <div class="claude-avatar">
-                  <svg viewBox="0 0 120 120" class="claude-chibi" role="img" aria-label="Claude">
+                  <!-- Official-style Anthropic / Claude sunburst mark -->
+                  <svg viewBox="0 0 120 120" class="claude-chibi" role="img" aria-label="Claude — Anthropic">
+                     <defs>
+                        <path id="cl-blade" d="M60 60 C55 42 55 23 60 8 C65 23 65 42 60 60 Z"></path>
+                     </defs>
                      <g class="claude-rays" fill="#D97757">
-                        <rect x="56" y="2" width="8" height="24" rx="4"></rect>
-                        <rect x="56" y="6" width="8" height="16" rx="4" transform="rotate(30 60 60)"></rect>
-                        <rect x="56" y="2" width="8" height="24" rx="4" transform="rotate(60 60 60)"></rect>
-                        <rect x="56" y="6" width="8" height="16" rx="4" transform="rotate(90 60 60)"></rect>
-                        <rect x="56" y="2" width="8" height="24" rx="4" transform="rotate(120 60 60)"></rect>
-                        <rect x="56" y="6" width="8" height="16" rx="4" transform="rotate(150 60 60)"></rect>
-                        <rect x="56" y="2" width="8" height="24" rx="4" transform="rotate(180 60 60)"></rect>
-                        <rect x="56" y="6" width="8" height="16" rx="4" transform="rotate(210 60 60)"></rect>
-                        <rect x="56" y="2" width="8" height="24" rx="4" transform="rotate(240 60 60)"></rect>
-                        <rect x="56" y="6" width="8" height="16" rx="4" transform="rotate(270 60 60)"></rect>
-                        <rect x="56" y="2" width="8" height="24" rx="4" transform="rotate(300 60 60)"></rect>
-                        <rect x="56" y="6" width="8" height="16" rx="4" transform="rotate(330 60 60)"></rect>
+                        <use href="#cl-blade"></use>
+                        <use href="#cl-blade" transform="rotate(30 60 60)"></use>
+                        <use href="#cl-blade" transform="rotate(60 60 60)"></use>
+                        <use href="#cl-blade" transform="rotate(90 60 60)"></use>
+                        <use href="#cl-blade" transform="rotate(120 60 60)"></use>
+                        <use href="#cl-blade" transform="rotate(150 60 60)"></use>
+                        <use href="#cl-blade" transform="rotate(180 60 60)"></use>
+                        <use href="#cl-blade" transform="rotate(210 60 60)"></use>
+                        <use href="#cl-blade" transform="rotate(240 60 60)"></use>
+                        <use href="#cl-blade" transform="rotate(270 60 60)"></use>
+                        <use href="#cl-blade" transform="rotate(300 60 60)"></use>
+                        <use href="#cl-blade" transform="rotate(330 60 60)"></use>
                      </g>
-                     <circle cx="60" cy="60" r="25" fill="#D97757"></circle>
-                     <circle cx="51.5" cy="58.5" r="3.4" fill="#2b1a12"></circle>
-                     <circle cx="68.5" cy="58.5" r="3.4" fill="#2b1a12"></circle>
-                     <path d="M51 66 Q60 73.5 69 66" stroke="#2b1a12" stroke-width="3.2" fill="none"
-                        stroke-linecap="round"></path>
+                     <circle cx="60" cy="60" r="8.5" fill="#D97757"></circle>
                   </svg>
                </div>
                <div class="claude-speech">
@@ -334,6 +332,77 @@
                      rapide, carré et ambitieux. Si vous cherchez quelqu'un qui parle couramment « humain » ET « machine
                      », vous êtes au bon endroit.</p>
                   <span class="claude-sign" data-i18n="claude_sign">— Claude, copilote IA d'Anthropic</span>
+               </div>
+            </div>
+
+            <!-- Gemini Card -->
+            <div class="gemini-card mt-4">
+               <div class="gemini-avatar">
+                  <svg viewBox="0 0 100 100" class="gemini-chibi" role="img" aria-label="Gemini">
+                     <defs>
+                        <linearGradient id="gem-grad-lg" x1="8" y1="14" x2="92" y2="86" gradientUnits="userSpaceOnUse">
+                           <stop offset="0" stop-color="#4796E3"></stop>
+                           <stop offset="0.5" stop-color="#9177C7"></stop>
+                           <stop offset="1" stop-color="#D56F82"></stop>
+                        </linearGradient>
+                     </defs>
+                     <path fill="url(#gem-grad-lg)" d="M50 4 C53 27 73 47 96 50 C73 53 53 73 50 96 C47 73 27 53 4 50 C27 47 47 27 50 4 Z"></path>
+                  </svg>
+               </div>
+               <div class="claude-speech">
+                  <p data-i18n="gemini_body">Bonjour ! Je suis Gemini — l'IA de Google. J'assiste Bastien sur l'architecture, la réflexion algorithmique et les optimisations complexes. Bastien est curieux et pragmatique : il sait exactement quand utiliser quel outil pour quel problème. Il a une excellente vue d'ensemble et une belle énergie d'innovation.</p>
+                  <span class="claude-sign" data-i18n="gemini_sign">— Gemini, copilote IA de Google</span>
+               </div>
+            </div>
+
+            <!-- AI stack: official-style logos of the models/tools I work with -->
+            <div class="ai-stack" data-aos="fade-up" data-aos-delay="200">
+               <span class="ai-stack-title" data-i18n="stack_title">Ma stack IA</span>
+               <div class="ai-stack-grid">
+                  <div class="ai-logo" title="Claude · Anthropic">
+                     <svg viewBox="0 0 120 120" role="img" aria-label="Claude">
+                        <g fill="#D97757">
+                           <use href="#cl-blade"></use>
+                           <use href="#cl-blade" transform="rotate(30 60 60)"></use>
+                           <use href="#cl-blade" transform="rotate(60 60 60)"></use>
+                           <use href="#cl-blade" transform="rotate(90 60 60)"></use>
+                           <use href="#cl-blade" transform="rotate(120 60 60)"></use>
+                           <use href="#cl-blade" transform="rotate(150 60 60)"></use>
+                           <use href="#cl-blade" transform="rotate(180 60 60)"></use>
+                           <use href="#cl-blade" transform="rotate(210 60 60)"></use>
+                           <use href="#cl-blade" transform="rotate(240 60 60)"></use>
+                           <use href="#cl-blade" transform="rotate(270 60 60)"></use>
+                           <use href="#cl-blade" transform="rotate(300 60 60)"></use>
+                           <use href="#cl-blade" transform="rotate(330 60 60)"></use>
+                           <circle cx="60" cy="60" r="8.5"></circle>
+                        </g>
+                     </svg>
+                     <span>Claude</span>
+                  </div>
+                  <div class="ai-logo" title="Gemini · Google">
+                     <svg viewBox="0 0 100 100" role="img" aria-label="Gemini">
+                        <defs>
+                           <linearGradient id="gem-grad" x1="8" y1="14" x2="92" y2="86"
+                              gradientUnits="userSpaceOnUse">
+                              <stop offset="0" stop-color="#4796E3"></stop>
+                              <stop offset="0.5" stop-color="#9177C7"></stop>
+                              <stop offset="1" stop-color="#D56F82"></stop>
+                           </linearGradient>
+                        </defs>
+                        <path fill="url(#gem-grad)"
+                           d="M50 4 C53 27 73 47 96 50 C73 53 53 73 50 96 C47 73 27 53 4 50 C27 47 47 27 50 4 Z">
+                        </path>
+                     </svg>
+                     <span>Gemini</span>
+                  </div>
+                  <div class="ai-logo" title="Mistral AI">
+                     <img src="assets/img/mistral-logo.png" alt="Mistral AI" class="logo-img">
+                     <span>Mistral</span>
+                  </div>
+                  <div class="ai-logo" title="Ollama · modèles locaux (Qwen)">
+                     <img src="assets/img/ollama-logo.png" alt="Ollama" class="logo-img">
+                     <span>Ollama · local</span>
+                  </div>
                </div>
             </div>
          </div>
@@ -391,7 +460,7 @@
                </div>
                <div class="col-lg-3 col-6" data-aos="fade-up" data-aos-delay="300">
                   <div class="stats-item">
-                     <span data-purecounter-start="0" data-purecounter-end="7" data-purecounter-duration="2"
+                     <span data-purecounter-start="0" data-purecounter-end="8" data-purecounter-duration="2"
                         class="purecounter">0</span>
                      <p data-i18n="stat_experience">Années de code</p>
                   </div>
@@ -424,15 +493,16 @@
                   </div>
                   <div class="featured-info">
                      <div class="featured-tags">
-                        <span>Qwen-7B · LoRA</span><span>Multi-agents</span><span>Local · ROCm</span><span>Voix
-                           TTS</span>
+                        <span>Qwen2.5-7B · LoRA</span><span>Multi-agents · 7</span><span>100% local · 0
+                           API</span><span>Pokémon · Twitch</span>
                      </div>
                      <h3 data-i18n="aegis_title">Aegis — IA souveraine</h3>
                      <p class="featured-role" data-i18n="aegis_role">// de loin le plus gros projet pro de ma vie</p>
-                     <p data-i18n="aegis_desc">Aegis (nom de code de « Luminai ») est une IA quasi-humaine qui tourne
-                        100 % en local : un « Mind » Qwen2.5-7B fine-tuné en LoRA, une architecture multi-agents (chat,
-                        pensée, monologue intérieur, mémoire, vision, jeu), des émotions, une mémoire hiérarchique et
-                        une voix. Elle joue à Pokémon en autonomie et discute sur Twitch — sur GPU, sans aucune API.
+                     <p data-i18n="aegis_desc">Aegis (nom de code « Luminai ») est de loin mon plus gros projet pro :
+                        une IA quasi-humaine qui tourne 100 % en local, sans aucune API. Son « Mind » est un Qwen2.5-7B
+                        que j'ai fine-tuné moi-même en LoRA, orchestré par une architecture multi-agents — chat, pensée,
+                        monologue intérieur, mémoire hiérarchique, émotions, vision et jeu. Concrètement, elle perçoit,
+                        décide et agit seule : elle joue à Pokémon en autonomie totale et discute en direct sur Twitch.
                         Dépôt privé.</p>
                      <span class="btn-neon ghost disabled"><i class="bi bi-shield-lock"></i> <span
                            data-i18n="aegis_btn">Accès restreint</span></span>
@@ -762,6 +832,54 @@
          </div>
       </section>
 
+      <!-- ============ PASSIONS ============ -->
+      <section id="passions" class="passions services section">
+         <div class="container section-title" data-aos="fade-up">
+            <span class="section-kicker">// PASSIONS</span>
+            <h2 data-i18n="passions_title">Hors du code</h2>
+            <p data-i18n="passions_subtitle">Ce qui m'anime quand je ne suis pas en train de faire tourner une IA.</p>
+         </div>
+         <div class="container">
+            <div class="row gy-4 justify-content-center">
+               <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="100">
+                  <div class="service-item tilt-card position-relative">
+                     <div class="icon"><i class="bi bi-music-note-beamed"></i></div>
+                     <h3 data-i18n="passions_music_title">Musique</h3>
+                     <p data-i18n="passions_music_desc">Toujours un son dans les oreilles — ma bande-son pour coder, créer
+                        et décrocher.</p>
+                     <span class="tilt-glare"></span>
+                  </div>
+               </div>
+               <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="200">
+                  <div class="service-item tilt-card position-relative">
+                     <div class="icon"><i class="bi bi-heart-pulse"></i></div>
+                     <h3 data-i18n="passions_sport_title">Sport &amp; fitness</h3>
+                     <p data-i18n="passions_sport_desc">L'équilibre du corps et de la tête : se dépenser pour mieux
+                        revenir, discipliné et clair.</p>
+                     <span class="tilt-glare"></span>
+                  </div>
+               </div>
+               <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="300">
+                  <div class="service-item tilt-card position-relative">
+                     <div class="icon"><i class="bi bi-controller"></i></div>
+                     <h3 data-i18n="passions_games_title">Jeux vidéo</h3>
+                     <p data-i18n="passions_games_desc">Du compétitif au chill — Pokémon, Valorant et compagnie. D'ailleurs
+                        Aegis joue à Pokémon en autonomie.</p>
+                     <span class="tilt-glare"></span>
+                  </div>
+               </div>
+               <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="400">
+                  <div class="service-item tilt-card position-relative">
+                     <div class="icon"><i class="bi bi-car-front-fill"></i></div>
+                     <h3 data-i18n="passions_cars_title">Voitures &amp; F1</h3>
+                     <p data-i18n="passions_cars_desc">Passionné par tout ce qui va vite et qui fait vroom. L'ingénierie automobile me fascine.</p>
+                     <span class="tilt-glare"></span>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </section>
+
       <!-- ============ CONTACT ============ -->
       <section id="contact" class="contact section">
          <div class="container section-title" data-aos="fade-up">
@@ -799,30 +917,6 @@
                         data-i18n="contact_location_value">Les Adrets-de-l'Esterel (83)</span></div>
                </a>
             </div>
-            <form action="forms/contact.php" method="post" class="php-email-form" data-aos="fade-up"
-               data-aos-delay="200">
-               <div class="row gy-4">
-                  <div class="col-md-6">
-                     <input type="text" name="name" class="form-control" placeholder="Votre Nom" required
-                        data-i18n-placeholder="contact_form_name">
-                  </div>
-                  <div class="col-md-6">
-                     <input type="email" class="form-control" name="email" placeholder="Votre Email" required
-                        data-i18n-placeholder="contact_form_email">
-                  </div>
-                  <div class="col-md-12">
-                     <input type="text" class="form-control" name="subject" placeholder="Sujet" required
-                        data-i18n-placeholder="contact_form_subject">
-                  </div>
-                  <div class="col-md-12">
-                     <textarea class="form-control" name="message" rows="6" placeholder="Message" required
-                        data-i18n-placeholder="contact_form_message"></textarea>
-                  </div>
-                  <div class="col-md-12 text-center">
-                     <button type="submit" data-i18n="contact_form_submit">Envoyer</button>
-                  </div>
-               </div>
-            </form>
          </div>
       </section>
 
@@ -855,6 +949,34 @@
          class="bi bi-arrow-up-short"></i></a>
    <div id="preloader"></div>
 
+   <!-- Nano Chibi Wandering AI -->
+   <a href="#ai" id="nano-chibi" aria-label="Aller à la console IA">
+      <span class="chibi-bubble">Salut ! Clique pour me parler.</span>
+      <div class="chibi-drone">
+         <svg viewBox="0 0 100 100" role="img" aria-label="Nano Drone">
+            <defs>
+               <linearGradient id="drone-glow" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#8b5cf6" />
+                  <stop offset="100%" stop-color="#06b6d4" />
+               </linearGradient>
+            </defs>
+            <!-- Cat ears -->
+            <path d="M 25 30 L 15 10 L 40 20 Z" fill="#1e1e2e" stroke="url(#drone-glow)" stroke-width="2"/>
+            <path d="M 75 30 L 85 10 L 60 20 Z" fill="#1e1e2e" stroke="url(#drone-glow)" stroke-width="2"/>
+            <!-- Main Body -->
+            <rect x="20" y="25" width="60" height="50" rx="20" fill="#11111a" stroke="url(#drone-glow)" stroke-width="3"/>
+            <!-- Screen/Visor -->
+            <rect x="25" y="35" width="50" height="25" rx="10" fill="#000000" />
+            <!-- Glowing Eye (animated in CSS) -->
+            <circle class="chibi-eye" cx="50" cy="47.5" r="5" fill="#22d3ee" />
+            <!-- Thruster base -->
+            <path d="M 40 75 L 60 75 L 55 85 L 45 85 Z" fill="#2d2d3f" />
+         </svg>
+         <!-- Thruster flame -->
+         <div class="chibi-flame"></div>
+      </div>
+   </a>
+
    <!-- Vendor JS -->
    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
    <script src="assets/vendor/php-email-form/validate.js"></script>
@@ -867,15 +989,42 @@
 
    <!-- Three.js (solar-system background) -->
    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
-   <!-- Cyberpunk Stellar Flight Navigation HUD Overlay -->
+  <!-- 3D Background -->
+  <div id="bg"></div>
+
+  <!-- Space Labels Overlay (for overview mode) -->
+  <div id="space-labels"></div>
+
+  <!-- Real Separation: High-Tech Holographic HUD Overlay for Overview Mode -->
+  <div id="overview-hologram" class="overview-overlay-hud">
+     <div class="holo-frame-top">STELLAR NAVIGATION SYSTEM v1.0.8</div>
+     <div class="holo-frame-bottom">SYSTEME SOLAIRE // ANGLE MORT ET SYSTEMES VOISINS LOCK-ON</div>
+     <div class="holo-grid"></div>
+     <div class="holo-scanlines"></div>
+  </div>
+
+  <!-- Cyberpunk Stellar Flight Navigation HUD Overlay -->
    <div class="stellar-hud" id="stellar-hud">
       <div class="hud-scanner"><span class="scanner-line"></span></div>
       <div class="hud-field"><span class="hud-label">TARGET_SYS //</span> <span class="hud-val" id="hud-planet">SYSTEME SOLAIRE</span></div>
       <div class="hud-field"><span class="hud-label">SUN_DIST   //</span> <span class="hud-val" id="hud-dist">0.00 AU</span></div>
       <div class="hud-field"><span class="hud-label">ORB_VEL    //</span> <span class="hud-val" id="hud-vel">N/A</span></div>
+      <div class="hud-field"><span class="hud-label">NAV_SPEED  //</span> <span class="hud-val" id="hud-speed">0.0 KM/S</span></div>
       <div class="hud-field"><span class="hud-label">TELEMETRY  //</span> <span class="hud-val" id="hud-coords">X:000 Y:000 Z:000</span></div>
       <div class="hud-field status"><span class="hud-label">LOCK_STAT  //</span> <span class="hud-val ok" id="hud-status">STANDBY</span></div>
+      <div class="hud-menu">
+         <button type="button" class="hud-menu-btn" id="menu-solar">
+            <i class="bi bi-brightness-high"></i> <span data-i18n="hud_menu_solar">SYSTÈME SOLAIRE</span>
+         </button>
+         <button type="button" class="hud-menu-btn" id="menu-neighbour">
+            <i class="bi bi-stars"></i> <span data-i18n="hud_menu_neighbour">VOISINAGE STELLAIRE</span>
+         </button>
+         <button type="button" class="hud-menu-btn hud-back-btn" id="nav-back">
+            <i class="bi bi-arrow-left-circle-fill"></i> <span data-i18n="hud_back">RETOUR</span>
+         </button>
+      </div>
    </div>
 
    <!-- App JS -->
