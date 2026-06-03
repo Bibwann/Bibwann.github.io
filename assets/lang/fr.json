@@ -85,6 +85,7 @@
   "hud_menu_solar": "Système solaire",
   "hud_menu_neighbour": "Voisinage stellaire",
   "hud_back": "Retour",
+  "hud_close_3d": "Retour au portfolio",
   "terminal_title": "Mon IA, dans ton navigateur",
   "terminal_subtitle": "Un vrai modèle Qwen tourne 100 % dans ton navigateur — rien n'est envoyé à un serveur. Demande-lui ce que tu veux sur moi.",
   "terminal_bar_title": "luminai-mini · qwen2.5-0.5B",

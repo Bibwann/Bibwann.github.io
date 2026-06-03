@@ -1007,6 +1007,9 @@
 
   <!-- Cyberpunk Stellar Flight Navigation HUD Overlay -->
    <div class="stellar-hud" id="stellar-hud">
+      <button type="button" id="hud-toggle" class="hud-toggle-btn" aria-label="Toggle Telemetry">
+         <i class="bi bi-chevron-down"></i>
+      </button>
       <div class="hud-scanner"><span class="scanner-line"></span></div>
       <div class="hud-field"><span class="hud-label">TARGET_SYS //</span> <span class="hud-val" id="hud-planet">SYSTEME SOLAIRE</span></div>
       <div class="hud-field"><span class="hud-label">SUN_DIST   //</span> <span class="hud-val" id="hud-dist">0.00 AU</span></div>
@@ -1023,6 +1026,9 @@
          </button>
          <button type="button" class="hud-menu-btn hud-back-btn" id="nav-back">
             <i class="bi bi-arrow-left-circle-fill"></i> <span data-i18n="hud_back">RETOUR</span>
+         </button>
+         <button type="button" class="hud-menu-btn hud-close-3d-btn" id="nav-close-3d">
+            <i class="bi bi-x-circle-fill"></i> <span data-i18n="hud_close_3d">RETOUR AU PORTFOLIO</span>
          </button>
       </div>
    </div>

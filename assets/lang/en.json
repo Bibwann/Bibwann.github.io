@@ -85,6 +85,7 @@
   "hud_menu_solar": "Solar system",
   "hud_menu_neighbour": "Stellar neighbourhood",
   "hud_back": "Back",
+  "hud_close_3d": "Exit 3D View",
   "terminal_title": "My AI, in your browser",
   "terminal_subtitle": "A real Qwen model runs 100% in your browser — nothing is sent to a server. Ask it anything about me.",
   "terminal_bar_title": "luminai-mini · qwen2.5-0.5B",
