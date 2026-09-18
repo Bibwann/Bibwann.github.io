@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <title>Atelier Mesure — Configurateur</title>
+   <link href="https://fonts.googleapis.com" rel="preconnect">
+   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet">
+   <style>
+      /* ===========================================================
+         ATELIER MESURE — démonstration : configurateur de produit.
+         Chaque option redessine l'aperçu (un vrai SVG paramétré, pas
+         une image par variante) et recalcule le prix ligne à ligne,
+         avec le délai de fabrication qui suit les choix.
+         Atelier, essences, prix et délais inventés.
+         =========================================================== */
+      :root {
+         --papier: #f7f4ee;
+         --papier-2: #ece6db;
+         --encre: #221e1a;
+         --gris: #6b6359;
+         --bord: #ded6c8;
+         --terre: #8a5a2b;
+         --mousse: #4f6b4a;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body { margin: 0; height: 100%; }
+
+      body {
+         background: var(--papier);
+         color: var(--encre);
+         font-family: Inter, system-ui, sans-serif;
+         font-size: 14.5px;
+         line-height: 1.6;
+         display: flex;
+         flex-direction: column;
+         height: 100vh;
+         overflow: hidden;
+      }
+
+      h1, h2, h3 { font-family: Fraunces, Georgia, serif; font-weight: 700; margin: 0; letter-spacing: -.015em; }
+
+      button { font: inherit; cursor: pointer; }
+
+      header {
+         display: flex;
+         align-items: center;
+         gap: 30px;
+         padding: 15px 34px;
+         border-bottom: 1px solid var(--bord);
+         flex-shrink: 0;
+      }
+
+      .logo { font-family: Fraunces, serif; font-weight: 700; font-size: 20px; letter-spacing: -.02em; }
+
+      .logo span { color: var(--terre); }
+
+      nav { display: flex; gap: 22px; }
+
+      nav a { color: var(--gris); text-decoration: none; font-size: 13.5px; }
+
+      nav a:hover { color: var(--encre); }
+
+      .fabrique { margin-left: auto; font-size: 12.5px; color: var(--gris); }
+
+      .fabrique b { color: var(--mousse); font-weight: 600; }
+
+      /* ---------- corps ---------- */
+      .plan { display: grid; grid-template-columns: 1fr 392px; flex: 1; min-height: 0; }
+
+      .scene {
+         position: relative;
+         background:
+            radial-gradient(ellipse 70% 60% at 50% 42%, #fffdf8 0%, var(--papier-2) 78%);
+         display: flex;
+         flex-direction: column;
+         align-items: center;
+         justify-content: center;
+         padding: 24px 40px;
+      }
+
+      .scene svg { width: 100%; max-width: 620px; height: auto; }
+
+      .cotes {
+         display: flex;
+         gap: 26px;
+         margin-top: 20px;
+         font-family: Inter, sans-serif;
+         font-size: 12px;
+         letter-spacing: .14em;
+         text-transform: uppercase;
+         color: var(--gris);
+      }
+
+      .cotes b { color: var(--encre); font-weight: 600; letter-spacing: 0; text-transform: none; font-size: 14px; }
+
+      .ref {
+         position: absolute;
+         top: 22px;
+         left: 30px;
+         font-size: 11px;
+         letter-spacing: .2em;
+         text-transform: uppercase;
+         color: var(--gris);
+      }
+
+      /* ---------- panneau ---------- */
+      .panneau {
+         border-left: 1px solid var(--bord);
+         background: #fffdf9;
+         display: flex;
+         flex-direction: column;
+         min-height: 0;
+      }
+
+      .p-haut { padding: 22px 26px 16px; border-bottom: 1px solid var(--bord); }
+
+      .p-haut h1 { font-size: 27px; }
+
+      .p-haut p { color: var(--gris); margin: 8px 0 0; font-size: 13.5px; }
+
+      .options { padding: 20px 26px; overflow-y: auto; flex: 1; }
+
+      .bloc { margin-bottom: 24px; }
+
+      .bloc > label {
+         display: flex;
+         align-items: baseline;
+         gap: 8px;
+         font-size: 11px;
+         letter-spacing: .18em;
+         text-transform: uppercase;
+         color: var(--gris);
+         margin-bottom: 10px;
+      }
+
+      .bloc > label b { margin-left: auto; letter-spacing: 0; text-transform: none; font-size: 13px; color: var(--encre); }
+
+      .choix { display: flex; gap: 8px; flex-wrap: wrap; }
+
+      .o {
+         border: 1px solid var(--bord);
+         background: var(--papier);
+         border-radius: 9px;
+         padding: 9px 14px;
+         font-size: 13.5px;
+         transition: all .18s;
+      }
+
+      .o:hover { border-color: var(--terre); }
+
+      .o[aria-pressed="true"] { border-color: var(--encre); background: var(--encre); color: var(--papier); }
+
+      .essences { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+
+      .ess {
+         border: 1px solid var(--bord);
+         background: transparent;
+         border-radius: 10px;
+         padding: 7px 6px 8px;
+         text-align: center;
+         transition: all .18s;
+      }
+
+      .ess i { display: block; height: 30px; border-radius: 6px; margin-bottom: 6px; }
+
+      .ess span { font-size: 11.5px; color: var(--gris); }
+
+      .ess[aria-pressed="true"] { border-color: var(--encre); box-shadow: inset 0 0 0 1px var(--encre); }
+
+      .ess[aria-pressed="true"] span { color: var(--encre); font-weight: 500; }
+
+      .curseur { width: 100%; accent-color: var(--terre); }
+
+      .bascule { display: flex; align-items: center; gap: 11px; padding: 11px 13px; border: 1px solid var(--bord); border-radius: 10px; }
+
+      .bascule .piste {
+         width: 38px;
+         height: 21px;
+         border-radius: 999px;
+         background: var(--papier-2);
+         position: relative;
+         flex-shrink: 0;
+         transition: background .2s;
+      }
+
+      .bascule .piste::after {
+         content: "";
+         position: absolute;
+         top: 3px;
+         left: 3px;
+         width: 15px;
+         height: 15px;
+         border-radius: 999px;
+         background: #fff;
+         box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+         transition: transform .2s cubic-bezier(.22, .68, .28, 1);
+      }
+
+      .bascule[aria-pressed="true"] .piste { background: var(--mousse); }
+
+      .bascule[aria-pressed="true"] .piste::after { transform: translateX(17px); }
+
+      .bascule div { text-align: left; }
+
+      .bascule b { display: block; font-size: 13.5px; font-weight: 500; }
+
+      .bascule span { font-size: 12px; color: var(--gris); }
+
+      .grave { width: 100%; border: 1px solid var(--bord); border-radius: 9px; padding: 10px 12px; background: var(--papier); }
+
+      /* ---------- devis ---------- */
+      .devis { border-top: 1px solid var(--bord); padding: 18px 26px 22px; background: var(--papier); }
+
+      .ligne { display: flex; justify-content: space-between; font-size: 13px; color: var(--gris); padding: 3px 0; }
+
+      .ligne b { color: var(--encre); font-weight: 500; font-variant-numeric: tabular-nums; }
+
+      .ligne.total {
+         border-top: 1px solid var(--bord);
+         margin-top: 9px;
+         padding-top: 12px;
+         font-family: Fraunces, serif;
+         font-size: 24px;
+         color: var(--encre);
+      }
+
+      .ligne.total b { font-family: Fraunces, serif; font-weight: 700; font-size: 24px; }
+
+      .commander {
+         width: 100%;
+         margin-top: 14px;
+         border: 0;
+         background: var(--encre);
+         color: var(--papier);
+         border-radius: 10px;
+         padding: 14px;
+         font-size: 14.5px;
+         font-weight: 500;
+         transition: background .18s;
+      }
+
+      .commander:hover { background: #3a332c; }
+
+      .delai { text-align: center; font-size: 12px; color: var(--gris); margin-top: 10px; }
+   </style>
+</head>
+
+<body>
+   <header>
+      <div class="logo">Atelier <span>Mesure</span></div>
+      <nav>
+         <a href="#">Le bureau</a>
+         <a href="#">Essences</a>
+         <a href="#">L'atelier</a>
+         <a href="#">Livraison</a>
+      </nav>
+      <span class="fabrique">Fabriqué à Draguignan · <b>délai <span id="delai-haut">4 semaines</span></b></span>
+   </header>
+
+   <div class="plan">
+      <div class="scene">
+         <span class="ref">Réf. <span id="ref">BM-140-CHE-EPI</span></span>
+         <svg id="apercu" viewBox="0 0 620 380" aria-label="Aperçu du bureau configuré"></svg>
+         <div class="cotes">
+            <span>Largeur <b id="c-l">140 cm</b></span>
+            <span>Profondeur <b id="c-p">70 cm</b></span>
+            <span>Hauteur <b>74 cm</b></span>
+            <span>Poids <b id="c-poids">32 kg</b></span>
+         </div>
+      </div>
+
+      <aside class="panneau">
+         <div class="p-haut">
+            <h1>Bureau Mesure</h1>
+            <p>Un plateau, quatre piètements, cinq essences. Assemblé à la main, numéroté, livré monté.</p>
+         </div>
+
+         <div class="options">
+            <div class="bloc">
+               <label>Essence du plateau <b id="lab-essence">Chêne</b></label>
+               <div class="essences" id="essences"></div>
+            </div>
+
+            <div class="bloc">
+               <label>Largeur <b id="lab-largeur">140 cm</b></label>
+               <input class="curseur" type="range" id="largeur" min="110" max="200" step="10" value="140">
+            </div>
+
+            <div class="bloc">
+               <label>Profondeur</label>
+               <div class="choix" id="profondeurs">
+                  <button class="o" data-p="60" aria-pressed="false">60 cm</button>
+                  <button class="o" data-p="70" aria-pressed="true">70 cm</button>
+                  <button class="o" data-p="80" aria-pressed="false">80 cm</button>
+               </div>
+            </div>
+
+            <div class="bloc">
+               <label>Piètement</label>
+               <div class="choix" id="pieds">
+                  <button class="o" data-pd="epingle" aria-pressed="true">Épingle</button>
+                  <button class="o" data-pd="u" aria-pressed="false">Traîneau</button>
+                  <button class="o" data-pd="a" aria-pressed="false">Chevalet</button>
+                  <button class="o" data-pd="regl" aria-pressed="false">Réglable</button>
+               </div>
+            </div>
+
+            <div class="bloc">
+               <label>Options</label>
+               <button class="bascule" id="opt-passe" aria-pressed="false" style="width:100%;margin-bottom:8px">
+                  <span class="piste"></span>
+                  <div><b>Passe-câbles en laiton</b><span>Deux œillets percés dans le plateau</span></div>
+               </button>
+               <button class="bascule" id="opt-tiroir" aria-pressed="false" style="width:100%">
+                  <span class="piste"></span>
+                  <div><b>Tiroir suspendu</b><span>Chêne massif, ferrures à fermeture douce</span></div>
+               </button>
+            </div>
+
+            <div class="bloc" style="margin-bottom:6px">
+               <label>Gravure sous le plateau</label>
+               <input class="grave" id="grave" maxlength="22" placeholder="Une date, un prénom, rien du tout">
+            </div>
+         </div>
+
+         <div class="devis" id="devis"></div>
+      </aside>
+   </div>
+
+   <script>
+      /* ---------------------------------------------------------
+         L'aperçu est un SVG paramétré : la largeur, la profondeur, le
+         piètement et les options le redessinent. Une image par variante
+         aurait demandé 5 essences × 10 largeurs × 4 piètements × 4
+         combinaisons d'options = 800 fichiers, et le prix aurait
+         forcément fini par diverger du dessin.
+         --------------------------------------------------------- */
+      var ESSENCES = [
+         { id: "che", n: "Chêne", clair: "#c8a173", fonce: "#9a744a", prix: 0, code: "CHE" },
+         { id: "noy", n: "Noyer", clair: "#8a5c3b", fonce: "#5f3c24", prix: 180, code: "NOY" },
+         { id: "fre", n: "Frêne", clair: "#ddc7a4", fonce: "#b49f7c", prix: 60, code: "FRE" },
+         { id: "mer", n: "Merisier", clair: "#b4714f", fonce: "#84492e", prix: 120, code: "MER" }
+      ];
+      var PIEDS = {
+         epingle: { n: "Épingle", prix: 0, code: "EPI", kg: 0 },
+         u: { n: "Traîneau", prix: 140, code: "TRA", kg: 6 },
+         a: { n: "Chevalet", prix: 90, code: "CHV", kg: 4 },
+         regl: { n: "Réglable", prix: 420, code: "REG", kg: 11 }
+      };
+
+      var etat = { essence: "che", largeur: 140, profondeur: 70, pied: "epingle", passe: false, tiroir: false, grave: "" };
+
+      function ess() { return ESSENCES.find(function (e) { return e.id === etat.essence; }); }
+
+      function euro(n) { return n.toLocaleString("fr-FR") + " €"; }
+
+      function prix() {
+         var l = [];
+         // Le plateau est facturé au dm², pas au forfait : c'est ce qui
+         // rend le curseur de largeur honnête.
+         var surface = etat.largeur * etat.profondeur / 100;
+         l.push(["Plateau " + ess().n.toLowerCase() + " " + etat.largeur + " × " + etat.profondeur, Math.round(surface * 8.2 / 10) * 10]);
+         if (ess().prix) l.push(["Supplément essence", ess().prix]);
+         l.push(["Piètement " + PIEDS[etat.pied].n.toLowerCase(), 240 + PIEDS[etat.pied].prix]);
+         if (etat.passe) l.push(["Passe-câbles laiton (×2)", 45]);
+         if (etat.tiroir) l.push(["Tiroir suspendu", 190]);
+         if (etat.grave.trim()) l.push(["Gravure « " + etat.grave.trim() + " »", 35]);
+         return l;
+      }
+
+      function semaines() {
+         var s = 4;
+         if (etat.pied === "regl") s += 2;
+         if (etat.tiroir) s += 1;
+         if (etat.largeur >= 180) s += 1;
+         return s;
+      }
+
+      function dessiner() {
+         var e = ess();
+         var L = 180 + (etat.largeur - 110) * 2.6;        // largeur dessinée
+         var P = 42 + (etat.profondeur - 60) * 0.7;       // épaisseur perspective
+         var x = 310 - L / 2, y = 150;
+         var ep = 12;
+         var pd = etat.pied;
+         var g = '';
+
+         // Ombre portée : elle suit la largeur, sinon le meuble flotte.
+         g += '<ellipse cx="310" cy="336" rx="' + (L / 2 + 10) + '" ry="14" fill="#000" opacity=".10"/>';
+
+         // Piètement, dessiné avant le plateau pour passer dessous.
+         var py = y + P + ep, ph = 320 - py;
+         if (pd === "epingle") {
+            [[x + 26, 1], [x + L - 26, -1]].forEach(function (p) {
+               g += '<path d="M' + p[0] + ' ' + py + ' l' + (p[1] * 16) + ' ' + ph + '" stroke="#2c2722" stroke-width="5" fill="none" stroke-linecap="round"/>';
+               g += '<path d="M' + p[0] + ' ' + py + ' l' + (p[1] * -12) + ' ' + ph + '" stroke="#2c2722" stroke-width="5" fill="none" stroke-linecap="round"/>';
+            });
+         } else if (pd === "u") {
+            [x + 34, x + L - 34].forEach(function (px) {
+               g += '<path d="M' + (px - 22) + ' ' + py + ' v' + (ph - 4) + ' h44 v' + (-(ph - 4)) + '" stroke="#2c2722" stroke-width="7" fill="none" stroke-linejoin="round"/>';
+            });
+         } else if (pd === "a") {
+            [x + 40, x + L - 40].forEach(function (px) {
+               g += '<path d="M' + (px - 26) + ' 320 L' + px + ' ' + py + ' L' + (px + 26) + ' 320" stroke="#2c2722" stroke-width="6" fill="none" stroke-linejoin="round"/>';
+               g += '<line x1="' + (px - 14) + '" y1="' + (py + ph * .58) + '" x2="' + (px + 14) + '" y2="' + (py + ph * .58) + '" stroke="#2c2722" stroke-width="4"/>';
+            });
+         } else {
+            [x + 32, x + L - 32].forEach(function (px) {
+               g += '<rect x="' + (px - 9) + '" y="' + py + '" width="18" height="' + (ph - 8) + '" rx="3" fill="#3a3a3d"/>';
+               g += '<rect x="' + (px - 15) + '" y="' + py + '" width="30" height="' + (ph * .42) + '" rx="3" fill="#4c4c50"/>';
+               g += '<rect x="' + (px - 30) + '" y="316" width="60" height="8" rx="4" fill="#2c2722"/>';
+            });
+            // Afficheur de hauteur, place sous le tiroir : au ras du plateau
+            // il passait derriere lui des que l'option etait cochee.
+            g += '<rect x="' + (x + L - 96) + '" y="' + (py + ph * .52) + '" width="46" height="16" rx="4" fill="#26262a"/>';
+            g += '<text x="' + (x + L - 73) + '" y="' + (py + ph * .52 + 12) + '" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" fill="#9ae6a0">74.0</text>';
+         }
+
+         // Plateau : face supérieure en perspective + chant.
+         g += '<path d="M' + x + ' ' + (y + P) + ' L' + (x + 46) + ' ' + y + ' L' + (x + L) + ' ' + y
+            + ' L' + (x + L - 46) + ' ' + (y + P) + ' Z" fill="' + e.clair + '"/>';
+         g += '<path d="M' + x + ' ' + (y + P) + ' h' + (L - 46) + ' v' + ep + ' h' + (-(L - 46)) + ' Z" fill="' + e.fonce + '"/>';
+         // Fil du bois : quelques veines suivant la perspective.
+         for (var i = 1; i < 6; i++) {
+            var t = i / 6;
+            g += '<path d="M' + (x + 46 * t) + ' ' + (y + P * (1 - t)) + ' h' + (L - 46) + '" stroke="' + e.fonce
+               + '" stroke-opacity=".22" stroke-width="1"/>';
+         }
+
+         if (etat.passe) {
+            [x + 92, x + L - 122].forEach(function (px) {
+               g += '<ellipse cx="' + px + '" cy="' + (y + P * .45) + '" rx="9" ry="4.4" fill="#2c2722" opacity=".75"/>';
+               g += '<ellipse cx="' + px + '" cy="' + (y + P * .45) + '" rx="9" ry="4.4" fill="none" stroke="#c8a24a" stroke-width="1.6"/>';
+            });
+         }
+         if (etat.tiroir) {
+            var tw = Math.min(150, L * .42);
+            g += '<rect x="' + (x + L / 2 - tw / 2) + '" y="' + (y + P + ep) + '" width="' + tw + '" height="26" rx="3" fill="' + e.fonce + '"/>';
+            g += '<rect x="' + (x + L / 2 - 16) + '" y="' + (y + P + ep + 11) + '" width="32" height="4" rx="2" fill="#c8a24a"/>';
+         }
+         if (etat.grave.trim()) {
+            g += '<text x="' + (x + L - 56) + '" y="' + (y + P + ep + 42) + '" text-anchor="end" font-family="Fraunces,serif"'
+               + ' font-size="13" fill="' + e.fonce + '" opacity=".85" font-style="italic">'
+               + etat.grave.trim().replace(/[<&>]/g, "") + '</text>';
+         }
+         document.getElementById("apercu").innerHTML = g;
+      }
+
+      function rendre() {
+         dessiner();
+         var e = ess();
+         document.getElementById("lab-essence").textContent = e.n;
+         document.getElementById("lab-largeur").textContent = etat.largeur + " cm";
+         document.getElementById("c-l").textContent = etat.largeur + " cm";
+         document.getElementById("c-p").textContent = etat.profondeur + " cm";
+         document.getElementById("c-poids").textContent =
+            Math.round(etat.largeur * etat.profondeur / 380 + 18 + PIEDS[etat.pied].kg + (etat.tiroir ? 4 : 0)) + " kg";
+         document.getElementById("ref").textContent =
+            "BM-" + etat.largeur + "-" + e.code + "-" + PIEDS[etat.pied].code;
+
+         var lignes = prix();
+         var total = lignes.reduce(function (s, l) { return s + l[1]; }, 0);
+         document.getElementById("devis").innerHTML =
+            lignes.map(function (l) { return '<div class="ligne"><span>' + l[0] + '</span><b>' + euro(l[1]) + '</b></div>'; }).join("")
+            + '<div class="ligne"><span>Livraison montée</span><b>Offerte</b></div>'
+            + '<div class="ligne total"><span>Total</span><b>' + euro(total) + '</b></div>'
+            + '<button class="commander">Commander ce bureau</button>'
+            + '<div class="delai">Fabrication en ' + semaines() + ' semaines · paiement en 3 fois sans frais</div>';
+         document.getElementById("delai-haut").textContent = semaines() + " semaines";
+      }
+
+      document.getElementById("essences").innerHTML = ESSENCES.map(function (e) {
+         return '<button class="ess" data-e="' + e.id + '" aria-pressed="' + (e.id === etat.essence) + '">'
+            + '<i style="background:linear-gradient(160deg,' + e.clair + ',' + e.fonce + ')"></i>'
+            + '<span>' + e.n + '</span></button>';
+      }).join("");
+
+      function marquer(conteneur, b) {
+         conteneur.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+      }
+
+      document.addEventListener("click", function (ev) {
+         var b = ev.target.closest("button");
+         if (!b) return;
+         if (b.dataset.e) { etat.essence = b.dataset.e; marquer(document.getElementById("essences"), b); rendre(); }
+         else if (b.dataset.p) { etat.profondeur = +b.dataset.p; marquer(document.getElementById("profondeurs"), b); rendre(); }
+         else if (b.dataset.pd) { etat.pied = b.dataset.pd; marquer(document.getElementById("pieds"), b); rendre(); }
+         else if (b.id === "opt-passe") { etat.passe = !etat.passe; b.setAttribute("aria-pressed", String(etat.passe)); rendre(); }
+         else if (b.id === "opt-tiroir") { etat.tiroir = !etat.tiroir; b.setAttribute("aria-pressed", String(etat.tiroir)); rendre(); }
+      });
+
+      document.getElementById("largeur").addEventListener("input", function () {
+         etat.largeur = +this.value;
+         rendre();
+      });
+
+      document.getElementById("grave").addEventListener("input", function () {
+         etat.grave = this.value;
+         rendre();
+      });
+
+      rendre();
+   </script>
+</body>
+
+</html>

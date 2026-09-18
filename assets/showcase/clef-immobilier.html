@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <title>CLEF — Recherche immobilière</title>
+   <link href="https://fonts.googleapis.com" rel="preconnect">
+   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;800&display=swap" rel="stylesheet">
+   <style>
+      /* ===========================================================
+         CLEF — démonstration : moteur de recherche d'annonces.
+         Filtres multi-critères qui s'appliquent ensemble, carte
+         schématique liée à la liste (survol d'un côté, surbrillance de
+         l'autre), tri, favoris, et un compteur qui dit toujours la
+         vérité — y compris « aucun bien ».
+         Agence, biens, prix et adresses inventés.
+         =========================================================== */
+      :root {
+         --fond: #f4f6f5;
+         --carte: #ffffff;
+         --bord: #dfe4e2;
+         --encre: #12211d;
+         --gris: #63706c;
+         --vert: #1f6f56;
+         --vert-clair: #e4f0eb;
+         --ocre: #c98a2e;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body { margin: 0; height: 100%; }
+
+      body {
+         background: var(--fond);
+         color: var(--encre);
+         font-family: Manrope, system-ui, sans-serif;
+         font-size: 14px;
+         display: flex;
+         flex-direction: column;
+         height: 100vh;
+         overflow: hidden;
+      }
+
+      h1, h2, h3 { margin: 0; font-weight: 800; letter-spacing: -.025em; }
+
+      button, input, select { font: inherit; }
+
+      button { cursor: pointer; }
+
+      header {
+         display: flex;
+         align-items: center;
+         gap: 28px;
+         padding: 14px 30px;
+         background: var(--carte);
+         border-bottom: 1px solid var(--bord);
+         flex-shrink: 0;
+      }
+
+      .logo { font-weight: 800; font-size: 21px; letter-spacing: -.05em; display: flex; align-items: center; gap: 9px; }
+
+      .logo i {
+         width: 26px;
+         height: 26px;
+         border-radius: 7px;
+         background: var(--vert);
+         display: grid;
+         place-items: center;
+         color: #fff;
+         font-size: 13px;
+         font-style: normal;
+      }
+
+      nav { display: flex; gap: 22px; }
+
+      nav a { color: var(--gris); text-decoration: none; font-size: 13.5px; font-weight: 500; }
+
+      nav a:hover, nav a.on { color: var(--encre); }
+
+      .favoris-cpt {
+         margin-left: auto;
+         /* Pas de flex ici : le `gap` transformait « favori » et le « s »
+            du pluriel en deux elements espaces de 8 px. */
+         border: 1px solid var(--bord);
+         border-radius: 999px;
+         padding: 7px 15px;
+         font-size: 13px;
+         font-weight: 600;
+      }
+
+      .favoris-cpt b { color: var(--vert); }
+
+      /* ---------- filtres ---------- */
+      .filtres {
+         display: flex;
+         align-items: center;
+         gap: 10px;
+         padding: 12px 30px;
+         background: var(--carte);
+         border-bottom: 1px solid var(--bord);
+         flex-wrap: wrap;
+         flex-shrink: 0;
+      }
+
+      .groupe { display: flex; align-items: center; gap: 7px; }
+
+      .groupe > span { font-size: 12px; color: var(--gris); font-weight: 500; }
+
+      .p {
+         border: 1px solid var(--bord);
+         background: var(--carte);
+         border-radius: 8px;
+         padding: 7px 13px;
+         font-size: 13px;
+         color: var(--gris);
+         transition: all .16s;
+      }
+
+      .p:hover { border-color: var(--vert); color: var(--encre); }
+
+      .p[aria-pressed="true"] { background: var(--vert); border-color: var(--vert); color: #fff; font-weight: 600; }
+
+      .budget { display: flex; align-items: center; gap: 9px; }
+
+      .budget input { width: 132px; accent-color: var(--vert); }
+
+      .budget b { font-size: 13px; font-variant-numeric: tabular-nums; min-width: 78px; }
+
+      .tri { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--gris); }
+
+      .tri select { border: 1px solid var(--bord); border-radius: 8px; padding: 6px 9px; background: var(--carte); color: var(--encre); }
+
+      /* ---------- corps ---------- */
+      .plan { display: grid; grid-template-columns: 1fr 470px; flex: 1; min-height: 0; }
+
+      .liste { overflow-y: auto; padding: 16px 20px 24px 30px; }
+
+      .compte { font-size: 13px; color: var(--gris); margin-bottom: 14px; }
+
+      .compte b { color: var(--encre); font-weight: 700; }
+
+      .grille { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+
+      .bien {
+         background: var(--carte);
+         border: 1px solid var(--bord);
+         border-radius: 12px;
+         overflow: hidden;
+         cursor: pointer;
+         transition: border-color .18s, box-shadow .18s, transform .18s;
+      }
+
+      .bien:hover, .bien.vise {
+         border-color: var(--vert);
+         box-shadow: 0 10px 26px rgba(18, 33, 29, .1);
+         transform: translateY(-2px);
+      }
+
+      .vignette { position: relative; height: 128px; }
+
+      .vignette svg { width: 100%; height: 100%; display: block; }
+
+      .etiq {
+         position: absolute;
+         top: 9px;
+         left: 9px;
+         background: rgba(255, 255, 255, .95);
+         border-radius: 6px;
+         font-size: 10.5px;
+         font-weight: 700;
+         letter-spacing: .06em;
+         text-transform: uppercase;
+         padding: 3px 8px;
+      }
+
+      .etiq.neuf { background: var(--ocre); color: #fff; }
+
+      .coeur {
+         position: absolute;
+         top: 7px;
+         right: 7px;
+         width: 28px;
+         height: 28px;
+         border-radius: 999px;
+         border: 0;
+         background: rgba(255, 255, 255, .92);
+         display: grid;
+         place-items: center;
+         font-size: 14px;
+         color: var(--gris);
+         line-height: 1;
+      }
+
+      .coeur[aria-pressed="true"] { color: #d64545; }
+
+      .corps { padding: 12px 14px 14px; }
+
+      .prix { font-size: 19px; font-weight: 800; letter-spacing: -.03em; }
+
+      .lieu { font-size: 13px; color: var(--gris); margin: 2px 0 9px; }
+
+      .traits { display: flex; gap: 7px; flex-wrap: wrap; }
+
+      .trait { background: var(--fond); border-radius: 6px; padding: 3px 9px; font-size: 12px; color: var(--gris); font-weight: 500; }
+
+      .vide { grid-column: 1 / -1; text-align: center; padding: 48px 20px; color: var(--gris); }
+
+      .vide b { display: block; font-size: 16px; color: var(--encre); margin-bottom: 6px; }
+
+      /* ---------- carte ---------- */
+      .carte-zone { position: relative; border-left: 1px solid var(--bord); background: #e8ece9; }
+
+      .carte-zone svg { width: 100%; height: 100%; display: block; }
+
+      .epingle { cursor: pointer; }
+
+      .epingle circle { transition: r .16s, fill .16s; }
+
+      .epingle.vise circle { fill: var(--ocre); }
+
+      .epingle text { font-size: 10px; font-weight: 700; fill: #fff; pointer-events: none; }
+
+      .legende-carte {
+         position: absolute;
+         left: 14px;
+         bottom: 14px;
+         background: rgba(255, 255, 255, .94);
+         border: 1px solid var(--bord);
+         border-radius: 9px;
+         padding: 9px 13px;
+         font-size: 12px;
+         color: var(--gris);
+      }
+
+      .legende-carte b { color: var(--encre); }
+   </style>
+</head>
+
+<body>
+   <header>
+      <div class="logo"><i>◈</i>CLEF</div>
+      <nav>
+         <a href="#" class="on">Acheter</a>
+         <a href="#">Louer</a>
+         <a href="#">Estimer</a>
+         <a href="#">L'agence</a>
+      </nav>
+      <div class="favoris-cpt">♥ <b id="cpt-fav">0</b> favori<span id="s-fav"></span></div>
+   </header>
+
+   <div class="filtres">
+      <div class="groupe">
+         <span>Type</span>
+         <button class="p" data-t="*" aria-pressed="true">Tout</button>
+         <button class="p" data-t="maison" aria-pressed="false">Maison</button>
+         <button class="p" data-t="appart" aria-pressed="false">Appartement</button>
+         <button class="p" data-t="terrain" aria-pressed="false">Terrain</button>
+      </div>
+      <div class="groupe">
+         <span>Pièces</span>
+         <button class="p" data-pc="0" aria-pressed="true">Toutes</button>
+         <button class="p" data-pc="2" aria-pressed="false">2+</button>
+         <button class="p" data-pc="3" aria-pressed="false">3+</button>
+         <button class="p" data-pc="4" aria-pressed="false">4+</button>
+      </div>
+      <div class="groupe budget">
+         <span>Budget max</span>
+         <input type="range" id="budget" min="120000" max="900000" step="20000" value="900000">
+         <b id="lab-budget">900 000 €</b>
+      </div>
+      <div class="groupe">
+         <button class="p" id="f-terrasse" aria-pressed="false">Terrasse</button>
+         <button class="p" id="f-fav" aria-pressed="false">♥ Favoris</button>
+      </div>
+      <div class="tri">
+         Trier
+         <select id="tri">
+            <option value="pertinence">Pertinence</option>
+            <option value="prix-">Prix croissant</option>
+            <option value="prix+">Prix décroissant</option>
+            <option value="surface">Surface</option>
+         </select>
+      </div>
+   </div>
+
+   <div class="plan">
+      <div class="liste">
+         <div class="compte" id="compte"></div>
+         <div class="grille" id="grille"></div>
+      </div>
+      <div class="carte-zone">
+         <svg id="carte" viewBox="0 0 470 700" preserveAspectRatio="xMidYMid slice" aria-label="Carte des biens"></svg>
+         <div class="legende-carte">Secteur <b>Estérel — Golfe de Fréjus</b><br><span id="leg-n"></span></div>
+      </div>
+   </div>
+
+   <script>
+      /* ---------------------------------------------------------
+         Un seul filtrage, une seule source. La liste et la carte lisent
+         exactement le même tableau filtré : impossible d'avoir sept
+         épingles et huit annonces. C'est le défaut le plus courant sur
+         ce genre d'interface, et le plus vite repéré par un visiteur.
+         --------------------------------------------------------- */
+      var BIENS = [
+         { id: 1, t: "maison", titre: "Maison de village rénovée", lieu: "Les Adrets-de-l'Estérel", prix: 429000, m2: 118, p: 5, ch: 3, terrasse: true, neuf: false, x: 120, y: 160, teinte: "#a8c4b4" },
+         { id: 2, t: "appart", titre: "3 pièces vue mer", lieu: "Saint-Raphaël — Boulouris", prix: 345000, m2: 71, p: 3, ch: 2, terrasse: true, neuf: false, x: 300, y: 240, teinte: "#9fb8cc" },
+         { id: 3, t: "appart", titre: "Studio refait à neuf", lieu: "Fréjus — centre", prix: 168000, m2: 29, p: 1, ch: 1, terrasse: false, neuf: true, x: 210, y: 350, teinte: "#c3b6d6" },
+         { id: 4, t: "maison", titre: "Villa avec piscine", lieu: "Roquebrune-sur-Argens", prix: 795000, m2: 186, p: 7, ch: 4, terrasse: true, neuf: false, x: 95, y: 430, teinte: "#d8c39a" },
+         { id: 5, t: "terrain", titre: "Terrain constructible 640 m²", lieu: "Puget-sur-Argens", prix: 189000, m2: 640, p: 0, ch: 0, terrasse: false, neuf: false, x: 160, y: 545, teinte: "#bcc9a6" },
+         { id: 6, t: "appart", titre: "4 pièces avec terrasse", lieu: "Saint-Raphaël — Valescure", prix: 512000, m2: 96, p: 4, ch: 3, terrasse: true, neuf: true, x: 345, y: 120, teinte: "#b9cdd8" },
+         { id: 7, t: "maison", titre: "Mas provençal à restaurer", lieu: "Bagnols-en-Forêt", prix: 268000, m2: 142, p: 6, ch: 4, terrasse: false, neuf: false, x: 68, y: 268, teinte: "#cfbba4" },
+         { id: 8, t: "appart", titre: "2 pièces pied dans l'eau", lieu: "Agay", prix: 289000, m2: 44, p: 2, ch: 1, terrasse: true, neuf: false, x: 392, y: 322, teinte: "#a4c6c9" },
+         { id: 9, t: "terrain", titre: "Parcelle boisée 1 200 m²", lieu: "Les Adrets-de-l'Estérel", prix: 148000, m2: 1200, p: 0, ch: 0, terrasse: false, neuf: false, x: 140, y: 78, teinte: "#b4c9a0" },
+         { id: 10, t: "maison", titre: "Maison neuve 4 chambres", lieu: "Puget-sur-Argens", prix: 615000, m2: 155, p: 6, ch: 4, terrasse: true, neuf: true, x: 245, y: 600, teinte: "#d3c4ad" }
+      ];
+
+      var etat = { type: "*", pieces: 0, budget: 900000, terrasse: false, favSeuls: false, tri: "pertinence" };
+      var favoris = {};
+      var vise = null;
+
+      function euro(n) { return n.toLocaleString("fr-FR") + " €"; }
+
+      function filtres() {
+         var l = BIENS.filter(function (b) {
+            if (etat.type !== "*" && b.t !== etat.type) return false;
+            if (etat.pieces && b.p < etat.pieces) return false;
+            if (b.prix > etat.budget) return false;
+            if (etat.terrasse && !b.terrasse) return false;
+            if (etat.favSeuls && !favoris[b.id]) return false;
+            return true;
+         });
+         if (etat.tri === "prix-") l.sort(function (a, b) { return a.prix - b.prix; });
+         else if (etat.tri === "prix+") l.sort(function (a, b) { return b.prix - a.prix; });
+         else if (etat.tri === "surface") l.sort(function (a, b) { return b.m2 - a.m2; });
+         return l;
+      }
+
+      function vignette(b) {
+         // Façade schématique dérivée du type : trois formes, pas de photo.
+         var toit = b.t === "maison"
+            ? '<path d="M20 58 L110 18 L200 58 Z" fill="' + b.teinte + '" opacity=".95"/>'
+            : '';
+         var corps = b.t === "terrain"
+            ? '<path d="M18 104 L96 62 L204 86 L172 118 Z" fill="' + b.teinte + '"/><path d="M18 104 L96 62" stroke="#12211d" stroke-opacity=".3" fill="none" stroke-dasharray="5 4"/>'
+            : '<rect x="42" y="' + (b.t === "maison" ? 58 : 34) + '" width="136" height="' + (b.t === "maison" ? 60 : 84) + '" fill="' + b.teinte + '"/>';
+         var fen = "";
+         if (b.t !== "terrain") {
+            var y0 = b.t === "maison" ? 70 : 48;
+            for (var r = 0; r < (b.t === "maison" ? 1 : 3); r++) {
+               for (var c = 0; c < 3; c++) {
+                  fen += '<rect x="' + (58 + c * 42) + '" y="' + (y0 + r * 24) + '" width="24" height="15" rx="2" fill="#fff" opacity=".78"/>';
+               }
+            }
+         }
+         return '<svg viewBox="0 0 220 128" aria-hidden="true">'
+            + '<rect width="220" height="128" fill="#eef1ef"/>'
+            + '<circle cx="186" cy="26" r="17" fill="#f3e2bd"/>'
+            + toit + corps + fen
+            + '<path d="M0 118 Q110 100 220 118 L220 128 L0 128 Z" fill="#dfe6e0"/></svg>';
+      }
+
+      function rendreListe() {
+         var l = filtres();
+         var g = document.getElementById("grille");
+         if (!l.length) {
+            g.innerHTML = '<div class="vide"><b>Aucun bien ne correspond</b>'
+               + 'Élargissez le budget ou retirez un filtre — il reste ' + BIENS.length + ' biens au catalogue.</div>';
+         } else {
+            g.innerHTML = l.map(function (b) {
+               return '<article class="bien' + (vise === b.id ? " vise" : "") + '" data-b="' + b.id + '">'
+                  + '<div class="vignette">' + vignette(b)
+                  + '<span class="etiq' + (b.neuf ? " neuf" : "") + '">' + (b.neuf ? "Neuf" : b.t === "terrain" ? "Terrain" : "Ancien") + '</span>'
+                  + '<button class="coeur" data-f="' + b.id + '" aria-pressed="' + !!favoris[b.id] + '" aria-label="Favori">♥</button>'
+                  + '</div>'
+                  + '<div class="corps"><div class="prix">' + euro(b.prix) + '</div>'
+                  + '<div class="lieu">' + b.titre + ' · ' + b.lieu + '</div>'
+                  + '<div class="traits"><span class="trait">' + b.m2 + ' m²</span>'
+                  + (b.p ? '<span class="trait">' + b.p + ' pièces</span><span class="trait">' + b.ch + ' ch.</span>' : '<span class="trait">Constructible</span>')
+                  + (b.terrasse ? '<span class="trait">Terrasse</span>' : '')
+                  + '</div></div></article>';
+            }).join("");
+         }
+         var n = l.length;
+         document.getElementById("compte").innerHTML = '<b>' + n + '</b> bien' + (n > 1 ? "s" : "") + ' sur '
+            + BIENS.length + ' · secteur Estérel';
+         document.getElementById("leg-n").textContent = n + " bien" + (n > 1 ? "s" : "") + " affiché" + (n > 1 ? "s" : "");
+         rendreCarte(l);
+      }
+
+      function rendreCarte(l) {
+         var g = '<rect width="470" height="700" fill="#e8ece9"/>';
+         // Fond schématique : littoral, deux axes, une tache boisée.
+         g += '<path d="M470 0 L470 700 L330 700 Q400 500 356 330 Q320 190 400 0 Z" fill="#cfe0e6"/>';
+         g += '<path d="M470 0 L470 700 L330 700 Q400 500 356 330 Q320 190 400 0" fill="none" stroke="#a8c3cc" stroke-width="2"/>';
+         g += '<path d="M0 200 Q150 250 470 150" stroke="#dcd6c4" stroke-width="16" fill="none"/>';
+         g += '<path d="M120 0 Q170 340 90 700" stroke="#dcd6c4" stroke-width="11" fill="none"/>';
+         g += '<ellipse cx="90" cy="360" rx="120" ry="150" fill="#d7e2cc" opacity=".8"/>';
+         g += '<text x="24" y="392" font-family="Manrope,sans-serif" font-size="12" fill="#8a9c8e" letter-spacing="2">MASSIF DE L\'ESTÉREL</text>';
+         g += '<text x="392" y="640" font-family="Manrope,sans-serif" font-size="12" fill="#7ea3ae" letter-spacing="2" text-anchor="middle">MER</text>';
+
+         l.forEach(function (b) {
+            var r = vise === b.id ? 19 : 15;
+            g += '<g class="epingle' + (vise === b.id ? " vise" : "") + '" data-b="' + b.id + '">'
+               + '<circle cx="' + b.x + '" cy="' + b.y + '" r="' + r + '" fill="#1f6f56"/>'
+               + '<text x="' + b.x + '" y="' + (b.y + 4) + '" text-anchor="middle">'
+               + Math.round(b.prix / 1000) + 'k</text></g>';
+         });
+         document.getElementById("carte").innerHTML = g;
+      }
+
+      function majFavoris() {
+         var n = Object.keys(favoris).filter(function (k) { return favoris[k]; }).length;
+         document.getElementById("cpt-fav").textContent = n;
+         document.getElementById("s-fav").textContent = n > 1 ? "s" : "";
+      }
+
+      function marquer(sel, b) {
+         document.querySelectorAll(sel).forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+      }
+
+      document.addEventListener("click", function (e) {
+         var b = e.target.closest("button");
+         if (b && b.dataset.f) {
+            var id = +b.dataset.f;
+            favoris[id] = !favoris[id];
+            majFavoris();
+            rendreListe();
+            return;
+         }
+         if (b && b.dataset.t) { etat.type = b.dataset.t; marquer("[data-t]", b); rendreListe(); return; }
+         if (b && b.dataset.pc !== undefined) { etat.pieces = +b.dataset.pc; marquer("[data-pc]", b); rendreListe(); return; }
+         if (b && b.id === "f-terrasse") { etat.terrasse = !etat.terrasse; b.setAttribute("aria-pressed", String(etat.terrasse)); rendreListe(); return; }
+         if (b && b.id === "f-fav") { etat.favSeuls = !etat.favSeuls; b.setAttribute("aria-pressed", String(etat.favSeuls)); rendreListe(); return; }
+      });
+
+      document.getElementById("budget").addEventListener("input", function () {
+         etat.budget = +this.value;
+         document.getElementById("lab-budget").textContent = euro(etat.budget);
+         rendreListe();
+      });
+
+      document.getElementById("tri").addEventListener("change", function () {
+         etat.tri = this.value;
+         rendreListe();
+      });
+
+      // Liaison liste <-> carte, dans les deux sens.
+      function viser(id) { if (vise !== id) { vise = id; rendreListe(); } }
+
+      document.getElementById("grille").addEventListener("mouseover", function (e) {
+         var a = e.target.closest(".bien");
+         if (a) viser(+a.dataset.b);
+      });
+      document.getElementById("grille").addEventListener("mouseleave", function () { viser(null); });
+      document.getElementById("carte").addEventListener("mouseover", function (e) {
+         var p = e.target.closest(".epingle");
+         if (p) viser(+p.dataset.b);
+      });
+      document.getElementById("carte").addEventListener("mouseleave", function () { viser(null); });
+
+      majFavoris();
+      rendreListe();
+   </script>
+</body>
+
+</html>

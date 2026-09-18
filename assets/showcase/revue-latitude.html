@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <title>Latitude — Revue</title>
+   <link href="https://fonts.googleapis.com" rel="preconnect">
+   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet">
+   <style>
+      /* ===========================================================
+         LATITUDE — démonstration : revue en ligne, format long.
+         Ce n'est ni une vitrine ni une application : une expérience de
+         LECTURE. Barre de progression, sommaire collant qui suit la
+         section lue, notes en marge, temps restant qui se met à jour.
+         Revue, auteurs et textes inventés.
+         =========================================================== */
+      :root {
+         --nuit: #101216;
+         --nuit-2: #171a20;
+         --bord: #262a33;
+         --craie: #eceae4;
+         --gris: #9aa0ab;
+         --safran: #e0a33e;
+         --brique: #c25b48;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body { margin: 0; }
+
+      body {
+         background: var(--nuit);
+         color: var(--craie);
+         font-family: Newsreader, Georgia, serif;
+         font-size: 18px;
+         line-height: 1.72;
+         overflow-x: hidden;
+      }
+
+      .sans { font-family: "IBM Plex Sans", system-ui, sans-serif; }
+
+      h1, h2, h3 { font-weight: 600; margin: 0; letter-spacing: -.012em; }
+
+      a { color: inherit; }
+
+      /* ---------- progression ---------- */
+      .progression {
+         position: fixed;
+         top: 0;
+         left: 0;
+         height: 3px;
+         width: 0;
+         background: linear-gradient(90deg, var(--safran), var(--brique));
+         z-index: 60;
+      }
+
+      header {
+         position: sticky;
+         top: 0;
+         z-index: 50;
+         display: flex;
+         align-items: center;
+         gap: 26px;
+         padding: 14px 46px;
+         background: rgba(16, 18, 22, .93);
+         border-bottom: 1px solid var(--bord);
+         font-family: "IBM Plex Sans", sans-serif;
+         font-size: 13px;
+      }
+
+      .logo { font-family: Newsreader, serif; font-size: 22px; font-weight: 600; letter-spacing: .01em; }
+
+      .logo i { font-style: normal; color: var(--safran); }
+
+      nav { display: flex; gap: 20px; color: var(--gris); }
+
+      nav a { text-decoration: none; }
+
+      nav a:hover { color: var(--craie); }
+
+      .reste { margin-left: auto; color: var(--gris); }
+
+      .reste b { color: var(--safran); font-weight: 500; }
+
+      .abonner {
+         border: 1px solid var(--safran);
+         color: var(--safran);
+         background: transparent;
+         border-radius: 999px;
+         padding: 7px 16px;
+         font: inherit;
+         cursor: pointer;
+         transition: background .18s, color .18s;
+      }
+
+      .abonner:hover { background: var(--safran); color: var(--nuit); }
+
+      /* ---------- ouverture ---------- */
+      .une { padding: 72px 46px 54px; max-width: 1180px; margin: 0 auto; }
+
+      .rubrique {
+         font-family: "IBM Plex Sans", sans-serif;
+         font-size: 11.5px;
+         letter-spacing: .24em;
+         text-transform: uppercase;
+         color: var(--brique);
+      }
+
+      .une h1 { font-size: 64px; line-height: 1.06; margin: 18px 0 0; max-width: 20ch; }
+
+      .chapo {
+         font-size: 22px;
+         line-height: 1.6;
+         color: var(--gris);
+         max-width: 62ch;
+         margin: 22px 0 0;
+         font-style: italic;
+      }
+
+      .signature {
+         display: flex;
+         align-items: center;
+         gap: 14px;
+         margin-top: 30px;
+         font-family: "IBM Plex Sans", sans-serif;
+         font-size: 13.5px;
+         color: var(--gris);
+      }
+
+      .pastille {
+         width: 40px;
+         height: 40px;
+         border-radius: 999px;
+         background: linear-gradient(140deg, var(--safran), var(--brique));
+         display: grid;
+         place-items: center;
+         color: var(--nuit);
+         font-weight: 600;
+         font-family: "IBM Plex Sans", sans-serif;
+      }
+
+      .signature b { color: var(--craie); font-weight: 500; }
+
+      .bandeau-img {
+         height: 260px;
+         margin: 40px 0 0;
+         border-radius: 4px;
+         overflow: hidden;
+         position: relative;
+      }
+
+      .bandeau-img svg { width: 100%; height: 100%; display: block; }
+
+      .legende { font-family: "IBM Plex Sans", sans-serif; font-size: 12px; color: var(--gris); margin-top: 9px; }
+
+      /* ---------- corps de l'article ---------- */
+      .lecture {
+         display: grid;
+         grid-template-columns: 210px minmax(0, 660px) 200px;
+         gap: 48px;
+         justify-content: center;
+         padding: 0 46px 90px;
+         max-width: 1180px;
+         margin: 0 auto;
+      }
+
+      .sommaire { position: sticky; top: 90px; align-self: start; font-family: "IBM Plex Sans", sans-serif; font-size: 13px; }
+
+      .sommaire .t {
+         font-size: 11px;
+         letter-spacing: .2em;
+         text-transform: uppercase;
+         color: var(--gris);
+         margin-bottom: 14px;
+      }
+
+      .sommaire a {
+         display: block;
+         padding: 7px 0 7px 14px;
+         border-left: 2px solid var(--bord);
+         color: var(--gris);
+         text-decoration: none;
+         transition: color .2s, border-color .2s;
+      }
+
+      .sommaire a:hover { color: var(--craie); }
+
+      .sommaire a.on { color: var(--safran); border-color: var(--safran); }
+
+      article h2 { font-size: 30px; margin: 54px 0 16px; scroll-margin-top: 90px; }
+
+      article h2:first-child { margin-top: 30px; }
+
+      article p { margin: 0 0 20px; }
+
+      .lettrine::first-letter {
+         float: left;
+         font-size: 74px;
+         line-height: .82;
+         padding: 6px 12px 0 0;
+         color: var(--safran);
+         font-weight: 600;
+      }
+
+      .citation {
+         margin: 34px 0;
+         padding: 4px 0 4px 26px;
+         border-left: 3px solid var(--brique);
+         font-size: 25px;
+         line-height: 1.45;
+         font-style: italic;
+         color: #fff;
+      }
+
+      .citation cite {
+         display: block;
+         font-family: "IBM Plex Sans", sans-serif;
+         font-size: 13px;
+         font-style: normal;
+         color: var(--gris);
+         margin-top: 12px;
+      }
+
+      .encadre {
+         background: var(--nuit-2);
+         border: 1px solid var(--bord);
+         border-radius: 4px;
+         padding: 22px 24px;
+         margin: 34px 0;
+         font-family: "IBM Plex Sans", sans-serif;
+         font-size: 14.5px;
+         line-height: 1.68;
+         color: var(--gris);
+      }
+
+      .encadre b { color: var(--craie); display: block; margin-bottom: 8px; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; }
+
+      .marge { font-family: "IBM Plex Sans", sans-serif; font-size: 12.5px; color: var(--gris); line-height: 1.6; }
+
+      .note { position: sticky; top: 90px; border-top: 2px solid var(--safran); padding-top: 12px; }
+
+      .note b { color: var(--craie); display: block; margin-bottom: 6px; }
+
+      /* ---------- suite ---------- */
+      .suite { border-top: 1px solid var(--bord); padding: 46px; max-width: 1180px; margin: 0 auto; }
+
+      .suite h3 { font-size: 15px; font-family: "IBM Plex Sans", sans-serif; letter-spacing: .18em; text-transform: uppercase; color: var(--gris); margin-bottom: 24px; }
+
+      .autres { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
+
+      .autre { border-top: 1px solid var(--bord); padding-top: 16px; cursor: pointer; }
+
+      .autre:hover h4 { color: var(--safran); }
+
+      .autre h4 { font-size: 21px; font-weight: 600; margin: 8px 0 0; transition: color .2s; }
+
+      .autre p { font-family: "IBM Plex Sans", sans-serif; font-size: 13px; color: var(--gris); margin: 8px 0 0; }
+
+      footer { border-top: 1px solid var(--bord); padding: 26px 46px; font-family: "IBM Plex Sans", sans-serif; font-size: 12.5px; color: var(--gris); text-align: center; }
+   </style>
+</head>
+
+<body>
+   <div class="progression" id="progression"></div>
+
+   <header>
+      <div class="logo">Lat<i>i</i>tude</div>
+      <nav>
+         <a href="#">Enquêtes</a>
+         <a href="#">Récits</a>
+         <a href="#">Entretiens</a>
+         <a href="#">Archives</a>
+      </nav>
+      <span class="reste">Il reste <b id="reste">12 min</b> de lecture</span>
+      <button class="abonner">S'abonner</button>
+   </header>
+
+   <section class="une">
+      <span class="rubrique">Enquête · Numérique</span>
+      <h1>Ce que votre grille-pain raconte de vous</h1>
+      <p class="chapo">Six mois à écouter le trafic sortant d'un appartement ordinaire. Trente-neuf objets, onze
+         pays traversés, et une seule question : qui écoute, au juste ?</p>
+      <div class="signature">
+         <span class="pastille">MR</span>
+         <div><b>Mathilde Renard</b><br>Publié le 14 septembre · 12 min de lecture</div>
+      </div>
+      <div class="bandeau-img">
+         <svg viewBox="0 0 1080 260" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <rect width="1080" height="260" fill="#171a20" />
+            <g stroke="#e0a33e" stroke-opacity=".5" fill="none">
+               <path d="M0 200 C160 120 240 220 380 150 S640 60 780 140 S980 210 1080 150" stroke-width="1.5" />
+               <path d="M0 230 C180 170 260 250 420 190 S700 110 840 180 S1020 230 1080 200" stroke-opacity=".28" />
+            </g>
+            <g fill="#c25b48">
+               <circle cx="180" cy="152" r="5" />
+               <circle cx="420" cy="178" r="5" />
+               <circle cx="655" cy="104" r="5" />
+               <circle cx="880" cy="163" r="5" />
+            </g>
+            <g fill="#eceae4" opacity=".08">
+               <rect x="60" y="40" width="70" height="70" rx="6" />
+               <rect x="880" y="30" width="110" height="60" rx="6" />
+               <rect x="470" y="26" width="52" height="52" rx="6" />
+            </g>
+            <text x="46" y="234" font-family="IBM Plex Sans, sans-serif" font-size="12" fill="#9aa0ab"
+               letter-spacing="3">39 OBJETS · 11 PAYS · 184 JOURS</text>
+         </svg>
+      </div>
+      <p class="legende">Représentation du trafic sortant mesuré entre mars et août. Illustration Latitude.</p>
+   </section>
+
+   <div class="lecture">
+      <nav class="sommaire" id="sommaire">
+         <div class="t">Au sommaire</div>
+         <a href="#s1" data-s="s1">L'appartement témoin</a>
+         <a href="#s2" data-s="s2">Onze pays en six mois</a>
+         <a href="#s3" data-s="s3">Ce que dit un grille-pain</a>
+         <a href="#s4" data-s="s4">Reprendre la main</a>
+      </nav>
+
+      <article id="article">
+         <h2 id="s1">L'appartement témoin</h2>
+         <p class="lettrine">Le boîtier tient dans une main. Posé entre la box et le reste du logement, il ne fait
+            qu'une chose : noter qui parle à qui. Pendant cent quatre-vingt-quatre jours, il a écouté un
+            trois-pièces parfaitement banal du douzième arrondissement — deux adultes, un chat, et trente-neuf
+            objets connectés dont les occupants n'avaient jamais fait l'inventaire.</p>
+         <p>La première surprise n'est pas le volume. C'est la régularité. À trois heures du matin, quand plus
+            personne ne touche à rien, le trafic ne s'arrête pas : il change de nature. Les requêtes deviennent
+            courtes, répétitives, adressées à des serveurs qui ne rendent jamais rien de visible à l'écran.</p>
+
+         <blockquote class="citation">On cherchait des fuites spectaculaires. On a trouvé une comptabilité.
+            <cite>Yann Ferreol, ingénieur réseau, qui a monté le dispositif</cite></blockquote>
+
+         <h2 id="s2">Onze pays en six mois</h2>
+         <p>La cartographie des destinations occupe six pages du rapport. Onze pays, dont quatre où le résident
+            n'a aucune existence administrative. Rien d'illégal : les conditions d'utilisation, signées d'un
+            doigt sur un écran de six centimètres, le prévoyaient toutes.</p>
+         <p>Ce qui frappe, c'est la dispersion. Un même téléviseur s'adresse à sept infrastructures distinctes —
+            le fabricant, deux régies publicitaires, un mesureur d'audience, un hébergeur de mises à jour et
+            deux sous-traitants que personne n'a su identifier avec certitude.</p>
+
+         <div class="encadre">
+            <b>Méthode</b>
+            Le trafic a été capturé au niveau du routeur, sans déchiffrement du contenu : seules les
+            destinations, la taille et la fréquence des échanges ont été enregistrées. Les occupants étaient
+            informés et ont pu interrompre la collecte à tout moment. Le jeu de données brut est consultable
+            sur demande.
+         </div>
+
+         <h2 id="s3">Ce que dit un grille-pain</h2>
+         <p>Il y avait bien un grille-pain connecté. Il n'envoyait presque rien — quelques octets par jour. Mais
+            ces quelques octets suffisaient à établir une chose : quelqu'un était debout, et à quelle heure. Sur
+            six mois, ça dessine un rythme de vie complet.</p>
+         <p>C'est le point que les chercheurs martèlent : ce ne sont pas les données qui sont sensibles, c'est
+            leur recoupement. Une adresse IP ne dit rien. Une adresse IP, une heure de réveil et une marque de
+            cafetière commencent à dire quelque chose.</p>
+
+         <h2 id="s4">Reprendre la main</h2>
+         <p>Les solutions existent et tiennent en trois gestes : cloisonner le réseau, filtrer les résolutions
+            de noms de domaine, et refuser par défaut. Aucune ne demande de compétence particulière. Toutes
+            demandent une chose que le confort moderne décourage activement : y passer une soirée.</p>
+         <p>Restait à savoir si les occupants, une fois le rapport lu, changeraient quoi que ce soit. Six
+            semaines après la fin de l'expérience, vingt-neuf des trente-neuf objets étaient toujours en place.
+            « On sait », a simplement répondu l'un d'eux. « Mais le four fonctionne. »</p>
+      </article>
+
+      <aside class="marge">
+         <div class="note">
+            <b>À retenir</b>
+            39 objets connectés dans un appartement de 62 m². Un tiers émettait encore du trafic après minuit,
+            vers des serveurs non identifiés.
+         </div>
+      </aside>
+   </div>
+
+   <section class="suite">
+      <h3>Dans le même dossier</h3>
+      <div class="autres">
+         <div class="autre">
+            <span class="rubrique">Entretien</span>
+            <h4>« Le chiffrement n'est pas une opinion »</h4>
+            <p>Une heure avec la cryptographe Sonia Wiel, à propos de ce que l'on accepte sans lire.</p>
+         </div>
+         <div class="autre">
+            <span class="rubrique">Récit</span>
+            <h4>Six mois sans nuage</h4>
+            <p>Il a débranché tous ses services en ligne. Journal d'une désintoxication technique.</p>
+         </div>
+         <div class="autre">
+            <span class="rubrique">Enquête</span>
+            <h4>La deuxième vie des vieux téléphones</h4>
+            <p>Où finissent les appareils qu'on croit avoir effacés — et ce qu'il en reste.</p>
+         </div>
+      </div>
+   </section>
+
+   <footer>Démonstration — revue, auteurs, textes et chiffres inventés.</footer>
+
+   <script>
+      /* ---------------------------------------------------------
+         Deux mécaniques, et seulement deux : la progression de lecture
+         et le sommaire qui suit la section lue. Tout est calculé sur
+         l'article, pas sur la page entière — sinon la barre est déjà à
+         40 % avant le premier paragraphe, à cause de l'ouverture, et le
+         « temps restant » ment.
+         --------------------------------------------------------- */
+      var MINUTES = 12;
+      var article = document.getElementById("article");
+      var barre = document.getElementById("progression");
+      var reste = document.getElementById("reste");
+      var liens = Array.prototype.slice.call(document.querySelectorAll("#sommaire a"));
+      var titres = liens.map(function (a) { return document.getElementById(a.dataset.s); });
+
+      function auScroll() {
+         var haut = article.offsetTop;
+         var course = article.offsetHeight - window.innerHeight * .45;
+         var p = Math.min(1, Math.max(0, (window.scrollY - haut + window.innerHeight * .45) / course));
+         barre.style.width = (p * 100).toFixed(1) + "%";
+         reste.textContent = Math.max(1, Math.ceil(MINUTES * (1 - p))) + " min";
+
+         // Section active : la dernière dont le titre est passé sous la
+         // ligne des 30 % de l'écran. Prendre « le titre le plus proche »
+         // faisait sauter la sélection d'avant en arrière entre deux
+         // paragraphes courts.
+         var actif = 0;
+         titres.forEach(function (t, i) {
+            if (t.getBoundingClientRect().top <= window.innerHeight * .3) actif = i;
+         });
+         liens.forEach(function (a, i) { a.classList.toggle("on", i === actif); });
+      }
+
+      window.addEventListener("scroll", auScroll, { passive: true });
+      window.addEventListener("resize", auScroll);
+      auScroll();
+
+      liens.forEach(function (a) {
+         a.addEventListener("click", function (e) {
+            e.preventDefault();
+            document.getElementById(a.dataset.s).scrollIntoView({ behavior: "smooth", block: "start" });
+         });
+      });
+   </script>
+</body>
+
+</html>

@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <title>Flux — Tableau de bord</title>
+   <link href="https://fonts.googleapis.com" rel="preconnect">
+   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet">
+   <style>
+      /* ===========================================================
+         FLUX — démonstration : intérieur d'une application B2B.
+         Pas une page de présentation : le tableau de bord lui-même,
+         avec un sélecteur de période qui recalcule tout, des graphes
+         SVG tracés à la main et une table triable et filtrable.
+         Entreprise, clients et chiffres inventés.
+         =========================================================== */
+      :root {
+         --fond: #f6f8fb;
+         --carte: #ffffff;
+         --bord: #e4e9f2;
+         --encre: #0e1729;
+         --gris: #64748b;
+         --gris-2: #94a3b8;
+         --bleu: #2563eb;
+         --bleu-clair: #dbe7ff;
+         --vert: #0f9d58;
+         --ambre: #d97706;
+         --rouge: #dc2626;
+         --violet: #7c3aed;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body { margin: 0; height: 100%; }
+
+      body {
+         background: var(--fond);
+         color: var(--encre);
+         font-family: Inter, system-ui, sans-serif;
+         font-size: 14px;
+         display: grid;
+         grid-template-columns: 232px 1fr;
+         height: 100vh;
+         overflow: hidden;
+      }
+
+      button, input, select { font: inherit; }
+
+      button { cursor: pointer; }
+
+      /* ---------- barre latérale ---------- */
+      aside {
+         background: var(--encre);
+         color: #cbd5e1;
+         padding: 20px 14px;
+         display: flex;
+         flex-direction: column;
+         gap: 22px;
+         overflow-y: auto;
+      }
+
+      .marque { display: flex; align-items: center; gap: 10px; padding: 0 8px; }
+
+      .marque-sig {
+         width: 30px;
+         height: 30px;
+         border-radius: 9px;
+         background: linear-gradient(135deg, var(--bleu), var(--violet));
+         display: grid;
+         place-items: center;
+         color: #fff;
+         font-weight: 700;
+      }
+
+      .marque b { color: #fff; font-size: 17px; letter-spacing: -.02em; }
+
+      .grp-titre {
+         font-size: 10.5px;
+         letter-spacing: .12em;
+         text-transform: uppercase;
+         color: #64748b;
+         padding: 0 8px 6px;
+      }
+
+      .lien {
+         display: flex;
+         align-items: center;
+         gap: 10px;
+         padding: 8px 10px;
+         border-radius: 8px;
+         color: #cbd5e1;
+         text-decoration: none;
+         font-size: 13.5px;
+         transition: background .16s, color .16s;
+      }
+
+      .lien:hover { background: rgba(255, 255, 255, .06); color: #fff; }
+
+      .lien.actif { background: var(--bleu); color: #fff; font-weight: 500; }
+
+      .lien i { width: 16px; height: 16px; display: inline-block; opacity: .9; }
+
+      .puce-cpt {
+         margin-left: auto;
+         background: rgba(255, 255, 255, .12);
+         border-radius: 999px;
+         font-size: 11px;
+         padding: 1px 7px;
+      }
+
+      .conso { margin-top: auto; background: rgba(255, 255, 255, .05); border-radius: 10px; padding: 12px; }
+
+      .conso .t { font-size: 12px; color: #94a3b8; display: flex; justify-content: space-between; }
+
+      .conso .rail { height: 6px; background: rgba(255, 255, 255, .1); border-radius: 999px; margin-top: 8px; overflow: hidden; }
+
+      .conso .fill { height: 100%; width: 68%; background: linear-gradient(90deg, var(--bleu), var(--violet)); }
+
+      /* ---------- zone principale ---------- */
+      main { overflow-y: auto; }
+
+      .topbar {
+         position: sticky;
+         top: 0;
+         z-index: 5;
+         display: flex;
+         align-items: center;
+         gap: 14px;
+         padding: 14px 26px;
+         background: rgba(246, 248, 251, .9);
+         backdrop-filter: blur(8px);
+         border-bottom: 1px solid var(--bord);
+      }
+
+      .topbar h1 { font-size: 19px; margin: 0; letter-spacing: -.02em; }
+
+      .recherche {
+         margin-left: 12px;
+         flex: 0 1 300px;
+         display: flex;
+         align-items: center;
+         gap: 8px;
+         background: var(--carte);
+         border: 1px solid var(--bord);
+         border-radius: 9px;
+         padding: 7px 11px;
+         color: var(--gris-2);
+      }
+
+      .recherche input { border: 0; outline: 0; width: 100%; background: transparent; color: var(--encre); }
+
+      .periodes { margin-left: auto; display: flex; background: var(--carte); border: 1px solid var(--bord); border-radius: 9px; overflow: hidden; }
+
+      .periodes button {
+         border: 0;
+         background: transparent;
+         padding: 7px 14px;
+         font-size: 13px;
+         color: var(--gris);
+         transition: background .15s, color .15s;
+      }
+
+      .periodes button[aria-pressed="true"] { background: var(--bleu); color: #fff; font-weight: 500; }
+
+      .avatar {
+         width: 32px;
+         height: 32px;
+         border-radius: 999px;
+         background: linear-gradient(135deg, #f59e0b, #dc2626);
+         color: #fff;
+         display: grid;
+         place-items: center;
+         font-size: 12px;
+         font-weight: 600;
+      }
+
+      .contenu { padding: 22px 26px 40px; display: flex; flex-direction: column; gap: 18px; }
+
+      /* ---------- indicateurs ---------- */
+      .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+      .kpi { background: var(--carte); border: 1px solid var(--bord); border-radius: 12px; padding: 16px 17px; }
+
+      .kpi .lab { font-size: 12.5px; color: var(--gris); display: flex; align-items: center; gap: 7px; }
+
+      .kpi .val { font-size: 27px; font-weight: 700; letter-spacing: -.03em; margin: 7px 0 4px; font-variant-numeric: tabular-nums; }
+
+      .delta { font-size: 12.5px; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
+
+      .delta.up { color: var(--vert); }
+
+      .delta.down { color: var(--rouge); }
+
+      .delta span { color: var(--gris-2); font-weight: 400; }
+
+      .etincelle { height: 30px; margin-top: 8px; }
+
+      /* ---------- cartes graphiques ---------- */
+      .duo { display: grid; grid-template-columns: 1.75fr 1fr; gap: 16px; }
+
+      .carte { background: var(--carte); border: 1px solid var(--bord); border-radius: 12px; padding: 16px 18px 12px; }
+
+      .carte-tete { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
+
+      .carte-tete h2 { font-size: 15px; margin: 0; letter-spacing: -.01em; }
+
+      .carte-tete .sous { font-size: 12.5px; color: var(--gris); }
+
+      .legende { margin-left: auto; display: flex; gap: 14px; font-size: 12px; color: var(--gris); }
+
+      .legende i { width: 9px; height: 9px; border-radius: 3px; display: inline-block; margin-right: 5px; }
+
+      .aire { width: 100%; height: 208px; display: block; }
+
+      .trace { stroke-dasharray: 1400; stroke-dashoffset: 1400; animation: tracer 1.5s cubic-bezier(.22, .68, .28, 1) forwards; }
+
+      @keyframes tracer { to { stroke-dashoffset: 0; } }
+
+      .barres { display: flex; flex-direction: column; gap: 11px; margin-top: 12px; }
+
+      .barre-l { font-size: 12.5px; display: flex; justify-content: space-between; color: var(--gris); margin-bottom: 4px; }
+
+      .barre-l b { color: var(--encre); font-variant-numeric: tabular-nums; }
+
+      .barre-rail { height: 8px; background: var(--fond); border-radius: 999px; overflow: hidden; }
+
+      .barre-fill { height: 100%; width: 0; border-radius: 999px; transition: width .8s cubic-bezier(.22, .68, .28, 1); }
+
+      /* ---------- table ---------- */
+      .table-tete { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+
+      .filtres-etat { display: flex; gap: 6px; margin-left: auto; }
+
+      .fe {
+         border: 1px solid var(--bord);
+         background: var(--carte);
+         border-radius: 7px;
+         padding: 5px 11px;
+         font-size: 12.5px;
+         color: var(--gris);
+      }
+
+      .fe[aria-pressed="true"] { background: var(--encre); border-color: var(--encre); color: #fff; }
+
+      table { width: 100%; border-collapse: collapse; }
+
+      th {
+         text-align: left;
+         font-size: 11.5px;
+         letter-spacing: .06em;
+         text-transform: uppercase;
+         color: var(--gris-2);
+         font-weight: 600;
+         padding: 0 10px 9px;
+         border-bottom: 1px solid var(--bord);
+         cursor: pointer;
+         user-select: none;
+         white-space: nowrap;
+      }
+
+      th:hover { color: var(--bleu); }
+
+      th .fl { opacity: .35; }
+
+      th.tri .fl { opacity: 1; color: var(--bleu); }
+
+      td { padding: 11px 10px; border-bottom: 1px solid var(--bord); font-size: 13.5px; }
+
+      tbody tr { transition: background .14s; }
+
+      tbody tr:hover { background: #f9fbff; }
+
+      .client { display: flex; align-items: center; gap: 10px; font-weight: 500; }
+
+      .jeton {
+         width: 28px;
+         height: 28px;
+         border-radius: 8px;
+         display: grid;
+         place-items: center;
+         font-size: 11px;
+         font-weight: 700;
+         color: #fff;
+      }
+
+      .num { font-variant-numeric: tabular-nums; }
+
+      .etat { font-size: 12px; font-weight: 500; border-radius: 999px; padding: 3px 10px; display: inline-flex; align-items: center; gap: 6px; }
+
+      .etat::before { content: ""; width: 6px; height: 6px; border-radius: 999px; background: currentColor; }
+
+      .etat.actif { background: #e7f6ee; color: var(--vert); }
+
+      .etat.essai { background: #fef3e2; color: var(--ambre); }
+
+      .etat.risque { background: #fdeaea; color: var(--rouge); }
+
+      .mono { font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--gris); }
+
+      .pied-table { display: flex; align-items: center; padding-top: 12px; font-size: 12.5px; color: var(--gris); }
+
+      .pied-table .pages { margin-left: auto; display: flex; gap: 5px; }
+
+      .pied-table .pages button { border: 1px solid var(--bord); background: var(--carte); border-radius: 6px; padding: 4px 10px; }
+   </style>
+</head>
+
+<body>
+   <aside>
+      <div class="marque">
+         <div class="marque-sig">F</div><b>Flux</b>
+      </div>
+
+      <div>
+         <div class="grp-titre">Pilotage</div>
+         <a class="lien actif" href="#"><i>▣</i> Tableau de bord</a>
+         <a class="lien" href="#"><i>◷</i> Flux temps réel</a>
+         <a class="lien" href="#"><i>◱</i> Rapports</a>
+      </div>
+
+      <div>
+         <div class="grp-titre">Exploitation</div>
+         <a class="lien" href="#"><i>☰</i> Clients <span class="puce-cpt">248</span></a>
+         <a class="lien" href="#"><i>⌸</i> Factures <span class="puce-cpt">12</span></a>
+         <a class="lien" href="#"><i>⚙</i> Intégrations</a>
+         <a class="lien" href="#"><i>⚑</i> Alertes <span class="puce-cpt">3</span></a>
+      </div>
+
+      <div class="conso">
+         <div class="t"><span>Quota d'appels API</span><b style="color:#fff">68 %</b></div>
+         <div class="rail">
+            <div class="fill"></div>
+         </div>
+         <div class="t" style="margin-top:7px"><span>6,8 M / 10 M ce mois</span></div>
+      </div>
+   </aside>
+
+   <main>
+      <div class="topbar">
+         <h1>Tableau de bord</h1>
+         <div class="recherche">⌕ <input placeholder="Rechercher un client, une facture…"></div>
+         <div class="periodes" id="periodes">
+            <button data-p="7" aria-pressed="false">7 j</button>
+            <button data-p="30" aria-pressed="true">30 j</button>
+            <button data-p="90" aria-pressed="false">90 j</button>
+         </div>
+         <div class="avatar">BN</div>
+      </div>
+
+      <div class="contenu">
+         <div class="kpis" id="kpis"></div>
+
+         <div class="duo">
+            <div class="carte">
+               <div class="carte-tete">
+                  <h2>Volume traité</h2>
+                  <span class="sous" id="sous-aire">30 derniers jours</span>
+                  <div class="legende">
+                     <span><i style="background:#2563eb"></i>Période</span>
+                     <span><i style="background:#cbd5e1"></i>Précédente</span>
+                  </div>
+               </div>
+               <svg class="aire" id="aire" viewBox="0 0 720 208" preserveAspectRatio="none"></svg>
+            </div>
+
+            <div class="carte">
+               <div class="carte-tete">
+                  <h2>Par connecteur</h2>
+               </div>
+               <div class="barres" id="barres"></div>
+            </div>
+         </div>
+
+         <div class="carte">
+            <div class="table-tete">
+               <div class="carte-tete" style="margin:0">
+                  <h2>Comptes clients</h2>
+                  <span class="sous" id="sous-table"></span>
+               </div>
+               <div class="filtres-etat" id="filtres-etat">
+                  <button class="fe" data-e="*" aria-pressed="true">Tous</button>
+                  <button class="fe" data-e="actif" aria-pressed="false">Actifs</button>
+                  <button class="fe" data-e="essai" aria-pressed="false">Essai</button>
+                  <button class="fe" data-e="risque" aria-pressed="false">À risque</button>
+               </div>
+            </div>
+            <table>
+               <thead>
+                  <tr id="entetes">
+                     <th data-c="nom">Client <span class="fl">↕</span></th>
+                     <th data-c="plan">Offre <span class="fl">↕</span></th>
+                     <th data-c="appels">Appels / mois <span class="fl">↕</span></th>
+                     <th data-c="mrr">MRR <span class="fl">↕</span></th>
+                     <th data-c="sante">Santé <span class="fl">↕</span></th>
+                     <th data-c="vu">Dernière activité <span class="fl">↕</span></th>
+                  </tr>
+               </thead>
+               <tbody id="corps"></tbody>
+            </table>
+            <div class="pied-table">
+               <span id="compte-lignes"></span>
+               <div class="pages"><button>‹</button><button>1</button><button>2</button><button>›</button></div>
+            </div>
+         </div>
+      </div>
+   </main>
+
+   <script>
+      /* ---------------------------------------------------------
+         La période n'est pas décorative : elle est la graine du jeu de
+         données. Changer 7/30/90 régénère les séries, les KPI et les
+         barres de façon déterministe — deux passages sur « 30 j »
+         redonnent exactement les mêmes chiffres, ce qu'une démo qui
+         tire au hasard n'arrive jamais à faire.
+         --------------------------------------------------------- */
+      var CLIENTS = [
+         { nom: "Cavalier Logistique", plan: "Échelle", appels: 1284000, mrr: 4200, sante: 96, etat: "actif", vu: "il y a 4 min", c: "#2563eb" },
+         { nom: "Atelier Vernon", plan: "Équipe", appels: 342000, mrr: 890, sante: 88, etat: "actif", vu: "il y a 22 min", c: "#7c3aed" },
+         { nom: "Groupe Sarrazin", plan: "Échelle", appels: 2105000, mrr: 6100, sante: 71, etat: "risque", vu: "il y a 3 h", c: "#0f9d58" },
+         { nom: "Novembre Studio", plan: "Départ", appels: 48000, mrr: 149, sante: 94, etat: "essai", vu: "il y a 1 h", c: "#d97706" },
+         { nom: "Ferrand & Fils", plan: "Équipe", appels: 517000, mrr: 890, sante: 82, etat: "actif", vu: "il y a 11 min", c: "#dc2626" },
+         { nom: "Clairval Santé", plan: "Échelle", appels: 1760000, mrr: 5400, sante: 58, etat: "risque", vu: "il y a 2 j", c: "#0891b2" },
+         { nom: "Maison Bercy", plan: "Départ", appels: 21000, mrr: 149, sante: 91, etat: "essai", vu: "il y a 38 min", c: "#be185d" },
+         { nom: "Transports Kléber", plan: "Équipe", appels: 655000, mrr: 890, sante: 90, etat: "actif", vu: "il y a 6 min", c: "#475569" }
+      ];
+
+      var CONNECTEURS = [
+         { n: "Webhooks", c: "#2563eb" }, { n: "SFTP", c: "#7c3aed" },
+         { n: "REST v2", c: "#0f9d58" }, { n: "Kafka", c: "#d97706" }, { n: "CSV", c: "#94a3b8" }
+      ];
+
+      var etat = { periode: 30, filtre: "*", tri: "mrr", sens: -1 };
+
+      /* Générateur déterministe : même période = mêmes chiffres. */
+      function alea(graine) {
+         var x = Math.sin(graine) * 10000;
+         return x - Math.floor(x);
+      }
+
+      function serie(n, base, amplitude, graine) {
+         var out = [], v = base;
+         for (var i = 0; i < n; i++) {
+            v += (alea(graine + i * 7.3) - .45) * amplitude;
+            v = Math.max(base * .45, v);
+            out.push(v);
+         }
+         return out;
+      }
+
+      function fmt(n) {
+         if (n >= 1e6) return (n / 1e6).toFixed(2).replace(".", ",") + " M";
+         if (n >= 1e3) return Math.round(n / 1e3) + " k";
+         return String(Math.round(n));
+      }
+
+      function euro(n) { return n.toLocaleString("fr-FR") + " €"; }
+
+      function chemin(vals, w, h, ferme) {
+         var max = Math.max.apply(null, vals) * 1.12, min = 0;
+         var pas = w / (vals.length - 1);
+         var pts = vals.map(function (v, i) {
+            return [i * pas, h - (v - min) / (max - min) * h];
+         });
+         // Courbe lissée : une cubique par segment, avec des poignées à
+         // mi-distance. Une polyligne brute donnait un graphe en dents de
+         // scie qui faisait faux sur une métrique quotidienne.
+         var d = "M" + pts[0][0].toFixed(1) + " " + pts[0][1].toFixed(1);
+         for (var i = 1; i < pts.length; i++) {
+            var p0 = pts[i - 1], p1 = pts[i], mx = (p0[0] + p1[0]) / 2;
+            d += " C" + mx.toFixed(1) + " " + p0[1].toFixed(1) + " " + mx.toFixed(1) + " " + p1[1].toFixed(1)
+               + " " + p1[0].toFixed(1) + " " + p1[1].toFixed(1);
+         }
+         if (ferme) d += " L" + w + " " + h + " L0 " + h + " Z";
+         return d;
+      }
+
+      function rendreAire() {
+         var n = etat.periode, w = 720, h = 208;
+         var cur = serie(n, 100, 26, etat.periode * 3.1);
+         var prec = serie(n, 88, 22, etat.periode * 9.7);
+         var g = '<defs><linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">'
+            + '<stop offset="0" stop-color="#2563eb" stop-opacity=".22"/>'
+            + '<stop offset="1" stop-color="#2563eb" stop-opacity="0"/></linearGradient></defs>';
+         for (var i = 1; i < 4; i++) {
+            var y = h / 4 * i;
+            g += '<line x1="0" y1="' + y + '" x2="' + w + '" y2="' + y + '" stroke="#e4e9f2" stroke-width="1"/>';
+         }
+         g += '<path d="' + chemin(prec, w, h) + '" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="5 5"/>';
+         g += '<path d="' + chemin(cur, w, h, true) + '" fill="url(#grad)" stroke="none"/>';
+         g += '<path class="trace" d="' + chemin(cur, w, h) + '" fill="none" stroke="#2563eb" stroke-width="2.6" stroke-linecap="round"/>';
+         document.getElementById("aire").innerHTML = g;
+         document.getElementById("sous-aire").textContent = n + " derniers jours";
+      }
+
+      function etincelle(graine, couleur) {
+         var v = serie(14, 40, 16, graine);
+         return '<svg class="etincelle" viewBox="0 0 160 30" preserveAspectRatio="none">'
+            + '<path d="' + chemin(v, 160, 30) + '" fill="none" stroke="' + couleur + '" stroke-width="2"/></svg>';
+      }
+
+      function rendreKpis() {
+         var f = etat.periode / 30;
+         var defs = [
+            { lab: "Volume traité", val: fmt(6800000 * f), d: +12.4, c: "#2563eb" },
+            { lab: "MRR", val: euro(Math.round(18719 * (1 + (f - 1) * .08))), d: +4.1, c: "#0f9d58" },
+            { lab: "Latence p95", val: Math.round(142 - f * 6) + " ms", d: -8.7, c: "#7c3aed", inverse: true },
+            { lab: "Taux d'erreur", val: (0.42 + f * 0.03).toFixed(2).replace(".", ",") + " %", d: +0.6, c: "#d97706", inverse: true }
+         ];
+         document.getElementById("kpis").innerHTML = defs.map(function (k, i) {
+            // Sur la latence et les erreurs, une hausse est une mauvaise
+            // nouvelle : la couleur suit le sens métier, pas le signe.
+            var bon = k.inverse ? k.d < 0 : k.d > 0;
+            var fl = k.d > 0 ? "▲" : "▼";
+            return '<div class="kpi"><div class="lab">' + k.lab + '</div>'
+               + '<div class="val">' + k.val + '</div>'
+               + '<div class="delta ' + (bon ? "up" : "down") + '">' + fl + " "
+               + Math.abs(k.d).toFixed(1).replace(".", ",") + ' % <span>vs période précédente</span></div>'
+               + etincelle(i * 31 + etat.periode, k.c) + '</div>';
+         }).join("");
+      }
+
+      function rendreBarres() {
+         var total = 0;
+         var vals = CONNECTEURS.map(function (c, i) {
+            var v = Math.round((alea(i * 3.7 + etat.periode) * .6 + .25) * 100 * etat.periode / 30 * 10) * 10;
+            total += v;
+            return v;
+         });
+         document.getElementById("barres").innerHTML = CONNECTEURS.map(function (c, i) {
+            var pct = Math.round(vals[i] / total * 100);
+            return '<div><div class="barre-l"><span>' + c.n + '</span><b>' + pct + ' %</b></div>'
+               + '<div class="barre-rail"><div class="barre-fill" data-w="' + pct + '" style="background:' + c.c + '"></div></div></div>';
+         }).join("");
+         // Largeur posée au tick suivant pour que la transition CSS parte
+         // de 0 au lieu d'atterrir directement à sa valeur finale.
+         requestAnimationFrame(function () {
+            document.querySelectorAll(".barre-fill").forEach(function (b) { b.style.width = b.dataset.w + "%"; });
+         });
+      }
+
+      function rendreTable() {
+         var l = CLIENTS.filter(function (c) { return etat.filtre === "*" || c.etat === etat.filtre; });
+         l.sort(function (a, b) {
+            var x = a[etat.tri], y = b[etat.tri];
+            return (typeof x === "number" ? x - y : String(x).localeCompare(String(y))) * etat.sens;
+         });
+         document.getElementById("corps").innerHTML = l.map(function (c) {
+            var lib = { actif: "Actif", essai: "Essai", risque: "À risque" }[c.etat];
+            return '<tr><td><div class="client"><span class="jeton" style="background:' + c.c + '">'
+               + c.nom.split(" ").map(function (m) { return m[0]; }).slice(0, 2).join("") + '</span>' + c.nom + '</div></td>'
+               + '<td>' + c.plan + '</td>'
+               + '<td class="num">' + fmt(c.appels * etat.periode / 30) + '</td>'
+               + '<td class="num">' + euro(c.mrr) + '</td>'
+               + '<td><span class="etat ' + c.etat + '">' + lib + ' · ' + c.sante + '</span></td>'
+               + '<td class="mono">' + c.vu + '</td></tr>';
+         }).join("");
+         document.getElementById("compte-lignes").textContent = l.length + " comptes sur " + CLIENTS.length;
+         document.getElementById("sous-table").textContent = "triés par " + ({
+            nom: "nom", plan: "offre", appels: "appels", mrr: "MRR", sante: "santé", vu: "activité"
+         })[etat.tri] + (etat.sens < 0 ? " ↓" : " ↑");
+         document.querySelectorAll("#entetes th").forEach(function (th) {
+            th.classList.toggle("tri", th.dataset.c === etat.tri);
+         });
+      }
+
+      function toutRendre() { rendreKpis(); rendreAire(); rendreBarres(); rendreTable(); }
+
+      document.getElementById("periodes").addEventListener("click", function (e) {
+         var b = e.target.closest("button");
+         if (!b) return;
+         etat.periode = +b.dataset.p;
+         this.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+         toutRendre();
+      });
+
+      document.getElementById("filtres-etat").addEventListener("click", function (e) {
+         var b = e.target.closest("button");
+         if (!b) return;
+         etat.filtre = b.dataset.e;
+         this.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+         rendreTable();
+      });
+
+      document.getElementById("entetes").addEventListener("click", function (e) {
+         var th = e.target.closest("th");
+         if (!th) return;
+         if (etat.tri === th.dataset.c) etat.sens *= -1;
+         else { etat.tri = th.dataset.c; etat.sens = -1; }
+         rendreTable();
+      });
+
+      toutRendre();
+   </script>
+</body>
+
+</html>

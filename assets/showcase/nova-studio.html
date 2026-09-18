@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <title>NOVA — Boutique streetwear</title>
+   <link href="https://fonts.googleapis.com" rel="preconnect">
+   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+   <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&display=swap"
+      rel="stylesheet">
+   <style>
+      /* ===========================================================
+         NOVA — démonstration : boutique e-commerce complète.
+         Panier réel (ajout, quantités, sous-total, seuil de livraison
+         offerte, tunnel en trois étapes). Aucune dépendance, aucune
+         image externe : les visuels produits sont des SVG générés.
+         Marque et prix inventés.
+         =========================================================== */
+      :root {
+         --creme: #fffdf6;
+         --creme-2: #f4efe1;
+         --encre: #0f0e0c;
+         --gris: #6f6a60;
+         --rose: #ff2d84;
+         --cyan: #00d4ff;
+         --citron: #e8ff3a;
+         --violet: #7c5cff;
+         --bord: #e3ddcc;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body { margin: 0; }
+
+      body {
+         background: var(--creme);
+         color: var(--encre);
+         font-family: "Space Grotesk", system-ui, sans-serif;
+         font-size: 15px;
+         line-height: 1.55;
+         overflow-x: hidden;
+      }
+
+      h1, h2, h3, .display {
+         font-family: "Bricolage Grotesque", "Space Grotesk", sans-serif;
+         font-weight: 800;
+         letter-spacing: -.03em;
+         margin: 0;
+      }
+
+      button { font: inherit; cursor: pointer; }
+
+      /* ---------- bandeau ---------- */
+      .ticker {
+         background: var(--encre);
+         color: var(--creme);
+         overflow: hidden;
+         white-space: nowrap;
+         font-size: 12px;
+         letter-spacing: .18em;
+         text-transform: uppercase;
+         padding: 9px 0;
+      }
+
+      .ticker span {
+         display: inline-block;
+         padding-left: 100%;
+         animation: defile 22s linear infinite;
+      }
+
+      @keyframes defile { to { transform: translateX(-100%); } }
+
+      /* ---------- en-tête ---------- */
+      header {
+         position: sticky;
+         top: 0;
+         z-index: 40;
+         display: flex;
+         align-items: center;
+         gap: 28px;
+         padding: 16px 40px;
+         background: rgba(255, 253, 246, .92);
+         backdrop-filter: blur(10px);
+         border-bottom: 1px solid var(--bord);
+      }
+
+      .logo {
+         font-family: "Bricolage Grotesque", sans-serif;
+         font-weight: 800;
+         font-size: 26px;
+         letter-spacing: -.06em;
+      }
+
+      .logo b { color: var(--rose); }
+
+      nav { display: flex; gap: 22px; margin-left: 10px; }
+
+      nav a {
+         color: var(--encre);
+         text-decoration: none;
+         font-size: 14px;
+         font-weight: 500;
+         padding-bottom: 2px;
+         border-bottom: 2px solid transparent;
+         transition: border-color .2s;
+      }
+
+      nav a:hover { border-color: var(--rose); }
+
+      .entete-droite { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+
+      .btn-panier {
+         display: flex;
+         align-items: center;
+         gap: 9px;
+         border: 2px solid var(--encre);
+         background: var(--citron);
+         padding: 9px 16px;
+         border-radius: 999px;
+         font-weight: 700;
+         font-size: 13px;
+         transition: transform .18s cubic-bezier(.2, .7, .3, 1);
+      }
+
+      .btn-panier:hover { transform: translateY(-2px); }
+
+      .pastille {
+         min-width: 21px;
+         height: 21px;
+         border-radius: 999px;
+         background: var(--encre);
+         color: var(--creme);
+         display: grid;
+         place-items: center;
+         font-size: 11px;
+         padding: 0 5px;
+      }
+
+      /* ---------- hero ---------- */
+      .hero {
+         display: grid;
+         grid-template-columns: 1.25fr .85fr;
+         gap: 36px;
+         align-items: center;
+         padding: 44px 40px 34px;
+      }
+
+      .hero h1 { font-size: 92px; line-height: .86; }
+
+      .hero h1 em { font-style: normal; color: var(--rose); }
+
+      .hero p {
+         max-width: 44ch;
+         color: var(--gris);
+         margin: 20px 0 24px;
+         font-size: 16px;
+      }
+
+      .hero-cta {
+         display: inline-flex;
+         align-items: center;
+         gap: 10px;
+         background: var(--encre);
+         color: var(--creme);
+         border: 0;
+         border-radius: 999px;
+         padding: 14px 26px;
+         font-weight: 700;
+      }
+
+      .hero-carte {
+         position: relative;
+         border: 2px solid var(--encre);
+         border-radius: 20px;
+         overflow: hidden;
+         background: var(--violet);
+         aspect-ratio: 4 / 3.4;
+      }
+
+      .hero-carte .etiq {
+         position: absolute;
+         top: 14px;
+         left: 14px;
+         background: var(--citron);
+         border: 2px solid var(--encre);
+         border-radius: 999px;
+         padding: 5px 13px;
+         font-size: 11px;
+         font-weight: 700;
+         letter-spacing: .1em;
+         text-transform: uppercase;
+      }
+
+      /* ---------- filtres ---------- */
+      .barre-filtres {
+         display: flex;
+         align-items: center;
+         gap: 10px;
+         padding: 10px 40px 22px;
+         flex-wrap: wrap;
+      }
+
+      .puce {
+         border: 2px solid var(--encre);
+         background: transparent;
+         border-radius: 999px;
+         padding: 7px 16px;
+         font-size: 13px;
+         font-weight: 500;
+         transition: background .18s, color .18s;
+      }
+
+      .puce[aria-pressed="true"] { background: var(--encre); color: var(--creme); }
+
+      .barre-filtres .compte { margin-left: auto; font-size: 13px; color: var(--gris); }
+
+      /* ---------- grille produits ---------- */
+      .grille {
+         display: grid;
+         grid-template-columns: repeat(4, 1fr);
+         gap: 20px;
+         padding: 0 40px 44px;
+      }
+
+      .produit {
+         border: 2px solid var(--encre);
+         border-radius: 18px;
+         overflow: hidden;
+         background: var(--creme);
+         display: flex;
+         flex-direction: column;
+         transition: transform .22s cubic-bezier(.2, .7, .3, 1), box-shadow .22s;
+      }
+
+      .produit:hover {
+         transform: translateY(-5px);
+         box-shadow: 8px 8px 0 var(--encre);
+      }
+
+      .produit.sort { display: none; }
+
+      .visuel {
+         position: relative;
+         aspect-ratio: 1 / 1;
+         border-bottom: 2px solid var(--encre);
+      }
+
+      .visuel svg { width: 100%; height: 100%; display: block; }
+
+      .badge {
+         position: absolute;
+         top: 10px;
+         right: 10px;
+         background: var(--creme);
+         border: 2px solid var(--encre);
+         border-radius: 999px;
+         font-size: 10px;
+         font-weight: 700;
+         letter-spacing: .08em;
+         padding: 3px 10px;
+         text-transform: uppercase;
+      }
+
+      .produit-corps { padding: 14px 15px 16px; display: flex; flex-direction: column; gap: 9px; flex: 1; }
+
+      .produit h3 { font-size: 17px; }
+
+      .produit .cat { font-size: 12px; color: var(--gris); text-transform: uppercase; letter-spacing: .1em; }
+
+      .tailles { display: flex; gap: 6px; }
+
+      .taille {
+         border: 1.5px solid var(--bord);
+         background: transparent;
+         border-radius: 7px;
+         width: 32px;
+         height: 28px;
+         font-size: 12px;
+         font-weight: 500;
+         transition: border-color .15s, background .15s;
+      }
+
+      .taille[aria-pressed="true"] { border-color: var(--encre); background: var(--encre); color: var(--creme); }
+
+      .taille[disabled] { opacity: .3; cursor: not-allowed; text-decoration: line-through; }
+
+      .produit-pied { margin-top: auto; display: flex; align-items: center; gap: 10px; }
+
+      .prix { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 19px; }
+
+      .ajouter {
+         margin-left: auto;
+         border: 2px solid var(--encre);
+         background: var(--rose);
+         color: var(--creme);
+         border-radius: 999px;
+         padding: 8px 15px;
+         font-size: 12.5px;
+         font-weight: 700;
+         transition: background .18s;
+      }
+
+      .ajouter:hover { background: var(--encre); }
+
+      .ajouter.ok { background: var(--cyan); color: var(--encre); }
+
+      /* ---------- panier ---------- */
+      .voile {
+         position: fixed;
+         inset: 0;
+         background: rgba(15, 14, 12, .45);
+         opacity: 0;
+         pointer-events: none;
+         transition: opacity .28s;
+         z-index: 50;
+      }
+
+      .voile.on { opacity: 1; pointer-events: auto; }
+
+      .panier {
+         position: fixed;
+         top: 0;
+         right: 0;
+         width: 392px;
+         height: 100%;
+         background: var(--creme);
+         border-left: 2px solid var(--encre);
+         z-index: 60;
+         display: flex;
+         flex-direction: column;
+         transform: translateX(100%);
+         transition: transform .34s cubic-bezier(.22, .68, .28, 1);
+      }
+
+      .panier.on { transform: none; }
+
+      .panier-tete {
+         display: flex;
+         align-items: center;
+         padding: 18px 20px;
+         border-bottom: 2px solid var(--encre);
+      }
+
+      .panier-tete h2 { font-size: 21px; }
+
+      .fermer {
+         margin-left: auto;
+         border: 0;
+         background: transparent;
+         font-size: 24px;
+         line-height: 1;
+      }
+
+      .jauge { padding: 14px 20px; border-bottom: 1px solid var(--bord); font-size: 12.5px; color: var(--gris); }
+
+      .jauge-rail { height: 7px; background: var(--creme-2); border-radius: 999px; margin-top: 8px; overflow: hidden; }
+
+      .jauge-fill {
+         height: 100%;
+         width: 0;
+         background: linear-gradient(90deg, var(--rose), var(--violet));
+         transition: width .45s cubic-bezier(.22, .68, .28, 1);
+      }
+
+      .lignes { flex: 1; overflow-y: auto; padding: 6px 20px; }
+
+      .ligne { display: grid; grid-template-columns: 56px 1fr auto; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--bord); }
+
+      .ligne-vis { border: 1.5px solid var(--encre); border-radius: 10px; overflow: hidden; height: 56px; }
+
+      .ligne-vis svg { width: 100%; height: 100%; }
+
+      .ligne h4 { margin: 0; font-size: 14px; font-weight: 700; }
+
+      .ligne .meta { font-size: 12px; color: var(--gris); }
+
+      .qte { display: inline-flex; align-items: center; gap: 8px; margin-top: 6px; }
+
+      .qte button {
+         width: 24px;
+         height: 24px;
+         border: 1.5px solid var(--bord);
+         background: transparent;
+         border-radius: 6px;
+         font-size: 14px;
+         line-height: 1;
+      }
+
+      .qte button:hover { border-color: var(--encre); }
+
+      .ligne .total { font-weight: 700; }
+
+      .vide { text-align: center; color: var(--gris); padding: 46px 10px; font-size: 14px; }
+
+      .panier-pied { border-top: 2px solid var(--encre); padding: 18px 20px 20px; }
+
+      .somme { display: flex; justify-content: space-between; font-size: 13.5px; margin-bottom: 6px; color: var(--gris); }
+
+      .somme.grand { font-size: 19px; color: var(--encre); font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; margin: 10px 0 14px; }
+
+      .commander {
+         width: 100%;
+         border: 2px solid var(--encre);
+         background: var(--encre);
+         color: var(--creme);
+         border-radius: 999px;
+         padding: 14px;
+         font-weight: 700;
+      }
+
+      .commander[disabled] { opacity: .35; cursor: not-allowed; }
+
+      /* étapes du tunnel */
+      .etapes { display: flex; gap: 6px; padding: 12px 20px 0; }
+
+      .etape { flex: 1; text-align: center; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--gris); }
+
+      .etape b { display: block; height: 4px; border-radius: 999px; background: var(--creme-2); margin-bottom: 6px; }
+
+      .etape.on { color: var(--encre); font-weight: 700; }
+
+      .etape.on b { background: var(--rose); }
+
+      footer {
+         border-top: 2px solid var(--encre);
+         padding: 26px 40px;
+         display: flex;
+         gap: 18px;
+         align-items: center;
+         font-size: 13px;
+         color: var(--gris);
+      }
+
+      footer .logo { font-size: 20px; color: var(--encre); }
+   </style>
+</head>
+
+<body>
+   <div class="ticker"><span>Livraison offerte dès 120 € — Nouvelle collection ORBITE — Retours sous 30 jours —
+         Livraison offerte dès 120 € — Nouvelle collection ORBITE — Retours sous 30 jours —</span></div>
+
+   <header>
+      <div class="logo">NO<b>V</b>A</div>
+      <nav>
+         <a href="#">Nouveautés</a>
+         <a href="#">Hauts</a>
+         <a href="#">Bas</a>
+         <a href="#">Accessoires</a>
+         <a href="#">Journal</a>
+      </nav>
+      <div class="entete-droite">
+         <button class="btn-panier" id="ouvrir-panier">Panier <span class="pastille" id="compte">0</span></button>
+      </div>
+   </header>
+
+   <section class="hero">
+      <div>
+         <h1>COLLECTION<br><em>ORBITE</em> 02</h1>
+         <p>Des pièces coupées large, teintes en petites séries. Quinze références, pas une de plus — on préfère
+            refaire que produire.</p>
+         <button class="hero-cta">Voir la collection →</button>
+      </div>
+      <div class="hero-carte">
+         <span class="etiq">Série limitée</span>
+         <svg viewBox="0 0 400 340" aria-hidden="true">
+            <rect width="400" height="340" fill="#7c5cff" />
+            <circle cx="300" cy="80" r="120" fill="#e8ff3a" opacity=".9" />
+            <circle cx="140" cy="230" r="95" fill="#ff2d84" />
+            <path d="M0 340 Q120 210 250 340Z" fill="#00d4ff" opacity=".85" />
+            <text x="26" y="300" font-family="Bricolage Grotesque, sans-serif" font-size="58" font-weight="800"
+               fill="#0f0e0c">02</text>
+         </svg>
+      </div>
+   </section>
+
+   <div class="barre-filtres" id="filtres">
+      <button class="puce" data-cat="*" aria-pressed="true">Tout</button>
+      <button class="puce" data-cat="haut" aria-pressed="false">Hauts</button>
+      <button class="puce" data-cat="bas" aria-pressed="false">Bas</button>
+      <button class="puce" data-cat="acc" aria-pressed="false">Accessoires</button>
+      <span class="compte" id="compte-articles">8 articles</span>
+   </div>
+
+   <div class="grille" id="grille"></div>
+
+   <footer>
+      <div class="logo">NO<b>V</b>A</div>
+      <span>Démonstration — marque, prix et stocks inventés.</span>
+   </footer>
+
+   <div class="voile" id="voile"></div>
+
+   <aside class="panier" id="panier" aria-label="Panier">
+      <div class="panier-tete">
+         <h2>Ton panier</h2>
+         <button class="fermer" id="fermer-panier" aria-label="Fermer">×</button>
+      </div>
+      <div class="etapes" id="etapes">
+         <div class="etape on"><b></b>Panier</div>
+         <div class="etape"><b></b>Livraison</div>
+         <div class="etape"><b></b>Paiement</div>
+      </div>
+      <div class="jauge">
+         <span id="jauge-txt">Plus que 120,00 € pour la livraison offerte</span>
+         <div class="jauge-rail">
+            <div class="jauge-fill" id="jauge-fill"></div>
+         </div>
+      </div>
+      <div class="lignes" id="lignes"></div>
+      <div class="panier-pied">
+         <div class="somme"><span>Sous-total</span><span id="sous-total">0,00 €</span></div>
+         <div class="somme"><span>Livraison</span><span id="port">—</span></div>
+         <div class="somme grand"><span>Total</span><span id="total">0,00 €</span></div>
+         <button class="commander" id="commander" disabled>Passer commande</button>
+      </div>
+   </aside>
+
+   <script>
+      /* ---------------------------------------------------------
+         Un seul état, un seul rendu. Tout ce qui s'affiche (la grille,
+         la pastille, le panier, la jauge) est recalculé depuis `etat` —
+         c'est ce qui évite les compteurs qui se désynchronisent quand on
+         ajoute, filtre puis retire un article.
+         --------------------------------------------------------- */
+      var PRODUITS = [
+         { id: "t1", nom: "Tee ORBITE", cat: "haut", cats: "Haut · coton bio", prix: 45, badge: "Nouveau", ruptures: ["XS"], c: ["#ff2d84", "#0f0e0c", "#e8ff3a"] },
+         { id: "h1", nom: "Hoodie NEBULA", cat: "haut", cats: "Haut · molleton", prix: 95, badge: "", ruptures: [], c: ["#7c5cff", "#fffdf6", "#00d4ff"] },
+         { id: "v1", nom: "Veste STATION", cat: "haut", cats: "Haut · coupe-vent", prix: 140, badge: "Série limitée", ruptures: ["L", "XL"], c: ["#00d4ff", "#0f0e0c", "#ff2d84"] },
+         { id: "p1", nom: "Pantalon CARGO 6", cat: "bas", cats: "Bas · toile lourde", prix: 110, badge: "", ruptures: [], c: ["#4a4438", "#e8ff3a", "#0f0e0c"] },
+         { id: "p2", nom: "Short APOGÉE", cat: "bas", cats: "Bas · nylon", prix: 65, badge: "", ruptures: ["S"], c: ["#e8ff3a", "#7c5cff", "#0f0e0c"] },
+         { id: "j1", nom: "Jean PÉRIGÉE", cat: "bas", cats: "Bas · denim brut", prix: 120, badge: "Réassort", ruptures: [], c: ["#2b3a55", "#fffdf6", "#00d4ff"] },
+         { id: "c1", nom: "Casquette AXE", cat: "acc", cats: "Accessoire", prix: 35, badge: "", ruptures: [], c: ["#ff2d84", "#fffdf6", "#0f0e0c"] },
+         { id: "s1", nom: "Sac ORBITE", cat: "acc", cats: "Accessoire · 18 L", prix: 80, badge: "Nouveau", ruptures: [], c: ["#0f0e0c", "#e8ff3a", "#7c5cff"] }
+      ];
+      var TAILLES = ["XS", "S", "M", "L", "XL"];
+      var TAILLES_ACC = ["TU"];
+      var SEUIL_PORT = 120, PORT = 6.9;
+
+      var etat = { filtre: "*", choix: {}, panier: [] };
+
+      function euro(n) { return n.toFixed(2).replace(".", ",") + " €"; }
+
+      /* Visuel produit : trois aplats et une silhouette, dérivés des
+         couleurs de la fiche. Pas d'image à charger, et la grille garde
+         une identité commune quoi qu'on ajoute au catalogue. */
+      function visuel(p, petit) {
+         var c = p.c, f = petit ? "" : ' rx="0"';
+         var forme = p.cat === "acc"
+            ? '<circle cx="100" cy="112" r="52" fill="' + c[2] + '"/><rect x="48" y="112" width="104" height="30" rx="15" fill="' + c[1] + '"/>'
+            : p.cat === "bas"
+               ? '<path d="M62 42h76l10 126h-34l-14-74-14 74H52Z" fill="' + c[1] + '"/>'
+               : '<path d="M66 46 44 62l14 30 12-8v78h60V84l12 8 14-30-22-16-16 10a14 14 0 0 1-28 0Z" fill="' + c[1] + '"/>';
+         return '<svg viewBox="0 0 200 200" aria-hidden="true">'
+            + '<rect width="200" height="200" fill="' + c[0] + '"' + f + '/>'
+            + '<circle cx="164" cy="38" r="46" fill="' + c[2] + '" opacity=".55"/>'
+            + forme + '</svg>';
+      }
+
+      function taillesDe(p) { return p.cat === "acc" ? TAILLES_ACC : TAILLES; }
+
+      function rendreGrille() {
+         var g = document.getElementById("grille");
+         g.innerHTML = PRODUITS.map(function (p) {
+            // Taille par defaut : M si elle est dispo, sinon la premiere en stock.
+            // Proposer XS par defaut sur un hoodie faisait tache dans le panier.
+            var dispo = taillesDe(p).filter(function (t) { return p.ruptures.indexOf(t) < 0; });
+            var choisie = etat.choix[p.id] || (dispo.indexOf("M") >= 0 ? "M" : dispo[0]);
+            etat.choix[p.id] = choisie;
+            var cache = (etat.filtre !== "*" && p.cat !== etat.filtre) ? " sort" : "";
+            return '<article class="produit' + cache + '" data-cat="' + p.cat + '">'
+               + '<div class="visuel">' + visuel(p) + (p.badge ? '<span class="badge">' + p.badge + '</span>' : '') + '</div>'
+               + '<div class="produit-corps">'
+               + '<span class="cat">' + p.cats + '</span>'
+               + '<h3>' + p.nom + '</h3>'
+               + '<div class="tailles">' + taillesDe(p).map(function (t) {
+                  var rupt = p.ruptures.indexOf(t) >= 0;
+                  return '<button class="taille" data-id="' + p.id + '" data-taille="' + t + '"'
+                     + (rupt ? ' disabled title="Épuisé"' : '')
+                     + ' aria-pressed="' + (t === choisie ? "true" : "false") + '">' + t + '</button>';
+               }).join("") + '</div>'
+               + '<div class="produit-pied"><span class="prix">' + euro(p.prix) + '</span>'
+               + '<button class="ajouter" data-ajout="' + p.id + '">Ajouter</button></div>'
+               + '</div></article>';
+         }).join("");
+         var n = PRODUITS.filter(function (p) { return etat.filtre === "*" || p.cat === etat.filtre; }).length;
+         document.getElementById("compte-articles").textContent = n + (n > 1 ? " articles" : " article");
+      }
+
+      function rendrePanier() {
+         var lignes = document.getElementById("lignes");
+         if (!etat.panier.length) {
+            lignes.innerHTML = '<p class="vide">Ton panier est vide.<br>Les bonnes pièces partent vite.</p>';
+         } else {
+            lignes.innerHTML = etat.panier.map(function (l, i) {
+               var p = PRODUITS.find(function (x) { return x.id === l.id; });
+               return '<div class="ligne">'
+                  + '<div class="ligne-vis">' + visuel(p, true) + '</div>'
+                  + '<div><h4>' + p.nom + '</h4><div class="meta">Taille ' + l.taille + ' · ' + euro(p.prix) + '</div>'
+                  + '<div class="qte"><button data-moins="' + i + '" aria-label="Retirer un">−</button><span>' + l.q
+                  + '</span><button data-plus="' + i + '" aria-label="Ajouter un">+</button></div></div>'
+                  + '<div class="total">' + euro(p.prix * l.q) + '</div></div>';
+            }).join("");
+         }
+
+         var sous = etat.panier.reduce(function (s, l) {
+            return s + PRODUITS.find(function (x) { return x.id === l.id; }).prix * l.q;
+         }, 0);
+         var nb = etat.panier.reduce(function (s, l) { return s + l.q; }, 0);
+         var port = sous === 0 ? 0 : (sous >= SEUIL_PORT ? 0 : PORT);
+
+         document.getElementById("compte").textContent = nb;
+         document.getElementById("sous-total").textContent = euro(sous);
+         document.getElementById("port").textContent = sous === 0 ? "—" : (port === 0 ? "Offerte" : euro(port));
+         document.getElementById("total").textContent = euro(sous + port);
+         document.getElementById("commander").disabled = nb === 0;
+
+         var reste = Math.max(0, SEUIL_PORT - sous);
+         document.getElementById("jauge-fill").style.width = Math.min(100, sous / SEUIL_PORT * 100) + "%";
+         document.getElementById("jauge-txt").textContent = reste > 0
+            ? "Plus que " + euro(reste) + " pour la livraison offerte"
+            : "Livraison offerte débloquée ✓";
+      }
+
+      function ouvrir(v) {
+         document.getElementById("panier").classList.toggle("on", v);
+         document.getElementById("voile").classList.toggle("on", v);
+      }
+
+      document.addEventListener("click", function (e) {
+         var t = e.target;
+
+         var puce = t.closest ? t.closest(".puce") : null;
+         if (puce) {
+            etat.filtre = puce.dataset.cat;
+            document.querySelectorAll(".puce").forEach(function (b) {
+               b.setAttribute("aria-pressed", String(b === puce));
+            });
+            rendreGrille();
+            return;
+         }
+
+         if (t.dataset && t.dataset.taille) {
+            etat.choix[t.dataset.id] = t.dataset.taille;
+            t.parentNode.querySelectorAll(".taille").forEach(function (b) {
+               b.setAttribute("aria-pressed", String(b === t));
+            });
+            return;
+         }
+
+         if (t.dataset && t.dataset.ajout) {
+            var id = t.dataset.ajout, taille = etat.choix[id];
+            var ex = etat.panier.find(function (l) { return l.id === id && l.taille === taille; });
+            if (ex) ex.q++; else etat.panier.push({ id: id, taille: taille, q: 1 });
+            t.textContent = "Ajouté ✓";
+            t.classList.add("ok");
+            setTimeout(function () { t.textContent = "Ajouter"; t.classList.remove("ok"); }, 1100);
+            rendrePanier();
+            ouvrir(true);
+            return;
+         }
+
+         if (t.dataset && t.dataset.plus !== undefined) { etat.panier[+t.dataset.plus].q++; rendrePanier(); return; }
+         if (t.dataset && t.dataset.moins !== undefined) {
+            var i = +t.dataset.moins;
+            if (--etat.panier[i].q <= 0) etat.panier.splice(i, 1);
+            rendrePanier();
+            return;
+         }
+
+         if (t.id === "ouvrir-panier") ouvrir(true);
+         if (t.id === "fermer-panier" || t.id === "voile") ouvrir(false);
+
+         if (t.id === "commander") {
+            var et = document.querySelectorAll(".etape");
+            var i2 = Array.prototype.findIndex.call(et, function (x) { return x.classList.contains("on"); });
+            if (i2 < et.length - 1) {
+               et[i2 + 1].classList.add("on");
+               t.textContent = i2 + 1 === et.length - 1 ? "Payer maintenant" : "Continuer";
+            } else {
+               t.textContent = "Commande confirmée ✓";
+               t.disabled = true;
+            }
+         }
+      });
+
+      rendreGrille();
+      rendrePanier();
+   </script>
+</body>
+
+</html>

@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <title>IRONHAUS — Planning &amp; réservation</title>
+   <link href="https://fonts.googleapis.com" rel="preconnect">
+   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;800;900&family=JetBrains+Mono:wght@400;700&display=swap"
+      rel="stylesheet">
+   <style>
+      /* ===========================================================
+         IRONHAUS — démonstration : planning de cours et réservation.
+         Pas une page de présentation de salle : l'outil de réservation.
+         Grille hebdomadaire, filtres discipline/coach, places restantes
+         qui décrémentent vraiment, liste de réservations et liste
+         d'attente quand un cours est complet.
+         Salle, coachs et créneaux inventés.
+         =========================================================== */
+      :root {
+         --noir: #0b0b0c;
+         --noir-2: #141416;
+         --noir-3: #1d1d21;
+         --bord: #2b2b31;
+         --blanc: #f4f4f2;
+         --gris: #8b8b93;
+         --acide: #d7ff1e;
+         --brique: #ff4d2e;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body { margin: 0; }
+
+      body {
+         background: var(--noir);
+         color: var(--blanc);
+         font-family: Archivo, system-ui, sans-serif;
+         font-size: 14px;
+         overflow-x: hidden;
+      }
+
+      h1, h2, h3 { font-weight: 900; margin: 0; letter-spacing: -.035em; text-transform: uppercase; }
+
+      button { font: inherit; cursor: pointer; }
+
+      .mono { font-family: "JetBrains Mono", monospace; }
+
+      header {
+         display: flex;
+         align-items: center;
+         gap: 30px;
+         padding: 16px 34px;
+         border-bottom: 2px solid var(--blanc);
+      }
+
+      .logo { font-weight: 900; font-size: 25px; letter-spacing: -.06em; }
+
+      .logo span { color: var(--acide); }
+
+      nav { display: flex; gap: 24px; }
+
+      nav a {
+         color: var(--gris);
+         text-decoration: none;
+         font-size: 13px;
+         font-weight: 600;
+         text-transform: uppercase;
+         letter-spacing: .08em;
+      }
+
+      nav a:hover, nav a.on { color: var(--blanc); }
+
+      .compte-resa {
+         margin-left: auto;
+         display: flex;
+         align-items: center;
+         gap: 10px;
+         background: var(--acide);
+         color: var(--noir);
+         font-weight: 800;
+         font-size: 12.5px;
+         text-transform: uppercase;
+         letter-spacing: .06em;
+         padding: 9px 16px;
+      }
+
+      /* ---------- bandeau ---------- */
+      .bandeau {
+         display: grid;
+         grid-template-columns: 1fr auto;
+         gap: 30px;
+         align-items: end;
+         padding: 30px 34px 22px;
+         border-bottom: 1px solid var(--bord);
+      }
+
+      .bandeau h1 { font-size: 62px; line-height: .88; }
+
+      .bandeau h1 em { font-style: normal; color: var(--acide); }
+
+      .bandeau p { color: var(--gris); margin: 12px 0 0; max-width: 52ch; font-size: 15px; }
+
+      .stats { display: flex; gap: 26px; }
+
+      .stat b { display: block; font-size: 30px; font-weight: 900; letter-spacing: -.04em; }
+
+      .stat span { font-size: 11.5px; color: var(--gris); text-transform: uppercase; letter-spacing: .1em; }
+
+      /* ---------- filtres ---------- */
+      .outils {
+         display: flex;
+         align-items: center;
+         gap: 9px;
+         padding: 16px 34px;
+         flex-wrap: wrap;
+         border-bottom: 1px solid var(--bord);
+      }
+
+      .f {
+         border: 1.5px solid var(--bord);
+         background: transparent;
+         color: var(--gris);
+         padding: 7px 15px;
+         font-size: 12.5px;
+         font-weight: 600;
+         text-transform: uppercase;
+         letter-spacing: .05em;
+         transition: all .16s;
+      }
+
+      .f:hover { border-color: var(--blanc); color: var(--blanc); }
+
+      .f[aria-pressed="true"] { background: var(--blanc); color: var(--noir); border-color: var(--blanc); }
+
+      .semaine { margin-left: auto; display: flex; align-items: center; gap: 12px; color: var(--gris); font-size: 13px; }
+
+      .semaine button { border: 1.5px solid var(--bord); background: transparent; color: var(--blanc); width: 30px; height: 30px; }
+
+      /* ---------- planning ---------- */
+      .planning { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--bord); border-bottom: 1px solid var(--bord); }
+
+      .jour { background: var(--noir); min-height: 300px; padding: 0 0 12px; }
+
+      .jour-tete {
+         padding: 12px 12px 10px;
+         border-bottom: 1px solid var(--bord);
+         display: flex;
+         align-items: baseline;
+         gap: 7px;
+      }
+
+      .jour-tete b { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; }
+
+      .jour-tete span { font-size: 12px; color: var(--gris); }
+
+      .jour.aujourdhui .jour-tete { background: var(--acide); color: var(--noir); border-bottom-color: var(--acide); }
+
+      .jour.aujourdhui .jour-tete span { color: rgba(11, 11, 12, .65); }
+
+      .cours {
+         display: block;
+         width: calc(100% - 16px);
+         margin: 9px 8px 0;
+         text-align: left;
+         background: var(--noir-2);
+         border: 1.5px solid var(--bord);
+         border-left: 3px solid var(--teinte, var(--gris));
+         padding: 9px 10px;
+         color: var(--blanc);
+         transition: transform .16s cubic-bezier(.2, .7, .3, 1), border-color .16s, background .16s;
+      }
+
+      .cours:hover { transform: translateX(3px); background: var(--noir-3); border-color: var(--gris); }
+
+      .cours.masque { display: none; }
+
+      .cours .h { font-size: 12px; color: var(--gris); }
+
+      .cours .n { font-weight: 800; font-size: 13.5px; text-transform: uppercase; letter-spacing: -.01em; margin: 2px 0 4px; }
+
+      .cours .b { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--gris); }
+
+      .jauge { flex: 1; height: 3px; background: var(--bord); position: relative; }
+
+      .jauge i { position: absolute; inset: 0 auto 0 0; background: var(--teinte, var(--acide)); }
+
+      .cours.complet { opacity: .55; }
+
+      .cours.complet .jauge i { background: var(--brique); }
+
+      .cours.reserve { border-color: var(--acide); background: rgba(215, 255, 30, .09); }
+
+      .etiq-ok { color: var(--acide); font-weight: 700; }
+
+      /* ---------- panneau ---------- */
+      .voile {
+         position: fixed;
+         inset: 0;
+         background: rgba(5, 5, 6, .7);
+         opacity: 0;
+         pointer-events: none;
+         transition: opacity .26s;
+         z-index: 40;
+      }
+
+      .voile.on { opacity: 1; pointer-events: auto; }
+
+      .panneau {
+         position: fixed;
+         top: 0;
+         right: 0;
+         width: 380px;
+         height: 100%;
+         background: var(--noir-2);
+         border-left: 2px solid var(--acide);
+         z-index: 50;
+         transform: translateX(100%);
+         transition: transform .32s cubic-bezier(.22, .68, .28, 1);
+         display: flex;
+         flex-direction: column;
+      }
+
+      .panneau.on { transform: none; }
+
+      .p-tete { padding: 20px 22px 16px; border-bottom: 1px solid var(--bord); }
+
+      .p-tete .sur { font-size: 11.5px; letter-spacing: .12em; color: var(--acide); text-transform: uppercase; }
+
+      .p-tete h2 { font-size: 27px; margin-top: 6px; line-height: 1; }
+
+      .p-tete .q { color: var(--gris); font-size: 13px; margin-top: 8px; }
+
+      .p-corps { padding: 18px 22px; flex: 1; overflow-y: auto; }
+
+      .fiche { display: grid; grid-template-columns: auto 1fr; gap: 9px 14px; font-size: 13px; }
+
+      .fiche dt { color: var(--gris); text-transform: uppercase; font-size: 11px; letter-spacing: .08em; padding-top: 2px; }
+
+      .fiche dd { margin: 0; font-weight: 600; }
+
+      .places { margin-top: 20px; border: 1.5px solid var(--bord); padding: 14px; }
+
+      .places .n { font-size: 34px; font-weight: 900; letter-spacing: -.04em; line-height: 1; }
+
+      .places .n small { font-size: 14px; color: var(--gris); font-weight: 600; letter-spacing: 0; }
+
+      .places .rail { height: 6px; background: var(--bord); margin-top: 11px; }
+
+      .places .rail > div { height: 100%; background: var(--acide); transition: width .5s cubic-bezier(.22, .68, .28, 1); }
+
+      .p-pied { padding: 18px 22px 22px; border-top: 1px solid var(--bord); }
+
+      .valider {
+         width: 100%;
+         border: 0;
+         background: var(--acide);
+         color: var(--noir);
+         font-weight: 900;
+         text-transform: uppercase;
+         letter-spacing: .06em;
+         padding: 15px;
+         font-size: 14px;
+         transition: filter .16s;
+      }
+
+      .valider:hover { filter: brightness(1.08); }
+
+      .valider.attente { background: var(--brique); color: var(--blanc); }
+
+      .valider.annuler { background: transparent; color: var(--brique); border: 1.5px solid var(--brique); }
+
+      .p-note { font-size: 11.5px; color: var(--gris); margin-top: 10px; text-align: center; }
+
+      footer { padding: 22px 34px; color: var(--gris); font-size: 12.5px; border-top: 1px solid var(--bord); }
+   </style>
+</head>
+
+<body>
+   <header>
+      <div class="logo">IRON<span>HAUS</span></div>
+      <nav>
+         <a href="#" class="on">Planning</a>
+         <a href="#">Disciplines</a>
+         <a href="#">Coachs</a>
+         <a href="#">Abonnements</a>
+      </nav>
+      <div class="compte-resa">Mes réservations · <span id="cpt">0</span></div>
+   </header>
+
+   <section class="bandeau">
+      <div>
+         <h1>Réserve ta<br><em>séance</em></h1>
+         <p>Vingt-six cours par semaine, douze places maximum. On ouvre les réservations sept jours à l'avance —
+            passé ça, c'est liste d'attente.</p>
+      </div>
+      <div class="stats">
+         <div class="stat"><b>26</b><span>Cours / semaine</span></div>
+         <div class="stat"><b>12</b><span>Places max</span></div>
+         <div class="stat"><b>6</b><span>Coachs</span></div>
+      </div>
+   </section>
+
+   <div class="outils">
+      <button class="f" data-d="*" aria-pressed="true">Tout</button>
+      <button class="f" data-d="force" aria-pressed="false">Force</button>
+      <button class="f" data-d="hiit" aria-pressed="false">HIIT</button>
+      <button class="f" data-d="mobilite" aria-pressed="false">Mobilité</button>
+      <button class="f" data-d="boxe" aria-pressed="false">Boxe</button>
+      <div class="semaine">
+         <button aria-label="Semaine précédente">‹</button>
+         <span class="mono">Semaine du 21 sept.</span>
+         <button aria-label="Semaine suivante">›</button>
+      </div>
+   </div>
+
+   <div class="planning" id="planning"></div>
+
+   <footer>Démonstration — salle, coachs, créneaux et disponibilités inventés.</footer>
+
+   <div class="voile" id="voile"></div>
+
+   <aside class="panneau" id="panneau" aria-label="Réserver un cours">
+      <div class="p-tete">
+         <div class="sur" id="p-sur"></div>
+         <h2 id="p-nom"></h2>
+         <div class="q" id="p-q"></div>
+      </div>
+      <div class="p-corps">
+         <dl class="fiche">
+            <dt>Coach</dt>
+            <dd id="p-coach"></dd>
+            <dt>Durée</dt>
+            <dd id="p-duree"></dd>
+            <dt>Niveau</dt>
+            <dd id="p-niveau"></dd>
+            <dt>Salle</dt>
+            <dd id="p-salle"></dd>
+         </dl>
+         <div class="places">
+            <div class="n"><span id="p-libre"></span> <small><span id="p-mot">places restantes</span> sur <span
+                  id="p-max"></span></small></div>
+            <div class="rail">
+               <div id="p-rail"></div>
+            </div>
+         </div>
+      </div>
+      <div class="p-pied">
+         <button class="valider" id="valider"></button>
+         <div class="p-note" id="p-note">Annulation gratuite jusqu'à 4 h avant le cours.</div>
+      </div>
+   </aside>
+
+   <script>
+      /* ---------------------------------------------------------
+         Les places sont un état partagé : réserver décrémente le cours
+         dans le planning ET dans le panneau, annuler rend la place. Un
+         cours à zéro bascule en liste d'attente au lieu d'être
+         simplement grisé — c'est le comportement qui fait la différence
+         entre une maquette et un outil.
+         --------------------------------------------------------- */
+      var TEINTES = { force: "#d7ff1e", hiit: "#ff4d2e", mobilite: "#4ad3ff", boxe: "#c084fc" };
+      var LIB = { force: "Force", hiit: "HIIT", mobilite: "Mobilité", boxe: "Boxe" };
+      var JOURS = [
+         ["Lun", "22"], ["Mar", "23"], ["Mer", "24"], ["Jeu", "25"], ["Ven", "26"], ["Sam", "27"], ["Dim", "28"]
+      ];
+
+      var COURS = [
+         { j: 0, h: "07:00", n: "Full Body", d: "force", coach: "Nadia R.", duree: "60 min", niv: "Tous niveaux", salle: "Plateau", max: 12, pris: 9 },
+         { j: 0, h: "12:15", n: "HIIT Express", d: "hiit", coach: "Malik T.", duree: "30 min", niv: "Intermédiaire", salle: "Studio 1", max: 14, pris: 14 },
+         { j: 0, h: "19:00", n: "Squat Lab", d: "force", coach: "Nadia R.", duree: "75 min", niv: "Confirmé", salle: "Plateau", max: 10, pris: 6 },
+         { j: 1, h: "08:00", n: "Mobilité hanches", d: "mobilite", coach: "Elsa V.", duree: "45 min", niv: "Tous niveaux", salle: "Studio 2", max: 16, pris: 7 },
+         { j: 1, h: "18:30", n: "Boxe technique", d: "boxe", coach: "Karim D.", duree: "60 min", niv: "Débutant", salle: "Ring", max: 12, pris: 11 },
+         { j: 1, h: "20:00", n: "Deadlift Night", d: "force", coach: "Tom B.", duree: "75 min", niv: "Confirmé", salle: "Plateau", max: 10, pris: 4 },
+         { j: 2, h: "07:00", n: "HIIT Metcon", d: "hiit", coach: "Malik T.", duree: "45 min", niv: "Intermédiaire", salle: "Studio 1", max: 14, pris: 12 },
+         { j: 2, h: "12:15", n: "Gainage 20", d: "mobilite", coach: "Elsa V.", duree: "20 min", niv: "Tous niveaux", salle: "Studio 2", max: 18, pris: 5 },
+         { j: 2, h: "19:00", n: "Push / Pull", d: "force", coach: "Tom B.", duree: "60 min", niv: "Intermédiaire", salle: "Plateau", max: 12, pris: 10 },
+         { j: 3, h: "08:00", n: "Sparring léger", d: "boxe", coach: "Karim D.", duree: "60 min", niv: "Confirmé", salle: "Ring", max: 10, pris: 8 },
+         { j: 3, h: "18:30", n: "HIIT Cardio", d: "hiit", coach: "Malik T.", duree: "45 min", niv: "Tous niveaux", salle: "Studio 1", max: 14, pris: 3 },
+         { j: 4, h: "07:00", n: "Full Body", d: "force", coach: "Nadia R.", duree: "60 min", niv: "Tous niveaux", salle: "Plateau", max: 12, pris: 11 },
+         { j: 4, h: "12:15", n: "Mobilité épaules", d: "mobilite", coach: "Elsa V.", duree: "30 min", niv: "Tous niveaux", salle: "Studio 2", max: 16, pris: 6 },
+         { j: 4, h: "19:30", n: "Boxe cardio", d: "boxe", coach: "Karim D.", duree: "50 min", niv: "Débutant", salle: "Ring", max: 12, pris: 12 },
+         { j: 5, h: "10:00", n: "Barbell Club", d: "force", coach: "Tom B.", duree: "90 min", niv: "Confirmé", salle: "Plateau", max: 10, pris: 5 },
+         { j: 5, h: "11:45", n: "HIIT Week-end", d: "hiit", coach: "Malik T.", duree: "45 min", niv: "Intermédiaire", salle: "Studio 1", max: 14, pris: 9 },
+         { j: 6, h: "10:30", n: "Mobilité longue", d: "mobilite", coach: "Elsa V.", duree: "60 min", niv: "Tous niveaux", salle: "Studio 2", max: 16, pris: 4 }
+      ];
+
+      var filtre = "*", ouvert = null;
+      var mesResa = {};      // index du cours -> true
+      var enAttente = {};
+
+      function rendrePlanning() {
+         document.getElementById("planning").innerHTML = JOURS.map(function (jr, ji) {
+            var dedans = COURS.map(function (c, i) { return { c: c, i: i }; }).filter(function (o) { return o.c.j === ji; });
+            return '<div class="jour' + (ji === 2 ? " aujourdhui" : "") + '">'
+               + '<div class="jour-tete"><b>' + jr[0] + '</b><span>' + jr[1] + ' sept.</span></div>'
+               + dedans.map(function (o) {
+                  var c = o.c, libre = c.max - c.pris;
+                  var masque = (filtre !== "*" && c.d !== filtre) ? " masque" : "";
+                  var cls = "cours" + masque + (libre <= 0 ? " complet" : "") + (mesResa[o.i] ? " reserve" : "");
+                  var pct = Math.round(c.pris / c.max * 100);
+                  var bas = mesResa[o.i]
+                     ? '<span class="etiq-ok">Réservé ✓</span>'
+                     : (libre <= 0 ? '<span style="color:#ff4d2e">Complet</span>'
+                        : '<span>' + libre + (libre > 1 ? ' places' : ' place') + '</span>');
+                  return '<button class="' + cls + '" data-i="' + o.i + '" style="--teinte:' + TEINTES[c.d] + '">'
+                     + '<div class="h mono">' + c.h + '</div>'
+                     + '<div class="n">' + c.n + '</div>'
+                     + '<div class="b"><span class="jauge"><i style="width:' + pct + '%"></i></span>' + bas + '</div>'
+                     + '</button>';
+               }).join("") + '</div>';
+         }).join("");
+         var n = Object.keys(mesResa).length;
+         document.getElementById("cpt").textContent = n;
+      }
+
+      function rendrePanneau() {
+         if (ouvert === null) return;
+         var c = COURS[ouvert], libre = c.max - c.pris;
+         document.getElementById("p-sur").textContent = LIB[c.d] + " · " + JOURS[c.j][0] + " " + JOURS[c.j][1] + " sept. · " + c.h;
+         document.getElementById("p-nom").textContent = c.n;
+         document.getElementById("p-q").textContent = c.duree + " avec " + c.coach;
+         document.getElementById("p-coach").textContent = c.coach;
+         document.getElementById("p-duree").textContent = c.duree;
+         document.getElementById("p-niveau").textContent = c.niv;
+         document.getElementById("p-salle").textContent = c.salle;
+         document.getElementById("p-libre").textContent = Math.max(0, libre);
+         document.getElementById("p-mot").textContent = libre > 1 ? "places restantes" : "place restante";
+         document.getElementById("p-max").textContent = c.max;
+         document.getElementById("p-rail").style.width = Math.round(Math.max(0, libre) / c.max * 100) + "%";
+
+         var b = document.getElementById("valider");
+         var note = document.getElementById("p-note");
+         b.className = "valider";
+         if (mesResa[ouvert]) {
+            b.textContent = "Annuler ma réservation";
+            b.classList.add("annuler");
+            note.textContent = "Ta place est gardée jusqu'à 10 min avant le cours.";
+         } else if (enAttente[ouvert]) {
+            b.textContent = "Quitter la liste d'attente";
+            b.classList.add("annuler");
+            note.textContent = "Tu es 2ᵉ sur la liste — on te prévient dès qu'une place se libère.";
+         } else if (libre <= 0) {
+            b.textContent = "Rejoindre la liste d'attente";
+            b.classList.add("attente");
+            note.textContent = "Cours complet. 2 personnes sur la liste avant toi.";
+         } else {
+            b.textContent = "Réserver ma place";
+            note.textContent = "Annulation gratuite jusqu'à 4 h avant le cours.";
+         }
+      }
+
+      function ouvrir(v) {
+         document.getElementById("panneau").classList.toggle("on", v);
+         document.getElementById("voile").classList.toggle("on", v);
+         if (!v) ouvert = null;
+      }
+
+      document.getElementById("planning").addEventListener("click", function (e) {
+         var b = e.target.closest(".cours");
+         if (!b) return;
+         ouvert = +b.dataset.i;
+         rendrePanneau();
+         ouvrir(true);
+      });
+
+      document.querySelectorAll(".f").forEach(function (b) {
+         b.addEventListener("click", function () {
+            filtre = b.dataset.d;
+            document.querySelectorAll(".f").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+            rendrePlanning();
+         });
+      });
+
+      document.getElementById("valider").addEventListener("click", function () {
+         var c = COURS[ouvert], libre = c.max - c.pris;
+         if (mesResa[ouvert]) { delete mesResa[ouvert]; c.pris--; }
+         else if (enAttente[ouvert]) { delete enAttente[ouvert]; }
+         else if (libre <= 0) { enAttente[ouvert] = true; }
+         else { mesResa[ouvert] = true; c.pris++; }
+         rendrePlanning();
+         rendrePanneau();
+      });
+
+      document.getElementById("voile").addEventListener("click", function () { ouvrir(false); });
+
+      rendrePlanning();
+   </script>
+</body>
+
+</html>
