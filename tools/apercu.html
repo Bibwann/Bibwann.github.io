@@ -1,0 +1,58 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Aperçu — harnais de capture</title>
+<style>
+   html, body { margin: 0; background: #06060c; }
+   iframe { border: 0; display: block; }
+</style>
+<iframe id="f" src="../index.html"></iframe>
+<script>
+   // Harnais de capture : charge la vraie page dans une iframe, coupe les
+   // transitions, force les blocs a l'etat revele, puis defile jusqu'a la
+   // section demandee. Usage : _apercu.html?s=ambition&h=1400
+   var q = new URLSearchParams(location.search);
+   var cible = q.get('s') || 'ambition';
+   var haut = parseInt(q.get('h'), 10) || 1000;
+   var large = parseInt(q.get('w'), 10) || 1440;
+   var f = document.getElementById('f');
+   f.style.width = large + 'px';
+   f.style.height = haut + 'px';
+
+   f.addEventListener('load', function () {
+      var d = f.contentDocument, w = f.contentWindow;
+      var st = d.createElement('style');
+      st.textContent = '*{transition:none!important;animation:none!important}';
+      d.head.appendChild(st);
+      d.documentElement.style.scrollBehavior = 'auto';
+      setTimeout(function () {
+         d.querySelectorAll('[data-reveal]').forEach(function (e) {
+            e.classList.remove('a-reveler');
+            e.classList.add('revele');
+            e.style.transitionDelay = '';
+         });
+         var el = d.querySelector('#' + cible);
+         if (!el) { console.log('[apercu] section introuvable : ' + cible); return; }
+         var y = el.getBoundingClientRect().top + w.scrollY;
+         w.scrollTo(0, y);
+         // Le temps virtuel de Chrome peut vider la file avant que l'evenement
+         // « scroll » natif ne parte : on le declenche explicitement pour que le
+         // chargement paresseux des vitrines suive le meme chemin qu'en vrai.
+         w.dispatchEvent(new Event('scroll'));
+         console.log('[apercu] ' + cible + ' -> y=' + Math.round(y) + ' scrollY=' + Math.round(w.scrollY));
+         setTimeout(function () {
+            var vs = d.querySelectorAll('.vitrine');
+            console.log('[apercu] vitrines=' + vs.length + ' innerH=' + w.innerHeight);
+            if (vs[0]) {
+               var r0 = vs[0].getBoundingClientRect();
+               console.log('[apercu] v0 top=' + Math.round(r0.top) + ' bottom=' + Math.round(r0.bottom)
+                  + ' cadreW=' + (d.querySelector('.vitrine-cadre') || {}).clientWidth);
+            }
+            d.querySelectorAll('.vitrine iframe').forEach(function (f2, k) {
+               console.log('[apercu] iframe ' + k + ' src=' + (f2.getAttribute('src') || 'VIDE')
+                  + ' w=' + f2.style.width + ' h=' + f2.style.height);
+            });
+
+         }, 1200);
+      }, 900);
+   });
+</script>
