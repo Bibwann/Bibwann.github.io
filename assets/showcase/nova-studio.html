@@ -674,7 +674,11 @@
 
          if (t.id === "commander") {
             var et = document.querySelectorAll(".etape");
-            var i2 = Array.prototype.findIndex.call(et, function (x) { return x.classList.contains("on"); });
+            // La derniere etape allumee, pas la premiere : les etapes franchies
+            // gardent leur classe `on`, donc un findIndex renvoyait toujours 0
+            // et le tunnel restait bloque sur « Continuer » indefiniment.
+            var i2 = -1;
+            for (var k = 0; k < et.length; k++) { if (et[k].classList.contains("on")) i2 = k; }
             if (i2 < et.length - 1) {
                et[i2 + 1].classList.add("on");
                t.textContent = i2 + 1 === et.length - 1 ? "Payer maintenant" : "Continuer";

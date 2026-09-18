@@ -253,7 +253,12 @@
    window.addEventListener("resize", function () {
       clearTimeout(minuteurTaille);
       minuteurTaille = setTimeout(function () {
-         verifierApproche();
+         // `arbitrer` et pas un reste de l'ancienne version : un
+         // redimensionnement deplace les vitrines ET change l'echelle. Cette
+         // ligne appelait `verifierApproche`, supprimee depuis — la
+         // ReferenceError coupait le callback avant la remise a l'echelle,
+         // et les apercus gardaient la taille de la fenetre precedente.
+         arbitrer();
          vitrines.forEach(mettreALEchelle);
       }, 150);
    });
