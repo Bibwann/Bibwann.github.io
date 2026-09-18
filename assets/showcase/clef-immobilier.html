@@ -141,7 +141,11 @@
 
       .compte b { color: var(--encre); font-weight: 700; }
 
-      .grille { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+      /* Colonnes au gabarit de la carte, pas un compte fixe : a 1440 px,
+         deux colonnes etiraient chaque carte a 455 px alors que la vignette
+         est dessinee en 220 -- elle flottait au milieu de bandes blanches.
+         Le gabarit tient deux colonnes des 900 px de fenetre. */
+      .grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16px; }
 
       .bien {
          background: var(--carte);
@@ -158,7 +162,7 @@
          transform: translateY(-2px);
       }
 
-      .vignette { position: relative; height: 128px; }
+      .vignette { position: relative; aspect-ratio: 220 / 128; }
 
       .vignette svg { width: 100%; height: 100%; display: block; }
 
@@ -377,7 +381,7 @@
                   + '<div class="corps"><div class="prix">' + euro(b.prix) + '</div>'
                   + '<div class="lieu">' + b.titre + ' · ' + b.lieu + '</div>'
                   + '<div class="traits"><span class="trait">' + b.m2 + ' m²</span>'
-                  + (b.p ? '<span class="trait">' + b.p + ' pièces</span><span class="trait">' + b.ch + ' ch.</span>' : '<span class="trait">Constructible</span>')
+                  + (b.p ? '<span class="trait">' + b.p + (b.p > 1 ? ' pièces' : ' pièce') + '</span><span class="trait">' + b.ch + ' ch.</span>' : '<span class="trait">Constructible</span>')
                   + (b.terrasse ? '<span class="trait">Terrasse</span>' : '')
                   + '</div></div></article>';
             }).join("");
@@ -397,8 +401,11 @@
          g += '<path d="M0 200 Q150 250 470 150" stroke="#dcd6c4" stroke-width="16" fill="none"/>';
          g += '<path d="M120 0 Q170 340 90 700" stroke="#dcd6c4" stroke-width="11" fill="none"/>';
          g += '<ellipse cx="90" cy="360" rx="120" ry="150" fill="#d7e2cc" opacity=".8"/>';
-         g += '<text x="24" y="392" font-family="Manrope,sans-serif" font-size="12" fill="#8a9c8e" letter-spacing="2">MASSIF DE L\'ESTÉREL</text>';
-         g += '<text x="392" y="640" font-family="Manrope,sans-serif" font-size="12" fill="#7ea3ae" letter-spacing="2" text-anchor="middle">MER</text>';
+         // Legendes centrees dans la zone toujours visible : le cadrage
+         // `slice` rogne lateralement, et au ras du bord celle du massif
+         // sortait du cadre des que le volet etait haut.
+         g += '<text x="170" y="392" font-family="Manrope,sans-serif" font-size="12" fill="#8a9c8e" letter-spacing="2" text-anchor="middle">MASSIF DE L\'ESTÉREL</text>';
+         g += '<text x="350" y="640" font-family="Manrope,sans-serif" font-size="12" fill="#7ea3ae" letter-spacing="2" text-anchor="middle">MER</text>';
 
          l.forEach(function (b) {
             var r = vise === b.id ? 19 : 15;

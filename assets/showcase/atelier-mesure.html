@@ -84,7 +84,7 @@
          padding: 24px 40px;
       }
 
-      .scene svg { width: 100%; max-width: 620px; height: auto; }
+      .scene svg { width: 100%; max-width: min(840px, 100%); height: auto; }
 
       .cotes {
          display: flex;
@@ -124,9 +124,14 @@
 
       .p-haut p { color: var(--gris); margin: 8px 0 0; font-size: 13.5px; }
 
-      .options { padding: 20px 26px; overflow-y: auto; flex: 1; }
+      .options { padding: 16px 26px; overflow-y: auto; flex: 1; }
 
-      .bloc { margin-bottom: 24px; }
+      /* Sur les ecrans hauts tout tient ; sinon la colonne defile, et ce
+         degrade dit que ca continue. Une rangee tranchee net se lisait
+         comme un bug de mise en page. */
+      .options { -webkit-mask-image: linear-gradient(#000 calc(100% - 26px), transparent); mask-image: linear-gradient(#000 calc(100% - 26px), transparent); }
+
+      .bloc { margin-bottom: 18px; }
 
       .bloc > label {
          display: flex;
@@ -176,6 +181,8 @@
       .ess[aria-pressed="true"] span { color: var(--encre); font-weight: 500; }
 
       .curseur { width: 100%; accent-color: var(--terre); }
+
+      .bascules { display: grid; gap: 8px; }
 
       .bascule { display: flex; align-items: center; gap: 11px; padding: 11px 13px; border: 1px solid var(--bord); border-radius: 10px; }
 
@@ -248,6 +255,26 @@
       .commander:hover { background: #3a332c; }
 
       .delai { text-align: center; font-size: 12px; color: var(--gris); margin-top: 10px; }
+      @media (min-width: 1180px) {
+         .plan { grid-template-columns: 1fr 520px; }
+
+         .options { display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; align-content: start; }
+
+         .bloc.pleine { grid-column: 1 / -1; }
+
+         /* Les deux options cote a cote : c'est ce qui fait tenir tout le
+            configurateur sans defilement sur un ecran de portable. */
+         .bascules { grid-template-columns: 1fr 1fr; }
+
+         .p-haut { padding: 18px 26px 14px; }
+
+         /* A cette largeur tout rentre : pas de defilement, donc pas de
+            degrade de bas de colonne a afficher. */
+         .options { padding-top: 12px; padding-bottom: 6px; -webkit-mask-image: none; mask-image: none; }
+
+         .bloc { margin-bottom: 10px; }
+      }
+
    </style>
 </head>
 
@@ -282,12 +309,12 @@
          </div>
 
          <div class="options">
-            <div class="bloc">
+            <div class="bloc pleine">
                <label>Essence du plateau <b id="lab-essence">Chêne</b></label>
                <div class="essences" id="essences"></div>
             </div>
 
-            <div class="bloc">
+            <div class="bloc pleine">
                <label>Largeur <b id="lab-largeur">140 cm</b></label>
                <input class="curseur" type="range" id="largeur" min="110" max="200" step="10" value="140">
             </div>
@@ -311,19 +338,21 @@
                </div>
             </div>
 
-            <div class="bloc">
+            <div class="bloc pleine">
                <label>Options</label>
-               <button class="bascule" id="opt-passe" aria-pressed="false" style="width:100%;margin-bottom:8px">
-                  <span class="piste"></span>
-                  <div><b>Passe-câbles en laiton</b><span>Deux œillets percés dans le plateau</span></div>
-               </button>
-               <button class="bascule" id="opt-tiroir" aria-pressed="false" style="width:100%">
-                  <span class="piste"></span>
-                  <div><b>Tiroir suspendu</b><span>Chêne massif, ferrures à fermeture douce</span></div>
-               </button>
+               <div class="bascules">
+                  <button class="bascule" id="opt-passe" aria-pressed="false">
+                     <span class="piste"></span>
+                     <div><b>Passe-câbles en laiton</b><span>Deux œillets percés dans le plateau</span></div>
+                  </button>
+                  <button class="bascule" id="opt-tiroir" aria-pressed="false">
+                     <span class="piste"></span>
+                     <div><b>Tiroir suspendu</b><span>Chêne massif, ferrures à fermeture douce</span></div>
+                  </button>
+               </div>
             </div>
 
-            <div class="bloc" style="margin-bottom:6px">
+            <div class="bloc pleine" style="margin-bottom:6px">
                <label>Gravure sous le plateau</label>
                <input class="grave" id="grave" maxlength="22" placeholder="Une date, un prénom, rien du tout">
             </div>
