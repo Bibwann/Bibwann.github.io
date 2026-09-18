@@ -36,6 +36,12 @@ function applyTranslations() {
   });
 }
 
+// Exposé pour le JS qui fabrique du texte à la volée (le libellé de l'archive,
+// par exemple) : il a besoin de la traduction courante sans relire le fichier.
+window.traduire = function (cle, secours) {
+  return translations[cle] || secours || cle;
+};
+
 function updateTyped() {
   // Typed.js (hero)
   const el = document.getElementById('typed-text');

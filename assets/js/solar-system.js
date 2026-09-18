@@ -36,12 +36,13 @@
   if ("outputEncoding" in renderer) renderer.outputEncoding = THREE.sRGBEncoding;
 
   scene = new THREE.Scene();
-  // Very light fog. Density kept low so the to-scale neighbour stars (tens of
-  // thousands of units out) remain visible instead of being fogged to black.
+  // Very light fog — just enough to give the outer system some depth.
   scene.fog = new THREE.FogExp2(0x000000, 0.000004);
-  // Far plane is large because neighbour systems are placed at true interstellar
-  // distances (TRAPPIST-1 ~40 ly sits ~100k units out). near>0 keeps depth precision.
-  camera = new THREE.PerspectiveCamera(55, width / height, 0.5, 130000);
+  // The scene now ends at the Kuiper belt (~5300 u) and the overview camera sits
+  // ~9600 u out, so ~24k covers everything. Keeping the far plane tight (instead
+  // of the old 130k needed by the interstellar neighbours) buys back a lot of
+  // depth-buffer precision — the starfield and the orbit rings stop fighting.
+  camera = new THREE.PerspectiveCamera(55, width / height, 0.5, 24000);
   camera.position.set(0, 15, 130);
 
   // Track camera speed for HUD display
@@ -61,18 +62,13 @@
   let lastFrameTime = (typeof performance !== "undefined") ? performance.now() : Date.now();
   const CAM_LAMBDA = 2.6; // higher = snappier approach, lower = floatier
 
-  // Constant-screen-size "beacons" so the to-scale neighbour stars (otherwise
-  // sub-pixel dots at true interstellar distance) read as bright points on the
-  // star map. Only shown in the neighbourhood scope.
-  const beacons = [];
-
   if (typeof THREE.OrbitControls !== "undefined") {
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enabled = false;
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.minDistance = 45;     // Don't get too close to Sun
-    controls.maxDistance = 130000; // Allow zooming out to the to-scale stellar neighbourhood
+    controls.maxDistance = 16000;  // Far enough to hold the whole system in frame
     controls.mouseButtons = {
       LEFT: THREE.MOUSE.PAN,      // Left click drag to pan
       MIDDLE: THREE.MOUSE.DOLLY,  // Middle/wheel zoom
@@ -125,38 +121,19 @@
         const tangent = new THREE.Vector3().crossVectors(UP, radial).normalize();
         if (tangent.length() < 0.001) tangent.set(1, 0, 0);
 
-        const isSystem = (
-          this.obj3d === alphaCentauriGroup || 
-          (typeof siriusGroup !== "undefined" && this.obj3d === siriusGroup) || 
-          (typeof barnardGroup !== "undefined" && this.obj3d === barnardGroup) || 
-          (typeof trappistGroup !== "undefined" && this.obj3d === trappistGroup)
-        );
-
         let dist;
         if (isSunSystem) {
           dist = 1200;
-        } else if (isSystem) {
-          // Wider zoom for system overviews to see all planet orbits clearly
-          dist = this.radius * 12.0 + 80;
         } else {
           dist = this.radius * 2.4 + 16;
         }
 
-        if (isSystem) {
-          // Top-down oblique view (like our main solar system overview)
-          this.camPos = pp.clone()
-            .addScaledVector(tangent, dist * 0.3)
-            .addScaledVector(radial, dist * 0.5)
-            .addScaledVector(UP, dist * 0.85); // high Y/UP axis for "voir de haut"
-          this.lookPos = pp.clone(); // look directly at the star center
-        } else {
-          // Side-on perspective for individual planets / stars
-          this.camPos = pp.clone()
-            .addScaledVector(tangent, dist * 0.40)
-            .addScaledVector(radial, dist * 0.92)
-            .addScaledVector(UP, dist * 0.30 + this.radius * 0.25);
-          this.lookPos = pp.clone().addScaledVector(tangent, this.radius * 0.9 * -1);
-        }
+        // Side-on perspective for individual bodies.
+        this.camPos = pp.clone()
+          .addScaledVector(tangent, dist * 0.40)
+          .addScaledVector(radial, dist * 0.92)
+          .addScaledVector(UP, dist * 0.30 + this.radius * 0.25);
+        this.lookPos = pp.clone().addScaledVector(tangent, this.radius * 0.9 * -1);
       }
     };
     inspectTarget.update();
@@ -346,280 +323,6 @@
     const t = new THREE.CanvasTexture(cv);
     if ("encoding" in t) t.encoding = THREE.sRGBEncoding;
     return t;
-  }
-
-  function createStarTexture(baseColor, spotColor, highlightColor) {
-    const size = 512, cv = document.createElement("canvas");
-    cv.width = cv.height = size;
-    const ctx = cv.getContext("2d");
-    
-    // Fill base color
-    ctx.fillStyle = baseColor;
-    ctx.fillRect(0, 0, size, size);
-    
-    // 1. Draw solar convective cell granulation
-    for (let i = 0; i < 1500; i++) {
-      const x = Math.random() * size;
-      const y = Math.random() * size;
-      const r = 3 + Math.random() * 10;
-      
-      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-      g.addColorStop(0, highlightColor || "rgba(255, 255, 255, 0.45)");
-      g.addColorStop(0.3, spotColor);
-      g.addColorStop(1, "rgba(0, 0, 0, 0)");
-      
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.arc(x, y, r, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // X wrap-around
-      if (x + r > size) {
-        ctx.beginPath(); ctx.arc(x - size, y, r, 0, Math.PI * 2); ctx.fill();
-      }
-      if (x - r < 0) {
-        ctx.beginPath(); ctx.arc(x + size, y, r, 0, Math.PI * 2); ctx.fill();
-      }
-    }
-    
-    // 2. Draw darker active solar filaments/starspots
-    ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
-    for (let i = 0; i < 40; i++) {
-      const x = Math.random() * size;
-      const y = Math.random() * size;
-      const rx = 15 + Math.random() * 30;
-      const ry = 6 + Math.random() * 12;
-      const rot = Math.random() * Math.PI;
-      ctx.beginPath();
-      ctx.ellipse(x, y, rx, ry, rot, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Wrap-around
-      if (x + rx > size) {
-        ctx.beginPath(); ctx.ellipse(x - size, y, rx, ry, rot, 0, Math.PI * 2); ctx.fill();
-      }
-      if (x - rx < 0) {
-        ctx.beginPath(); ctx.ellipse(x + size, y, rx, ry, rot, 0, Math.PI * 2); ctx.fill();
-      }
-    }
-
-    // 3. Add bright solar flare lines
-    ctx.strokeStyle = highlightColor || "rgba(255, 255, 255, 0.6)";
-    ctx.lineWidth = 2.0;
-    for (let i = 0; i < 20; i++) {
-      const x = Math.random() * size;
-      const y = Math.random() * size;
-      const len = 40 + Math.random() * 60;
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      ctx.bezierCurveTo(
-        x + Math.random() * len - len/2, y + Math.random() * 20,
-        x + Math.random() * len - len/2, y - Math.random() * 20,
-        x + len, y
-      );
-      ctx.stroke();
-      
-      // Wrap-around
-      if (x + len > size) {
-        ctx.beginPath();
-        ctx.moveTo(x - size, y);
-        ctx.bezierCurveTo(
-          x - size + Math.random() * len - len/2, y + Math.random() * 20,
-          x - size + Math.random() * len - len/2, y - Math.random() * 20,
-          x - size + len, y
-        );
-        ctx.stroke();
-      }
-    }
-    
-    const t = new THREE.CanvasTexture(cv);
-    t.wrapS = THREE.RepeatWrapping;
-    t.wrapT = THREE.ClampToEdgeWrapping;
-    if ("encoding" in t) t.encoding = THREE.sRGBEncoding;
-    return t;
-  }
-
-  function createExoplanetBTexture() {
-    const size = 512, cv = document.createElement("canvas");
-    cv.width = cv.height = size;
-    const ctx = cv.getContext("2d");
-    
-    // Dark purple-blue oceans
-    ctx.fillStyle = "#1a1c3a";
-    ctx.fillRect(0, 0, size, size);
-    
-    // Dark red/brown vegetation and landmasses
-    ctx.fillStyle = "#5c251e";
-    for (let i = 0; i < 15; i++) {
-      const x = Math.random() * size;
-      const y = Math.random() * size;
-      const r = 35 + Math.random() * 80;
-      ctx.beginPath();
-      ctx.arc(x, y, r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    
-    // Light cyan/white cloud bands
-    ctx.fillStyle = "rgba(220, 245, 255, 0.2)";
-    for (let i = 0; i < 100; i++) {
-      const x = Math.random() * size;
-      const y = Math.random() * size;
-      const w = 40 + Math.random() * 80;
-      const h = 4 + Math.random() * 8;
-      ctx.fillRect(x, y, w, h);
-    }
-    
-    const t = new THREE.CanvasTexture(cv);
-    if ("encoding" in t) t.encoding = THREE.sRGBEncoding;
-    return t;
-  }
-
-  function createExoplanetCTexture() {
-    const size = 512, cv = document.createElement("canvas");
-    cv.width = cv.height = size;
-    const ctx = cv.getContext("2d");
-    
-    // Frozen light-blue base
-    ctx.fillStyle = "#a8d3e6";
-    ctx.fillRect(0, 0, size, size);
-    
-    // Ice cracks
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 1;
-    for (let i = 0; i < 30; i++) {
-      ctx.beginPath();
-      ctx.moveTo(Math.random() * size, Math.random() * size);
-      ctx.lineTo(Math.random() * size, Math.random() * size);
-      ctx.stroke();
-    }
-    
-    // White frozen plains
-    ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
-    for (let i = 0; i < 12; i++) {
-      const x = Math.random() * size;
-      const y = Math.random() * size;
-      const r = 20 + Math.random() * 50;
-      ctx.beginPath();
-      ctx.arc(x, y, r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    
-    const t = new THREE.CanvasTexture(cv);
-    if ("encoding" in t) t.encoding = THREE.sRGBEncoding;
-    return t;
-  }
-
-  function createExoplanetDTexture() {
-    const size = 512, cv = document.createElement("canvas");
-    cv.width = cv.height = size;
-    const ctx = cv.getContext("2d");
-    ctx.fillStyle = "#201c1c";
-    ctx.fillRect(0, 0, size, size);
-    ctx.strokeStyle = "#ff4500";
-    ctx.lineWidth = 1.5;
-    for (let i = 0; i < 22; i++) {
-      ctx.beginPath();
-      ctx.moveTo(Math.random() * size, Math.random() * size);
-      ctx.lineTo(Math.random() * size, Math.random() * size);
-      ctx.stroke();
-    }
-    ctx.fillStyle = "rgba(8, 8, 8, 0.7)";
-    for (let i = 0; i < 18; i++) {
-      const x = Math.random() * size;
-      const y = Math.random() * size;
-      const r = 20 + Math.random() * 40;
-      ctx.beginPath();
-      ctx.arc(x, y, r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.fillStyle = "rgba(220, 100, 10, 0.2)";
-    for (let i = 0; i < 10; i++) {
-      const x = Math.random() * size;
-      const y = Math.random() * size;
-      const r = 40 + Math.random() * 60;
-      ctx.beginPath();
-      ctx.arc(x, y, r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    const t = new THREE.CanvasTexture(cv);
-    if ("encoding" in t) t.encoding = THREE.sRGBEncoding;
-    return t;
-  }
-
-  function createOceanicExoplanetTexture() {
-    const size = 512, cv = document.createElement("canvas");
-    cv.width = cv.height = size;
-    const ctx = cv.getContext("2d");
-    ctx.fillStyle = "#0d2b45";
-    ctx.fillRect(0, 0, size, size);
-    ctx.fillStyle = "#203c14";
-    for (let i = 0; i < 12; i++) {
-      const x = Math.random() * size;
-      const y = Math.random() * size;
-      const rx = 40 + Math.random() * 70;
-      const ry = 30 + Math.random() * 50;
-      ctx.beginPath();
-      ctx.ellipse(x, y, rx, ry, Math.random() * Math.PI, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
-    for (let i = 0; i < 40; i++) {
-      const x = Math.random() * size;
-      const y = Math.random() * size;
-      const w = 60 + Math.random() * 120;
-      const h = 5 + Math.random() * 15;
-      ctx.fillRect(x, y, w, h);
-    }
-    const t = new THREE.CanvasTexture(cv);
-    if ("encoding" in t) t.encoding = THREE.sRGBEncoding;
-    return t;
-  }
-
-  function createDesertExoplanetTexture() {
-    const size = 512, cv = document.createElement("canvas");
-    cv.width = cv.height = size;
-    const ctx = cv.getContext("2d");
-    ctx.fillStyle = "#d38b5d";
-    ctx.fillRect(0, 0, size, size);
-    ctx.fillStyle = "#8a523a";
-    for (let i = 0; i < 15; i++) {
-      const x = Math.random() * size;
-      const y = Math.random() * size;
-      const r = 30 + Math.random() * 60;
-      ctx.beginPath();
-      ctx.arc(x, y, r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.fillStyle = "rgba(244, 218, 186, 0.25)";
-    for (let i = 0; i < 50; i++) {
-      const x = Math.random() * size;
-      const y = Math.random() * size;
-      const w = 40 + Math.random() * 90;
-      const h = 8 + Math.random() * 18;
-      ctx.fillRect(x, y, w, h);
-    }
-    const t = new THREE.CanvasTexture(cv);
-    if ("encoding" in t) t.encoding = THREE.sRGBEncoding;
-    return t;
-  }
-
-  function createOrbitLine(radius, color, opacity) {
-    const points = [];
-    const segments = 128;
-    for (let i = 0; i <= segments; i++) {
-      const theta = (i / segments) * Math.PI * 2;
-      points.push(new THREE.Vector3(Math.cos(theta) * radius, 0, Math.sin(theta) * radius));
-    }
-    const geometry = new THREE.BufferGeometry().setFromPoints(points);
-    const material = new THREE.LineBasicMaterial({
-      color: new THREE.Color(color),
-      transparent: true,
-      opacity: opacity,
-      depthWrite: false
-    });
-    const line = new THREE.Line(geometry, material);
-    line.visible = false; // Hide orbit lines
-    return line;
   }
 
   /* ---------- Inclined orbital position ---------- */
@@ -870,11 +573,15 @@
   }
 
   // Layer 1: Dense, fine background star cloud
-  galaxy.add(makeGalaxyBand(isMobile ? 5000 : 15000, 1.2, 0.45, 2300, 0.25, 0.4));
+  // Couche 0 : la brume. Beaucoup d'etoiles minuscules et tres etalees en
+  // latitude — c'est elle qui donne l'epaisseur. Sans cette couche, les
+  // trois couches suivantes se lisaient comme une rayure horizontale nette.
+  galaxy.add(makeGalaxyBand(isMobile ? 6000 : 16000, 1.0, 0.22, 2320, 0.52, 0.30));
+  galaxy.add(makeGalaxyBand(isMobile ? 5000 : 15000, 1.2, 0.45, 2300, 0.34, 0.4));
   // Layer 2: Medium dust band
-  galaxy.add(makeGalaxyBand(isMobile ? 3500 : 8500, 1.8, 0.6, 2290, 0.18, 0.45));
+  galaxy.add(makeGalaxyBand(isMobile ? 3500 : 8500, 1.8, 0.55, 2290, 0.24, 0.45));
   // Layer 3: Brighter sprinkles
-  galaxy.add(makeGalaxyBand(isMobile ? 800 : 1500, 2.6, 0.8, 2280, 0.12, 0.5));
+  galaxy.add(makeGalaxyBand(isMobile ? 800 : 1500, 2.6, 0.75, 2280, 0.16, 0.5));
   // Layer 4: Bulge stars (warm core concentration)
   galaxy.add(makeGalacticBulgeStars(isMobile ? 1000 : 3000, 2.0, 0.8, 2250));
 
@@ -887,7 +594,7 @@
 
   // Outer soft core glow
   const coreGlow = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: radialTexture("rgba(255,226,180,0.38)", "rgba(220,150,90,0.12)"),
+    map: texHalo("255,226,180", 0.30, 0.13),
     blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, fog: false
   }));
   coreGlow.position.copy(coreLocalPos);
@@ -896,7 +603,7 @@
 
   // Inner hot core glow
   const coreGlowInner = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: radialTexture("rgba(255,245,220,0.55)", "rgba(255,180,100,0.18)"),
+    map: texHalo("255,243,214", 0.46, 0.16),
     blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, fog: false
   }));
   coreGlowInner.position.copy(coreLocalPos);
@@ -904,12 +611,12 @@
   galaxy.add(coreGlowInner);
 
   // Layered Nebulae along the band (using natural, organic colors at low opacity)
-  function addNebula(angle, lat, color, sx, sy, op) {
+  function addNebula(angle, lat, rgb, sx, sy, op) {
     const p = new THREE.Vector3(
       Math.cos(lat) * Math.cos(angle), Math.sin(lat), Math.cos(lat) * Math.sin(angle)
     ).multiplyScalar(2200);
     const neb = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: radialTexture(color, "rgba(0,0,0,0)"),
+      map: texHalo(rgb, 0.55, 0.30),
       blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, fog: false, opacity: op
     }));
     neb.position.copy(p);
@@ -918,13 +625,15 @@
   }
 
   // Subtle colors: dusty gold, indigo, cyan, magenta
-  addNebula(CORE_ANGLE - 0.5, 0.02, "rgba(230,170,120,0.7)", 900, 450, 0.14); // Warm dust lane
-  addNebula(CORE_ANGLE + 0.7, 0.05, "rgba(139,92,246,0.6)", 760, 460, 0.11);  // Indigo
-  addNebula(CORE_ANGLE - 1.3, -0.08, "rgba(6,182,212,0.6)", 680, 420, 0.09);  // Deep cyan
-  addNebula(CORE_ANGLE + 1.2, -0.03, "rgba(180,120,240,0.5)", 800, 450, 0.10); // Purple gas
-  addNebula(CORE_ANGLE + 2.1, 0.15, "rgba(236,72,153,0.5)", 850, 500, 0.07);   // Pink H-alpha
-  addNebula(CORE_ANGLE - 2.2, 0.08, "rgba(100,160,240,0.5)", 700, 380, 0.12);  // Blue outer cloud
-  addNebula(CORE_ANGLE + 3.0, -0.05, "rgba(240,130,180,0.4)", 850, 420, 0.08); // Diffuse pink
+  // Plus larges et un peu plus opaques qu'avant : avec le profil en cloche
+  // elles ne forment plus de pastille, donc elles peuvent enfin se voir.
+  addNebula(CORE_ANGLE - 0.5, 0.02, "230,170,120", 1250, 620, 0.20);  // Voile de poussiere chaude
+  addNebula(CORE_ANGLE + 0.7, 0.05, "139,92,246", 1060, 640, 0.16);   // Indigo
+  addNebula(CORE_ANGLE - 1.3, -0.08, "6,182,212", 940, 580, 0.13);    // Cyan profond
+  addNebula(CORE_ANGLE + 1.2, -0.03, "180,120,240", 1100, 620, 0.15); // Gaz violet
+  addNebula(CORE_ANGLE + 2.1, 0.15, "236,72,153", 1180, 700, 0.10);   // H-alpha rose
+  addNebula(CORE_ANGLE - 2.2, 0.08, "100,160,240", 980, 540, 0.17);   // Nuage bleu exterieur
+  addNebula(CORE_ANGLE + 3.0, -0.05, "240,130,180", 1180, 590, 0.11); // Rose diffus
 
   /* ---------- Sun ---------- */
   const segs = isMobile ? 64 : 128;
@@ -933,6 +642,27 @@
     new THREE.MeshBasicMaterial({ map: tex("sun.png") })
   );
   scene.add(sun);
+
+  // Halo diffus : coeur serre + longue traine, au lieu des trois arrets
+  // lineaires de radialTexture(). Un degrade lineaire donne un bord net a
+  // mi-course — c'est exactement ce qui faisait lire le Soleil et les
+  // nebuleuses comme des pastilles collees sur le fond.
+  function texHalo(rgb, aCoeur, aTraine) {
+    const s = 256, cv = document.createElement("canvas");
+    cv.width = cv.height = s;
+    const ctx = cv.getContext("2d");
+    const g = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+    for (let i = 0; i <= 12; i++) {
+      const t = i / 12;
+      const a = aCoeur * Math.exp(-t * t * 16) + aTraine * Math.pow(1 - t, 2.6);
+      g.addColorStop(t, "rgba(" + rgb + "," + a.toFixed(4) + ")");
+    }
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, s, s);
+    const t = new THREE.CanvasTexture(cv);
+    t.needsUpdate = true;
+    return t;
+  }
 
   // Soft additive glow sprite around the sun
   function radialTexture(c0, c1) {
@@ -944,19 +674,32 @@
     ctx.fillStyle = g; ctx.fillRect(0, 0, s, s);
     return new THREE.CanvasTexture(cv);
   }
-  const glow = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: radialTexture("rgba(255,240,200,0.95)", "rgba(255,170,70,0.45)"),
+  // Le limbe. La sphere est en MeshBasicMaterial : son bord est donc un
+  // cercle parfaitement net, ce qui la faisait lire comme un autocollant
+  // jaune. Ce halo tres serre (a peine plus large que la sphere) noie ce
+  // bord et masque au passage la couture verticale de la texture.
+  const limbe = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: texHalo("255,238,205", 0.0, 0.85),
     blending: THREE.AdditiveBlending, transparent: true, depthWrite: false
   }));
-  glow.scale.set(95, 95, 1);
+  limbe.scale.set(46, 46, 1);
+  sun.add(limbe);
+
+  const glow = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: texHalo("255,232,186", 0.80, 0.30),
+    blending: THREE.AdditiveBlending, transparent: true, depthWrite: false
+  }));
+  glow.scale.set(104, 104, 1);
   sun.add(glow);
 
-  // Softer outer corona for a richer, layered sun
+  // Couronne externe : etalee et tres faible — elle donne l'echelle de
+  // l'etoile. Volontairement peu saturee : en additif, un orange trop
+  // franc etale un voile brun sur le titre du hero, qui est juste devant.
   const corona = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: radialTexture("rgba(255,220,160,0.5)", "rgba(255,140,50,0.16)"),
+    map: texHalo("255,206,152", 0.13, 0.07),
     blending: THREE.AdditiveBlending, transparent: true, depthWrite: false
   }));
-  corona.scale.set(150, 150, 1);
+  corona.scale.set(200, 200, 1);
   sun.add(corona);
 
   /* ---------- Planets (radius, distance, angle, texture, spin) ---------- */
@@ -1332,7 +1075,7 @@
 
   // Create labels for all main celestial bodies
   createLabel("SOLEIL", "Étoile (G2V) — Notre système", sun, "#ffcc00", () => {
-    enterScope('solar'); // frame the whole solar system + reveal the planet names
+    enterScope(); // frame the whole solar system + reveal the planet names
   });
 
   const planetTypes = [
@@ -1360,14 +1103,14 @@
   ];
 
   const sectionSelectors = [
-    '#about',
-    '#resume',
-    '#services',
-    '#copilots',
-    '#ai',
-    '#stats',    // Saturn (stats)
-    '#passions', // Uranus (passions)
-    '#contact'   // Neptune (contact)
+    '#about',     // Mercury
+    '#resume',    // Venus
+    '#stats',     // Earth
+    '#ambition',  // Mars
+    '#projects',  // Jupiter
+    '#showcase',  // Saturn
+    '#passions',  // Uranus
+    '#contact'    // Neptune
   ];
 
   for (let i = 0; i < planetDefs.length; i++) {
@@ -1395,429 +1138,16 @@
     zoomToInspect(voyagerGroup, 3.0, "VOYAGER 1", "SONDE INTERSTELLAIRE", "154.20 AU", "17.00 KM/S");
   });
 
-  // Distant neighbouring systems — placed at their REAL distances and directions.
-  // LY = scene units per light-year for the neighbourhood context. Chosen so the
-  // nearest star (Alpha Centauri, 4.37 ly) sits clearly beyond our Kuiper belt
-  // (~5300 u) instead of "right next to us", while keeping true relative ratios.
-  const LY = 2600;
-  function starScenePos(raDeg, decDeg, ly) {
-    const ra = THREE.MathUtils.degToRad(raDeg);
-    const dec = THREE.MathUtils.degToRad(decDeg);
-    const r = ly * LY;
-    // Equatorial -> scene: declination drives the vertical (Y) axis, so the
-    // neighbourhood spreads in true 3D (above/below us), never flat or clustered.
-    return {
-      x: r * Math.cos(dec) * Math.cos(ra),
-      y: r * Math.sin(dec),
-      z: r * Math.cos(dec) * Math.sin(ra)
-    };
-  }
-  const distantStars = [
-    { name: "ALPHA CENTAURI", sub: "Système triple (4.37 AL)", ra: 219.9, dec: -60.83, ly: 4.37, color: "#ffeedd", type: "SYSTÈME TRIPLE (A, B, PROXIMA)", dist: "4.37 AL", vel: "22.40 KM/S", r: 220.0 },
-    { name: "SIRIUS", sub: "Étoile la plus brillante (8.60 AL)", ra: 101.3, dec: -16.72, ly: 8.60, color: "#99ccff", type: "SYSTÈME BINAIRE (A1V + DA)", dist: "8.60 AL", vel: "18.40 KM/S", r: 50.0 },
-    { name: "ETOILE DE BARNARD", sub: "Naine rouge proche (5.96 AL)", ra: 269.45, dec: 4.69, ly: 5.96, color: "#ff8866", type: "NAINE ROUGE ACTIVE (M4V)", dist: "5.96 AL", vel: "110.60 KM/S", r: 50.0 },
-    { name: "TRAPPIST-1", sub: "Système à exoplanètes (40.7 AL)", ra: 346.6, dec: -5.04, ly: 40.7, color: "#ff5533", type: "NAINE ROUGE FROIDE (M8V)", dist: "40.70 AL", vel: "—", r: 170.0 }
-  ];
-  // Resolve each system's real 3D scene position from its (RA, Dec, distance).
-  distantStars.forEach(s => { const p = starScenePos(s.ra, s.dec, s.ly); s.x = p.x; s.y = p.y; s.z = p.z; });
-
-  const distantStarObjects = [];
-
-  // Custom instantiation for Alpha Centauri system (Rigil Kentaurus A, Toliman B, Proxima C, Proxima b, Proxima c, Proxima d)
-  const alphaCentauriGroup = new THREE.Group();
-  alphaCentauriGroup.position.set(distantStars[0].x, distantStars[0].y, distantStars[0].z);
-  scene.add(alphaCentauriGroup);
-
-  // Alpha Centauri A (G-type yellow-white star)
-  const starA = new THREE.Mesh(
-    new THREE.SphereGeometry(20.0, 32, 32),
-    new THREE.MeshBasicMaterial({ map: tex("star_yellow.png") })
-  );
-  alphaCentauriGroup.add(starA);
-  const lightA = new THREE.PointLight(0xffeedd, 3.0, 3000, 0.5);
-  starA.add(lightA);
-  const glowA = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: radialTexture("rgba(255,238,221,0.85)", "rgba(0,0,0,0)"),
-    blending: THREE.AdditiveBlending, transparent: true, depthWrite: false
-  }));
-  glowA.scale.set(120, 120, 1);
-  starA.add(glowA);
-
-  // Alpha Centauri B (K-type orange-yellow star)
-  const starB = new THREE.Mesh(
-    new THREE.SphereGeometry(15.0, 32, 32),
-    new THREE.MeshBasicMaterial({ map: tex("star_orange.png") })
-  );
-  alphaCentauriGroup.add(starB);
-  const lightB = new THREE.PointLight(0xffcc88, 2.5, 2000, 0.5);
-  starB.add(lightB);
-  const glowB = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: radialTexture("rgba(255,204,136,0.85)", "rgba(0,0,0,0)"),
-    blending: THREE.AdditiveBlending, transparent: true, depthWrite: false
-  }));
-  glowB.scale.set(90, 90, 1);
-  starB.add(glowB);
-
-  // Orbit line for Toliman B around Rigil Kentaurus A
-  alphaCentauriGroup.add(createOrbitLine(250.0, "#ffaa44", 0.15));
-
-  // Proxima Centauri (M-type red dwarf star)
-  const proximaGroup = new THREE.Group();
-  alphaCentauriGroup.add(proximaGroup);
-
-  // Orbit line for Proxima Centauri around A-B
-  alphaCentauriGroup.add(createOrbitLine(750.0, "#ff3300", 0.1));
-
-  const starC = new THREE.Mesh(
-    new THREE.SphereGeometry(4.0, 32, 32),
-    new THREE.MeshBasicMaterial({ map: tex("star_red.png") })
-  );
-  proximaGroup.add(starC);
-  const lightC = new THREE.PointLight(0xff5533, 2.0, 1000, 0.5);
-  starC.add(lightC);
-  const glowC = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: radialTexture("rgba(255,85,51,0.85)", "rgba(0,0,0,0)"),
-    blending: THREE.AdditiveBlending, transparent: true, depthWrite: false
-  }));
-  glowC.scale.set(25, 25, 1);
-  starC.add(glowC);
-
-  // Exoplanet Proxima d (molten rocky world, innermost) -> PROXIMA D
-  const planetD = new THREE.Mesh(
-    new THREE.SphereGeometry(3.3, 32, 32),
-    new THREE.MeshStandardMaterial({ map: tex("exo_proxima_d.png"), roughness: 0.9, metalness: 0.2 })
-  );
-  const glowD = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: radialTexture("rgba(240,100,50,0.3)", "rgba(0,0,0,0)"),
-    blending: THREE.AdditiveBlending, transparent: true, depthWrite: false
-  }));
-  glowD.scale.set(3.3 * 2.8, 3.3 * 2.8, 1);
-  planetD.add(glowD);
-  proximaGroup.add(planetD);
-  proximaGroup.add(createOrbitLine(40.0, "#ff5500", 0.25));
-
-  // Exoplanet Proxima b (rocky habitable zone) -> PROXIMA B
-  const planetB = new THREE.Mesh(
-    new THREE.SphereGeometry(6.0, 32, 32),
-    new THREE.MeshStandardMaterial({ map: tex("exo_proxima_b.png"), roughness: 0.85, metalness: 0.1 })
-  );
-  const glowB_planet = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: radialTexture("rgba(100,165,255,0.4)", "rgba(0,0,0,0)"),
-    blending: THREE.AdditiveBlending, transparent: true, depthWrite: false
-  }));
-  glowB_planet.scale.set(6.0 * 2.8, 6.0 * 2.8, 1);
-  planetB.add(glowB_planet);
-  proximaGroup.add(planetB);
-  proximaGroup.add(createOrbitLine(80.0, "#88aacc", 0.25));
-
-  // Exoplanet Proxima c (cold super-earth/gas) -> PROXIMA C
-  const planetC = new THREE.Mesh(
-    new THREE.SphereGeometry(13.8, 32, 32),
-    new THREE.MeshStandardMaterial({ map: tex("exo_proxima_c.png"), roughness: 0.6, metalness: 0.1 })
-  );
-  const glowC_planet = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: radialTexture("rgba(112,214,209,0.3)", "rgba(0,0,0,0)"),
-    blending: THREE.AdditiveBlending, transparent: true, depthWrite: false
-  }));
-  glowC_planet.scale.set(13.8 * 2.8, 13.8 * 2.8, 1);
-  planetC.add(glowC_planet);
-  proximaGroup.add(planetC);
-  proximaGroup.add(createOrbitLine(140.0, "#cc8866", 0.2));
-
-  // Save state for loop animation
-  const alphaCentauriState = {
-    starB: starB,
-    starBAngle: Math.random() * Math.PI * 2,
-    starBDist: 250.0,
-    starBSpeed: 0.001,
-
-    proximaGroup: proximaGroup,
-    proximaAngle: Math.random() * Math.PI * 2,
-    proximaDist: 750.0,
-    proximaSpeed: 0.0003,
-
-    planetD: planetD,
-    planetDAngle: Math.random() * Math.PI * 2,
-    planetDDist: 40.0,
-    planetDSpeed: 0.015,
-
-    planetB: planetB,
-    planetBAngle: Math.random() * Math.PI * 2,
-    planetBDist: 80.0,
-    planetBSpeed: 0.008,
-
-    planetC: planetC,
-    planetCAngle: Math.random() * Math.PI * 2,
-    planetCDist: 140.0,
-    planetCSpeed: 0.004
-  };
-
-  distantStarObjects.push({ group: alphaCentauriGroup, def: distantStars[0] });
-
-  // Main system label
-  createLabel(distantStars[0].name, distantStars[0].sub, alphaCentauriGroup, distantStars[0].color, () => {
-    zoomToInspect(alphaCentauriGroup, distantStars[0].r, distantStars[0].name, distantStars[0].type, distantStars[0].dist, distantStars[0].vel);
-  });
-
-  // Detailed sub-labels for Alpha Centauri components (shown when inspecting)
-  const subLabelAC_A = createLabel("RIGIL KENTAURUS A", "Étoile (G2V) // Alpha Centauri A", starA, "#ffeedd", () => {
-    zoomToInspect(starA, 20.0, "RIGIL KENTAURUS A", "ÉTOILE PRINCIPALE (G2V)", "0.00 AU (barycentre)", "—");
-  });
-  if (subLabelAC_A) subLabelAC_A.alphaCentauriSub = true;
-
-  const subLabelAC_B = createLabel("TOLIMAN B", "Étoile (K1V) // Alpha Centauri B", starB, "#ffcc88", () => {
-    zoomToInspect(starB, 15.0, "TOLIMAN B", "ÉTOILE SECONDAIRE (K1V)", "250.00 AU (barycentre)", "—");
-  });
-  if (subLabelAC_B) subLabelAC_B.alphaCentauriSub = true;
-
-  const subLabelAC_C = createLabel("PROXIMA CENTAURI", "Naine Rouge (M5.5Ve) // Proxima", starC, "#ff5533", () => {
-    zoomToInspect(starC, 4.0, "PROXIMA CENTAURI", "NAINE ROUGE // FLARE STAR", "750.00 AU (barycentre)", "—");
-  });
-  if (subLabelAC_C) subLabelAC_C.alphaCentauriSub = true;
-
-  const subLabelAC_d = createLabel("PROXIMA D", "Exoplanète tellurique chaude", planetD, "#ff8866", () => {
-    zoomToInspect(planetD, 3.3, "PROXIMA D", "EXOPLANÈTE CHAUDE / SUB-TERRE", "0.15 AU (de Proxima)", "—");
-  });
-  if (subLabelAC_d) subLabelAC_d.alphaCentauriSub = true;
-
-  const subLabelAC_b = createLabel("PROXIMA B", "Exoplanète habitable", planetB, "#88aacc", () => {
-    zoomToInspect(planetB, 6.0, "PROXIMA B", "EXOPLANÈTE ROCHEUSE EN ZONE HABITABLE", "0.30 AU (de Proxima)", "—");
-  });
-  if (subLabelAC_b) subLabelAC_b.alphaCentauriSub = true;
-
-  const subLabelAC_c = createLabel("PROXIMA C", "Exoplanète gazeuse froide", planetC, "#cc8866", () => {
-    zoomToInspect(planetC, 13.8, "PROXIMA C", "EXOPLANÈTE GAZEUSE // SUPER-TERRE", "0.52 AU (de Proxima)", "—");
-  });
-  if (subLabelAC_c) subLabelAC_c.alphaCentauriSub = true;
-
-  // -------------------------------------------------------------
-  // Sirius System (Sirius A & B)
-  // -------------------------------------------------------------
-  const siriusGroup = new THREE.Group();
-  siriusGroup.position.set(distantStars[1].x, distantStars[1].y, distantStars[1].z);
-  scene.add(siriusGroup);
-
-  const siriusA = new THREE.Mesh(
-    new THREE.SphereGeometry(25.0, 32, 32),
-    new THREE.MeshBasicMaterial({ map: tex("star_blue.png") })
-  );
-  siriusGroup.add(siriusA);
-  const lightSiriusA = new THREE.PointLight(0xeef5ff, 4.0, 3000, 0.5);
-  siriusA.add(lightSiriusA);
-  const glowSiriusA = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: radialTexture("rgba(200,225,255,0.9)", "rgba(0,0,0,0)"),
-    blending: THREE.AdditiveBlending, transparent: true, depthWrite: false
-  }));
-  glowSiriusA.scale.set(160, 160, 1);
-  siriusA.add(glowSiriusA);
-
-  const siriusB = new THREE.Mesh(
-    new THREE.SphereGeometry(3.0, 32, 32),
-    new THREE.MeshBasicMaterial({ map: tex("star_white.png") })
-  );
-  siriusGroup.add(siriusB);
-  const lightSiriusB = new THREE.PointLight(0xffffff, 1.5, 1000, 0.5);
-  siriusB.add(lightSiriusB);
-  const glowSiriusB = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: radialTexture("rgba(255,255,255,0.95)", "rgba(0,0,0,0)"),
-    blending: THREE.AdditiveBlending, transparent: true, depthWrite: false
-  }));
-  glowSiriusB.scale.set(20, 20, 1);
-  siriusB.add(glowSiriusB);
-
-  siriusGroup.add(createOrbitLine(180.0, "#99ccff", 0.15));
-
-  const siriusState = {
-    siriusB: siriusB,
-    siriusBAngle: Math.random() * Math.PI * 2,
-    siriusBDist: 180.0,
-    siriusBSpeed: 0.001
-  };
-
-  distantStarObjects.push({ group: siriusGroup, def: distantStars[1] });
-
-  createLabel(distantStars[1].name, distantStars[1].sub, siriusGroup, distantStars[1].color, () => {
-    zoomToInspect(siriusGroup, distantStars[1].r, distantStars[1].name, distantStars[1].type, distantStars[1].dist, distantStars[1].vel);
-  });
-
-  const subLabelS_A = createLabel("SIRIUS A", "Étoile principale (A1V)", siriusA, "#99ccff", () => {
-    zoomToInspect(siriusA, 25.0, "SIRIUS A", "GÉANTE BLANCHE (A1V)", "0.00 AU (barycentre)", "—");
-  });
-  if (subLabelS_A) subLabelS_A.siriusSub = true;
-
-  const subLabelS_B = createLabel("SIRIUS B", "Naine blanche compagnon", siriusB, "#ffffff", () => {
-    zoomToInspect(siriusB, 3.0, "SIRIUS B", "NAINE BLANCHE // DÉGÉNÉRÉE", "180.00 AU (barycentre)", "—");
-  });
-  if (subLabelS_B) subLabelS_B.siriusSub = true;
-
-  // -------------------------------------------------------------
-  // Barnard's Star System (Star & planet b)
-  // -------------------------------------------------------------
-  const barnardGroup = new THREE.Group();
-  barnardGroup.position.set(distantStars[2].x, distantStars[2].y, distantStars[2].z);
-  scene.add(barnardGroup);
-
-  const barnardStar = new THREE.Mesh(
-    new THREE.SphereGeometry(10.0, 32, 32),
-    new THREE.MeshBasicMaterial({ map: tex("star_red.png") })
-  );
-  barnardGroup.add(barnardStar);
-  const lightBarnard = new THREE.PointLight(0xff5522, 3.0, 1500, 0.5);
-  barnardStar.add(lightBarnard);
-  const glowBarnard = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: radialTexture("rgba(255,85,34,0.85)", "rgba(0,0,0,0)"),
-    blending: THREE.AdditiveBlending, transparent: true, depthWrite: false
-  }));
-  glowBarnard.scale.set(60, 60, 1);
-  barnardStar.add(glowBarnard);
-
-  const barnardB = new THREE.Mesh(
-    new THREE.SphereGeometry(4.1, 32, 32),
-    new THREE.MeshStandardMaterial({ map: tex("exo_barnard_b.png"), roughness: 0.9, metalness: 0.1 })
-  );
-  const glowB_barnard = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: radialTexture("rgba(229,193,133,0.3)", "rgba(0,0,0,0)"),
-    blending: THREE.AdditiveBlending, transparent: true, depthWrite: false
-  }));
-  glowB_barnard.scale.set(4.1 * 2.8, 4.1 * 2.8, 1);
-  barnardB.add(glowB_barnard);
-  barnardGroup.add(barnardB);
-  barnardGroup.add(createOrbitLine(180.0, "#ff8866", 0.18));
-
-  const barnardState = {
-    barnardB: barnardB,
-    barnardBAngle: Math.random() * Math.PI * 2,
-    barnardBDist: 180.0,
-    barnardBSpeed: 0.005
-  };
-
-  distantStarObjects.push({ group: barnardGroup, def: distantStars[2] });
-
-  createLabel(distantStars[2].name, distantStars[2].sub, barnardGroup, distantStars[2].color, () => {
-    zoomToInspect(barnardGroup, distantStars[2].r, distantStars[2].name, distantStars[2].type, distantStars[2].dist, distantStars[2].vel);
-  });
-
-  const subLabelB_Star = createLabel("ETOILE DE BARNARD", "Naine rouge (M4V)", barnardStar, "#ff8866", () => {
-    zoomToInspect(barnardStar, 10.0, "ETOILE DE BARNARD", "NAINE ROUGE ACTIVE", "0.00 AU (barycentre)", "—");
-  });
-  if (subLabelB_Star) subLabelB_Star.barnardSub = true;
-
-  const subLabelB_b = createLabel("BARNARD B", "Exoplanète rocheuse sub-Terre", barnardB, "#e5aa7a", () => {
-    zoomToInspect(barnardB, 4.1, "BARNARD B", "EXOPLANÈTE ROCHEUSE COMPACTE", "0.67 AU (de Barnard)", "—");
-  });
-  if (subLabelB_b) subLabelB_b.barnardSub = true;
-
-  // -------------------------------------------------------------
-  // TRAPPIST-1 System (Star & 7 planets b to h)
-  // -------------------------------------------------------------
-  const trappistGroup = new THREE.Group();
-  trappistGroup.position.set(distantStars[3].x, distantStars[3].y, distantStars[3].z);
-  scene.add(trappistGroup);
-
-  const trappistStar = new THREE.Mesh(
-    new THREE.SphereGeometry(12.0, 32, 32),
-    new THREE.MeshBasicMaterial({ map: tex("star_red.png") })
-  );
-  trappistGroup.add(trappistStar);
-  const lightTrappist = new THREE.PointLight(0xe63900, 3.0, 2500, 0.5);
-  trappistStar.add(lightTrappist);
-  const glowTrappist = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: radialTexture("rgba(230,57,0,0.85)", "rgba(0,0,0,0)"),
-    blending: THREE.AdditiveBlending, transparent: true, depthWrite: false
-  }));
-  glowTrappist.scale.set(75, 75, 1);
-  trappistStar.add(glowTrappist);
-
-  // The 7 planets of TRAPPIST-1: radii, orbit distances, speeds, textures, labels, colors
-  const trappistPlanetsData = [
-    { suffix: "b", showName: "TRAPPIST-1 B", r: 3.3, d: 100.0, speed: 0.012, tx: "exo_trappist_b.png", glow: "rgba(240,100,50,0.3)", color: "#ff8866", desc: "Monde rocheux brûlant" },
-    { suffix: "c", showName: "TRAPPIST-1 C", r: 5.8, d: 160.0, speed: 0.009, tx: "exo_trappist_c.png", glow: "rgba(227,187,118,0.3)", color: "#dca77e", desc: "Monde désertique chaud" },
-    { suffix: "d", showName: "TRAPPIST-1 D", r: 4.1, d: 220.0, speed: 0.007, tx: "exo_trappist_d.png", glow: "rgba(194,91,56,0.3)", color: "#cba58d", desc: "Zone tempérée interne" },
-    { suffix: "e", showName: "TRAPPIST-1 E", r: 6.0, d: 300.0, speed: 0.005, tx: "exo_trappist_e.png", glow: "rgba(100,165,255,0.4)", color: "#8aaacc", desc: "Habitable potentiel (océanique)" },
-    { suffix: "f", showName: "TRAPPIST-1 F", r: 13.5, d: 380.0, speed: 0.004, tx: "exo_trappist_f.png", glow: "rgba(58,95,214,0.3)", color: "#7a9bbb", desc: "Zone habitable / humide" },
-    { suffix: "g", showName: "TRAPPIST-1 G", r: 25.6, d: 480.0, speed: 0.003, tx: "exo_trappist_g.png", glow: "rgba(212,163,115,0.3)", color: "#a8d3e6", desc: "Monde glacé / super-Terre" },
-    { suffix: "h", showName: "TRAPPIST-1 H", r: 13.8, d: 580.0, speed: 0.002, tx: "exo_trappist_h.png", glow: "rgba(112,214,209,0.3)", color: "#ffffff", desc: "Monde glacé lointain" }
-  ];
-
-  const trappistPlanets = [];
-
-  trappistPlanetsData.forEach(pData => {
-    const pMesh = new THREE.Mesh(
-      new THREE.SphereGeometry(pData.r, 32, 32),
-      new THREE.MeshStandardMaterial({ map: tex(pData.tx), roughness: 0.8, metalness: 0.1 })
-    );
-    const glowTex = radialTexture(pData.glow, "rgba(0,0,0,0)");
-    const planetGlow = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: glowTex,
-      blending: THREE.AdditiveBlending,
-      transparent: true,
-      depthWrite: false
-    }));
-    planetGlow.scale.set(pData.r * 2.8, pData.r * 2.8, 1);
-    pMesh.add(planetGlow);
-
-    trappistGroup.add(pMesh);
-    trappistGroup.add(createOrbitLine(pData.d, pData.color, 0.18));
-
-    const pState = {
-      mesh: pMesh,
-      d: pData.d,
-      speed: pData.speed,
-      angle: Math.random() * Math.PI * 2,
-      r: pData.r,
-      suffix: pData.suffix,
-      showName: pData.showName,
-      desc: pData.desc
-    };
-    trappistPlanets.push(pState);
-
-    const subLbl = createLabel(pData.showName, pData.desc, pMesh, pData.color, () => {
-      zoomToInspect(pMesh, pData.r, pData.showName, `EXOPLANÈTE ROCHEUSE (${pData.desc})`, `${(pData.d / 270).toFixed(2)} AU`, "—");
-    });
-    if (subLbl) subLbl.trappistSub = true;
-  });
-
-  const trappistState = {
-    planets: trappistPlanets
-  };
-
-  distantStarObjects.push({ group: trappistGroup, def: distantStars[3] });
-
-  createLabel(distantStars[3].name, distantStars[3].sub, trappistGroup, distantStars[3].color, () => {
-    zoomToInspect(trappistGroup, distantStars[3].r, distantStars[3].name, distantStars[3].type, distantStars[3].dist, distantStars[3].vel);
-  });
-
-  const subLabelT_Star = createLabel("TRAPPIST-1", "Naine rouge ultra-froide (M8V)", trappistStar, "#ff5533", () => {
-    zoomToInspect(trappistStar, 12.0, "TRAPPIST-1", "NAINE ROUGE ULTRA-FROIDE", "0.00 AU (barycentre)", "—");
-  });
-  if (subLabelT_Star) subLabelT_Star.trappistSub = true;
-
-  /* ---------- Neighbourhood beacons (constant on-screen star points) ---------- */
-  function addBeacon(parent, color, px) {
-    const spr = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: radialTexture(color, "rgba(0,0,0,0)"),
-      blending: THREE.AdditiveBlending, transparent: true,
-      depthWrite: false, depthTest: false, fog: false
-    }));
-    spr.visible = false;
-    parent.add(spr);
-    beacons.push({ spr: spr, px: px });
-  }
-  addBeacon(sun, "rgba(255,236,180,0.95)", 0.022); // our own star
-  distantStarObjects.forEach(ds => {
-    const c = new THREE.Color(ds.def.color);
-    addBeacon(ds.group, `rgba(${Math.round(c.r*255)},${Math.round(c.g*255)},${Math.round(c.b*255)},0.95)`, 0.02);
-  });
-
   /* ---------- Voyage stations: Sun -> each planet ---------- */
   const stations = [];
   const UP = new THREE.Vector3(0, 1, 0);
 
-  // Maps each non-hero section to a planet index. Order: about, resume, services,
-  // copilots, ai, stats, projects, passions, contact.
-  // Passions = Uranus (6); contact = Neptune (7). Saturn (5) is reused for stats+projects.
-  // Pluto (8) is skipped.
-  const planetStationIndices = [0, 1, 2, 3, 4, 5, 5, 6, 7];
+  // Maps each non-hero section to a planet index. Order: about, resume, stats,
+  // projects, showcase, passions, contact.
+  // Projects gets Jupiter (4) — the biggest section on the biggest planet — and
+  // showcase gets Saturn (5). Mars (3) and Pluto (8) are not voyage stations;
+  // Mars stays clickable in the scene and leads to the projects section.
+  const planetStationIndices = [0, 1, 2, 3, 4, 5, 6, 7];
 
   stations.push({
     cam: new THREE.Vector3(-100, 30, 200),
@@ -1867,29 +1197,23 @@
   const hudToggle = document.getElementById("hud-toggle");
   const stellarHud = document.getElementById("stellar-hud");
   if (hudToggle && stellarHud) {
-    if (isMobile) {
-      stellarHud.classList.add("collapsed");
-      const icon = hudToggle.querySelector("i");
-      if (icon) icon.className = "bi bi-radar";
-    }
+    // Replie par defaut : le HUD ne montre que sa pastille radar tant qu'on ne
+    // l'ouvre pas. Deplie, il mangeait tout le coin bas-gauche de l'ecran.
+    stellarHud.classList.add("collapsed");
 
     hudToggle.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
       stellarHud.classList.toggle("collapsed");
+      const replie = stellarHud.classList.contains("collapsed");
       const icon = hudToggle.querySelector("i");
-      if (icon) {
-        if (stellarHud.classList.contains("collapsed")) {
-          icon.className = "bi bi-radar";
-        } else {
-          icon.className = "bi bi-chevron-down";
-        }
-      }
+      if (icon) icon.className = replie ? "bi bi-radar" : "bi bi-chevron-down";
+      hudToggle.setAttribute("aria-expanded", String(!replie));
     });
   }
 
   // DOM Elements of the sections to lock camera positions exactly to them
-  const sectionIds = ['#hero', '#about', '#resume', '#services', '#copilots', '#ai', '#stats', '#projects', '#passions', '#contact'];
+  const sectionIds = ['#hero', '#about', '#resume', '#stats', '#ambition', '#projects', '#showcase', '#passions', '#contact'];
   let sectionEls = [];
 
   function initSections() {
@@ -1956,72 +1280,36 @@
 
   let scrollSegment = 0;
 
-  /* ---------- View contexts: voyage / solar explorer / stellar neighbourhood ---------- */
-  // overviewMode = a free-look framing of a whole system (OrbitControls take over
-  // once we've arrived). viewScope says WHICH system we frame ('solar' or
-  // 'neighbourhood'); it drives the camera preset, the level-of-detail and which
-  // labels show. Any scroll re-engages the scroll-driven portfolio voyage.
+  /* ---------- View contexts: voyage / solar explorer ---------- */
+  // overviewMode = a free-look framing of the whole solar system (OrbitControls
+  // take over once we've arrived). Any scroll re-engages the scroll-driven
+  // portfolio voyage.
   let overviewMode = false;
-  let viewScope = 'solar';
-  const DEFAULT_FOV = 55, OVERVIEW_FOV = 74, NEIGH_FOV = 60;
+  const DEFAULT_FOV = 55, OVERVIEW_FOV = 74;
   let desiredFov = DEFAULT_FOV; // smoothed toward in the render loop (no instant snap)
 
-  // Solar preset: frames the Sun out to the Kuiper belt (no longer the old too-close 1200u view).
+  // Frames the Sun out to the Kuiper belt.
   const solarOverviewCam = new THREE.Vector3(0, 4500, 8500);
   const solarOverviewLook = new THREE.Vector3(0, 0, 0);
 
-  // Neighbourhood preset: computed from the REAL star positions so it stays correct
-  // if LY changes. Frames the Sun + the 3 nearest systems; TRAPPIST-1 (~40 ly) stays
-  // a distant, clickable dot — exactly how far our neighbours really are.
-  const neighbourOverviewCam = new THREE.Vector3();
-  const neighbourOverviewLook = new THREE.Vector3();
-  (function computeNeighbourPreset() {
-    const pts = [new THREE.Vector3(0, 0, 0)];
-    for (let i = 0; i < 3 && i < distantStars.length; i++) {
-      pts.push(new THREE.Vector3(distantStars[i].x, distantStars[i].y, distantStars[i].z));
-    }
-    const c = new THREE.Vector3();
-    pts.forEach(p => c.add(p));
-    c.multiplyScalar(1 / pts.length);
-    let rad = 0;
-    pts.forEach(p => { rad = Math.max(rad, p.distanceTo(c)); });
-    const dist = (rad / Math.tan(THREE.MathUtils.degToRad(NEIGH_FOV) / 2)) * 1.15;
-    const dir = new THREE.Vector3(0.1, 0.5, 1.0).normalize();
-    neighbourOverviewCam.copy(c).addScaledVector(dir, dist);
-    neighbourOverviewLook.copy(c);
-  })();
-
-  // The preset currently in effect (copied from one of the two above).
+  // The preset currently in effect.
   const activeOverviewCam = solarOverviewCam.clone();
   const activeOverviewLook = solarOverviewLook.clone();
-
-  // Hide the solar system's fine detail when pulled out to the neighbourhood
-  // (it would be sub-pixel clutter); the Sun stays as our star.
-  function setContextLOD() {
-    const showSolar = (viewScope !== 'neighbourhood');
-    planets.forEach(p => { p.mesh.visible = showSolar; });
-    if (asteroidBelt && asteroidBelt.parent) asteroidBelt.parent.visible = showSolar;
-    if (kuiperBelt && kuiperBelt.parent) kuiperBelt.parent.visible = showSolar;
-    if (typeof voyagerGroup !== "undefined") voyagerGroup.visible = showSolar;
-    beacons.forEach(b => { b.spr.visible = !showSolar; }); // star points only in the neighbourhood
-  }
 
   const backBtn = document.getElementById("nav-back");
   const close3dBtn = document.getElementById("nav-close-3d");
   const menuSolarBtn = document.getElementById("menu-solar");
-  const menuNeighbourBtn = document.getElementById("menu-neighbour");
 
   function updateNavUI() {
     const inExplorer = overviewMode || !!inspectTarget;
     if (backBtn) backBtn.classList.toggle("visible", inExplorer);
     if (close3dBtn) close3dBtn.classList.toggle("visible", inExplorer);
-    if (menuSolarBtn) menuSolarBtn.classList.toggle("active", inExplorer && viewScope === 'solar');
-    if (menuNeighbourBtn) menuNeighbourBtn.classList.toggle("active", inExplorer && viewScope === 'neighbourhood');
+    if (menuSolarBtn) menuSolarBtn.classList.toggle("active", inExplorer);
   }
 
   function setOverview(on) {
     overviewMode = on && !reduceMotion;
-    desiredFov = overviewMode ? (viewScope === 'neighbourhood' ? NEIGH_FOV : OVERVIEW_FOV) : DEFAULT_FOV;
+    desiredFov = overviewMode ? OVERVIEW_FOV : DEFAULT_FOV;
     if (reduceMotion) { camera.fov = desiredFov; camera.updateProjectionMatrix(); }
 
     if (overviewMode) {
@@ -2039,20 +1327,13 @@
     updateNavUI();
   }
 
-  // Enter a whole-system overview for the given scope (the two big menu buttons).
-  function enterScope(scope) {
-    viewScope = scope;
+  // Enter the whole-system overview (the menu button).
+  function enterScope() {
     inspectStack = [];
     inspectTarget = null;
     document.body.classList.remove("inspect-active");
-    setContextLOD();
-    if (scope === 'neighbourhood') {
-      activeOverviewCam.copy(neighbourOverviewCam);
-      activeOverviewLook.copy(neighbourOverviewLook);
-    } else {
-      activeOverviewCam.copy(solarOverviewCam);
-      activeOverviewLook.copy(solarOverviewLook);
-    }
+    activeOverviewCam.copy(solarOverviewCam);
+    activeOverviewLook.copy(solarOverviewLook);
     setOverview(true);
   }
 
@@ -2065,18 +1346,15 @@
       } else {
         inspectTarget = null;
         document.body.classList.remove("inspect-active");
-        setOverview(true); // back to this scope's overview
+        setOverview(true); // back to the system overview
       }
     } else if (overviewMode) {
       inspectStack = [];
-      setContextLOD(); // restore solar detail when leaving the neighbourhood
-      viewScope = 'solar';
       setOverview(false); // exit explorer -> resume voyage
     }
   }
 
-  if (menuSolarBtn) menuSolarBtn.addEventListener("click", (e) => { e.preventDefault(); enterScope('solar'); });
-  if (menuNeighbourBtn) menuNeighbourBtn.addEventListener("click", (e) => { e.preventDefault(); enterScope('neighbourhood'); });
+  if (menuSolarBtn) menuSolarBtn.addEventListener("click", (e) => { e.preventDefault(); enterScope(); });
   if (backBtn) backBtn.addEventListener("click", (e) => { e.preventDefault(); navBack(); });
   if (close3dBtn) {
     close3dBtn.addEventListener("click", (e) => {
@@ -2084,8 +1362,6 @@
       inspectStack = [];
       inspectTarget = null;
       document.body.classList.remove("inspect-active");
-      setContextLOD();
-      viewScope = 'solar';
       setOverview(false);
     });
   }
@@ -2125,7 +1401,6 @@
     const targets = [sun];
     planets.forEach(p => targets.push(p.mesh));
     targets.push(voyagerGroup);
-    distantStarObjects.forEach(ds => targets.push(ds.group));
 
     const intersects = raycaster.intersectObjects(targets, true);
 
@@ -2134,7 +1409,7 @@
       while (current && current !== scene) {
         if (current === sun) {
           // Hierarchical: frame the whole solar system so the planet names show.
-          enterScope('solar');
+          enterScope();
           return;
         }
         for (let i = 0; i < planets.length; i++) {
@@ -2153,74 +1428,6 @@
           return;
         }
 
-        // Sub-components of Alpha Centauri
-        if (current === starA) {
-          zoomToInspect(starA, 20.0, "RIGIL KENTAURUS A", "ÉTOILE PRINCIPALE (G2V)", "0.00 AU (barycentre)", "—");
-          return;
-        }
-        if (current === starB) {
-          zoomToInspect(starB, 15.0, "TOLIMAN B", "ÉTOILE SECONDAIRE (K1V)", "250.00 AU (barycentre)", "—");
-          return;
-        }
-        if (current === starC) {
-          zoomToInspect(starC, 4.0, "PROXIMA CENTAURI", "NAINE ROUGE // FLARE STAR", "750.00 AU (barycentre)", "—");
-          return;
-        }
-        if (typeof planetD !== "undefined" && current === planetD) {
-          zoomToInspect(planetD, 3.3, "PROXIMA D", "EXOPLANÈTE CHAUDE / SUB-TERRE", "0.15 AU (de Proxima)", "—");
-          return;
-        }
-        if (typeof planetB !== "undefined" && current === planetB) {
-          zoomToInspect(planetB, 6.0, "PROXIMA B", "EXOPLANÈTE ROCHEUSE EN ZONE HABITABLE", "0.30 AU (de Proxima)", "—");
-          return;
-        }
-        if (typeof planetC !== "undefined" && current === planetC) {
-          zoomToInspect(planetC, 13.8, "PROXIMA C", "EXOPLANÈTE GAZEUSE // SUPER-TERRE", "0.52 AU (de Proxima)", "—");
-          return;
-        }
-
-        // Sub-components of Sirius
-        if (typeof siriusA !== "undefined" && current === siriusA) {
-          zoomToInspect(siriusA, 25.0, "SIRIUS A", "GÉANTE BLANCHE (A1V)", "0.00 AU (barycentre)", "—");
-          return;
-        }
-        if (typeof siriusB !== "undefined" && current === siriusB) {
-          zoomToInspect(siriusB, 3.0, "SIRIUS B", "NAINE BLANCHE // DÉGÉNÉRÉE", "180.00 AU (barycentre)", "—");
-          return;
-        }
-
-        // Sub-components of Barnard
-        if (typeof barnardStar !== "undefined" && current === barnardStar) {
-          zoomToInspect(barnardStar, 10.0, "ETOILE DE BARNARD", "NAINE ROUGE ACTIVE", "0.00 AU (barycentre)", "—");
-          return;
-        }
-        if (typeof barnardB !== "undefined" && current === barnardB) {
-          zoomToInspect(barnardB, 3.0, "BARNARD b", "EXOPLANÈTE ROCHEUSE COMPACTE", "0.67 AU (de Barnard)", "—");
-          return;
-        }
-
-        // Sub-components of TRAPPIST-1
-        if (typeof trappistStar !== "undefined" && current === trappistStar) {
-          zoomToInspect(trappistStar, 12.0, "TRAPPIST-1", "NAINE ROUGE ULTRA-FROIDE", "0.00 AU (barycentre)", "—");
-          return;
-        }
-        if (typeof trappistState !== "undefined") {
-          for (let p of trappistState.planets) {
-            if (current === p.mesh) {
-              zoomToInspect(p.mesh, p.r, p.showName, `EXOPLANÈTE ROCHEUSE (${p.desc})`, `${(p.d / 270).toFixed(2)} AU`, "—");
-              return;
-            }
-          }
-        }
-
-        // Main groups fallback
-        for (let i = 0; i < distantStarObjects.length; i++) {
-          if (current === distantStarObjects[i].group) {
-            const ds = distantStarObjects[i].def;
-            zoomToInspect(distantStarObjects[i].group, ds.r, ds.name, ds.type, ds.dist, ds.vel);
-            return;
-          }
-        }
         current = current.parent;
       }
     }
@@ -2316,81 +1523,11 @@
     // 1. Update planetary orbits in real-time — frozen while inspecting so the
     //    target body stays still and the camera can settle without chasing it.
     if (orbitsRunning) {
-    planetDefs.forEach((def, idx) => {
-      def.currentAngle += def.speed;
-      planets[idx].mesh.position.copy(planetPosition(def, def.currentAngle));
-    });
-
-    // Update Alpha Centauri triple system orbits in real-time
-    if (typeof alphaCentauriState !== "undefined") {
-      alphaCentauriState.starBAngle += alphaCentauriState.starBSpeed;
-      alphaCentauriState.starB.position.set(
-        Math.cos(alphaCentauriState.starBAngle) * alphaCentauriState.starBDist,
-        0,
-        Math.sin(alphaCentauriState.starBAngle) * alphaCentauriState.starBDist
-      );
-      
-      alphaCentauriState.proximaAngle += alphaCentauriState.proximaSpeed;
-      alphaCentauriState.proximaGroup.position.set(
-        Math.cos(alphaCentauriState.proximaAngle) * alphaCentauriState.proximaDist,
-        0,
-        Math.sin(alphaCentauriState.proximaAngle) * alphaCentauriState.proximaDist
-      );
-      
-      alphaCentauriState.planetDAngle += alphaCentauriState.planetDSpeed;
-      alphaCentauriState.planetD.position.set(
-        Math.cos(alphaCentauriState.planetDAngle) * alphaCentauriState.planetDDist,
-        0,
-        Math.sin(alphaCentauriState.planetDAngle) * alphaCentauriState.planetDDist
-      );
-
-      alphaCentauriState.planetBAngle += alphaCentauriState.planetBSpeed;
-      alphaCentauriState.planetB.position.set(
-        Math.cos(alphaCentauriState.planetBAngle) * alphaCentauriState.planetBDist,
-        0,
-        Math.sin(alphaCentauriState.planetBAngle) * alphaCentauriState.planetBDist
-      );
-      
-      alphaCentauriState.planetCAngle += alphaCentauriState.planetCSpeed;
-      alphaCentauriState.planetC.position.set(
-        Math.cos(alphaCentauriState.planetCAngle) * alphaCentauriState.planetCDist,
-        0,
-        Math.sin(alphaCentauriState.planetCAngle) * alphaCentauriState.planetCDist
-      );
-    }
-
-    // Update Sirius B orbit in real-time
-    if (typeof siriusState !== "undefined") {
-      siriusState.siriusBAngle += siriusState.siriusBSpeed;
-      siriusState.siriusB.position.set(
-        Math.cos(siriusState.siriusBAngle) * siriusState.siriusBDist,
-        0,
-        Math.sin(siriusState.siriusBAngle) * siriusState.siriusBDist
-      );
-    }
-
-    // Update Barnard b orbit in real-time
-    if (typeof barnardState !== "undefined") {
-      barnardState.barnardBAngle += barnardState.barnardBSpeed;
-      barnardState.barnardB.position.set(
-        Math.cos(barnardState.barnardBAngle) * barnardState.barnardBDist,
-        0,
-        Math.sin(barnardState.barnardBAngle) * barnardState.barnardBDist
-      );
-    }
-
-    // Update TRAPPIST-1 orbits in real-time
-    if (typeof trappistState !== "undefined") {
-      trappistState.planets.forEach(p => {
-        p.angle += p.speed;
-        p.mesh.position.set(
-          Math.cos(p.angle) * p.d,
-          0,
-          Math.sin(p.angle) * p.d
-        );
+      planetDefs.forEach((def, idx) => {
+        def.currentAngle += def.speed;
+        planets[idx].mesh.position.copy(planetPosition(def, def.currentAngle));
       });
     }
-    } // end if (orbitsRunning)
 
     // 2. Update camera stations dynamically to track the moving planets in live orbit!
     planetStationIndices.forEach((planetIdx, i) => {
@@ -2424,9 +1561,8 @@
         desiredCam.copy(activeOverviewCam);
         desiredLook.copy(activeOverviewLook);
 
-        // "Close enough" scales with the trip length so the long flight out to
-        // the neighbourhood hands off to OrbitControls without waiting on the
-        // exponential tail forever.
+        // "Close enough" scales with the trip length so the flight out hands off
+        // to OrbitControls without waiting on the exponential tail forever.
         const arriveTol = activeOverviewCam.length() * 0.01 + 20;
         const posDist = camera.position.distanceTo(activeOverviewCam);
         const lookDist = currentLook.distanceTo(activeOverviewLook);
@@ -2484,16 +1620,6 @@
     starField.position.copy(camera.position);
     galaxy.position.copy(camera.position);
 
-    // Keep neighbourhood beacons at a constant on-screen size despite the huge
-    // interstellar distances (otherwise the neighbour stars are sub-pixel dots).
-    if (viewScope === 'neighbourhood') {
-      const wp = new THREE.Vector3();
-      beacons.forEach(b => {
-        b.spr.getWorldPosition(wp);
-        b.spr.scale.setScalar(Math.max(1, wp.distanceTo(camera.position) * b.px));
-      });
-    }
-
     // Update fill light position and target to act as a headlight shining directly on the planet
     camLight.position.copy(camera.position);
     camLight.target.position.copy(currentLook);
@@ -2539,22 +1665,6 @@
       const halfH = height / 2;
       
       // Determine what system is currently being inspected
-      let inspectingAlpha = false;
-      let inspectingSirius = false;
-      let inspectingBarnard = false;
-      let inspectingTrappist = false;
-      
-      if (inspectTarget) {
-        let t = inspectTarget.obj3d;
-        while (t) {
-          if (t === alphaCentauriGroup) inspectingAlpha = true;
-          if (typeof siriusGroup !== "undefined" && t === siriusGroup) inspectingSirius = true;
-          if (typeof barnardGroup !== "undefined" && t === barnardGroup) inspectingBarnard = true;
-          if (typeof trappistGroup !== "undefined" && t === trappistGroup) inspectingTrappist = true;
-          t = t.parent;
-        }
-      }
-      
       // Project all labels to 2D screen space
       const projectedLabels = spaceLabels.map(lbl => {
         const pos = new THREE.Vector3();
@@ -2566,49 +1676,21 @@
         // Base visibility: check if object is in front of the camera
         let visible = (pos.z <= 1.0);
         
-        // The neighbouring star systems (shown in the neighbourhood overview).
-        const isNeighbourLevel = (
-          !lbl.alphaCentauriSub && !lbl.siriusSub && !lbl.barnardSub && !lbl.trappistSub && (
-            lbl.text === "ALPHA CENTAURI" ||
-            lbl.text === "SIRIUS" ||
-            lbl.text === "ETOILE DE BARNARD" ||
-            lbl.text === "TRAPPIST-1"
-          )
-        );
-        // Our own system's top-level markers (shown in the solar overview).
-        const isSolarSystemLevel = (
+        // Our own system's top-level markers.
+        const isSystemLevel = (
           lbl.text === "SOLEIL" ||
           lbl.text === "VOYAGER 1" ||
           lbl.text === "CEINTURE DE KUIPER"
         );
-        const isSystemLevel = isNeighbourLevel || isSolarSystemLevel;
-
         // Is this a solar system planet label?
-        const isSolarPlanet = !lbl.alphaCentauriSub && !lbl.siriusSub && !lbl.barnardSub && !lbl.trappistSub && !isSystemLevel;
+        const isSolarPlanet = !isSystemLevel;
 
         if (visible) {
           if (overviewMode) {
-            // Solar scope: reveal the planet names. Neighbourhood scope: the Sun
-            // and our neighbour systems (planets are hidden by LOD anyway).
-            if (viewScope === 'neighbourhood') {
-              visible = (lbl.text === "SOLEIL") || isNeighbourLevel;
-            } else {
-              visible = isSolarPlanet || isSolarSystemLevel;
-            }
+            visible = isSolarPlanet || isSystemLevel;
           } else if (inspectTarget) {
-            // Inspect mode: show contextual sub-labels
-            if (inspectingAlpha) {
-              visible = !!lbl.alphaCentauriSub;
-            } else if (inspectingSirius) {
-              visible = !!lbl.siriusSub;
-            } else if (inspectingBarnard) {
-              visible = !!lbl.barnardSub;
-            } else if (inspectingTrappist) {
-              visible = !!lbl.trappistSub;
-            } else {
-              // If inspecting a solar system object, show solar-system planets + sun for context
-              visible = isSolarPlanet || lbl.text === "SOLEIL";
-            }
+            // Inspect mode: keep the planets + the Sun for context.
+            visible = isSolarPlanet || lbl.text === "SOLEIL";
           }
         }
         
@@ -2630,7 +1712,7 @@
           lbl.el.style.top = y + 'px';
 
           // Declutter check: if it's close to the Sun, make it compact
-          if (sunProj && lbl.text !== "SOLEIL" && lbl.text !== "VOYAGER 1" && lbl.text !== "CEINTURE DE KUIPER" && !lbl.text.includes("SIRIUS") && !lbl.text.includes("CENTAURI") && !lbl.text.includes("TRAPPIST") && !lbl.text.includes("BARNARD") && !lbl.text.includes("PROXIMA")) {
+          if (sunProj && lbl.text !== "SOLEIL" && lbl.text !== "VOYAGER 1" && lbl.text !== "CEINTURE DE KUIPER") {
             const dx = x - sunProj.x;
             const dy = y - sunProj.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
@@ -2679,13 +1761,10 @@
           hudStatus.className = "hud-val warn";
         }
       } else if (overviewMode) {
-        const isNeigh = (viewScope === 'neighbourhood');
-        hudPlanet.textContent = isNeigh ? "VOISINAGE STELLAIRE" : "SYSTEME SOLAIRE";
-        if (hudDist) hudDist.textContent = isNeigh
-          ? (camera.position.length() / LY).toFixed(2) + " AL"
-          : (camera.position.length() / 270).toFixed(1) + " AU";
+        hudPlanet.textContent = "SYSTEME SOLAIRE";
+        if (hudDist) hudDist.textContent = (camera.position.length() / 270).toFixed(1) + " AU";
         if (hudVel) hudVel.textContent = "—";
-        if (hudStatus) { hudStatus.textContent = isNeigh ? "VOISINAGE" : "VUE_ENSEMBLE"; hudStatus.className = "hud-val ok"; }
+        if (hudStatus) { hudStatus.textContent = "VUE_ENSEMBLE"; hudStatus.className = "hud-val ok"; }
       } else if (idx === 0) {
         hudPlanet.textContent = "LE SOLEIL";
         if (hudDist) hudDist.textContent = "0.00 AU";

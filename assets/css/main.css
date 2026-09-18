@@ -2754,3 +2754,1982 @@ body.overview-active .overview-overlay-hud {
   background-size: 100% 4px;
   pointer-events: none;
 }
+
+
+/* ============================================================
+   ============================================================
+   V3 — refonte : lisibilité, projets en 3 rangs, vitrines,
+   micro-chat Nano, fenêtres modales.
+   Tout ce qui suit est postérieur au thème d'origine et le
+   complète ; rien n'y est supprimé.
+   ============================================================
+   ============================================================ */
+
+:root {
+   --carte-fond: rgba(12, 12, 28, 0.92);
+   --carte-bord: rgba(255, 255, 255, 0.09);
+}
+
+/* [hidden] doit gagner contre les display: des composants ci-dessous. */
+.archive-liste[hidden],
+.modale[hidden],
+.nano-chat[hidden] { display: none !important; }
+
+.visuellement-masque {
+   position: absolute; width: 1px; height: 1px;
+   overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+
+/* ============================================================
+   1. LISIBILITÉ — le décor 3D ne doit jamais manger le texte
+   ============================================================ */
+
+/* Le Soleil passait pile derrière « Bastien Nieto » et le titre devenait
+   illisible. Un voile radial sous le bloc de texte règle le problème sans
+   masquer la scène : on voit toujours les planètes autour. */
+.hero-scrim {
+   position: absolute;
+   inset: -8% -6%;
+   z-index: -1;
+   pointer-events: none;
+   background:
+      radial-gradient(ellipse 62% 58% at 50% 48%, rgba(4, 4, 12, .86) 0%,
+                                                  rgba(4, 4, 12, .62) 45%,
+                                                  transparent 76%);
+   backdrop-filter: blur(3px) saturate(115%);
+   -webkit-backdrop-filter: blur(3px) saturate(115%);
+   border-radius: 50%;
+}
+
+.hero .hero-name {
+   text-shadow: 0 0 60px rgba(139, 92, 246, .45), 0 2px 26px rgba(0, 0, 0, .85);
+}
+
+.hero-role,
+.hero-subtitle { text-shadow: 0 2px 18px rgba(0, 0, 0, .9); }
+
+/* Les intitulés de section flottaient au-dessus d'étoiles très contrastées.
+   Un voile discret, dessiné derrière, les rend lisibles partout. */
+.section-title { position: relative; z-index: 1; }
+
+.section-title::before {
+   content: "";
+   position: absolute;
+   inset: -28px -24px;
+   z-index: -1;
+   pointer-events: none;
+   background: radial-gradient(ellipse 60% 70% at 50% 50%, rgba(5, 5, 14, .8), transparent 72%);
+   border-radius: 50%;
+}
+
+/* ============================================================
+   2. HUD — replié par défaut, il ne montre plus qu'une pastille
+   ============================================================ */
+
+.stellar-hud.collapsed {
+   padding: 0;
+   border: 0;
+   background: transparent;
+   box-shadow: none;
+   backdrop-filter: none;
+   -webkit-backdrop-filter: none;
+   /* La regle d'origine figeait le repli a 42x42 avec overflow:hidden, ce qui
+      rognait la pastille et son halo. On rend la boite a sa vraie taille. */
+   width: auto;
+   height: auto;
+   min-width: 0;
+   border-radius: 0;
+   overflow: visible;
+}
+
+.stellar-hud.collapsed .hud-toggle-btn {
+   position: relative;
+   top: auto;
+   right: auto;
+   width: 46px;
+   height: 46px;
+   display: grid;
+   place-items: center;
+   border-radius: 50%;
+   font-size: 18px;
+   background: rgba(10, 10, 26, .78);
+   border: 1px solid var(--border-glow);
+   color: var(--neon-cyan);
+   box-shadow: 0 0 22px rgba(6, 182, 212, .28);
+   backdrop-filter: blur(10px);
+   -webkit-backdrop-filter: blur(10px);
+   transition: transform .25s cubic-bezier(.22, 1, .36, 1), box-shadow .25s, color .25s;
+}
+
+.stellar-hud.collapsed .hud-toggle-btn:hover {
+   transform: scale(1.12) rotate(-8deg);
+   color: #fff;
+   box-shadow: 0 0 34px rgba(139, 92, 246, .6);
+}
+
+/* Un halo qui respire, pour signaler que la pastille est vivante. */
+@media (prefers-reduced-motion: no-preference) {
+   .stellar-hud.collapsed .hud-toggle-btn::after {
+      content: "";
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      border: 1px solid rgba(6, 182, 212, .5);
+      animation: pastille-pulse 2.8s ease-out infinite;
+      pointer-events: none;
+   }
+}
+
+@keyframes pastille-pulse {
+   0%   { transform: scale(.85); opacity: .9; }
+   70%  { transform: scale(1.35); opacity: 0; }
+   100% { transform: scale(1.35); opacity: 0; }
+}
+
+/* ============================================================
+   3. À PROPOS — capacités et stack IA
+   ============================================================ */
+
+.capacites {
+   list-style: none;
+   margin: 22px 0 0;
+   padding: 0;
+   display: grid;
+   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+   gap: 9px 16px;
+}
+
+.capacites li {
+   display: flex;
+   align-items: center;
+   gap: 10px;
+   font-size: 14.5px;
+   color: var(--text-soft);
+}
+
+.capacites i {
+   color: var(--neon-cyan);
+   font-size: 15px;
+   flex: none;
+}
+
+.about-perso {
+   margin-top: 22px;
+   color: var(--text-soft);
+   font-size: 15px;
+}
+
+.stack-ia {
+   margin-top: 26px;
+   padding-top: 22px;
+   border-top: 1px solid var(--border-glass);
+}
+
+.stack-ia-titre {
+   display: block;
+   font-family: var(--font-mono);
+   font-size: 11px;
+   letter-spacing: .18em;
+   text-transform: uppercase;
+   color: var(--text-mute);
+   margin-bottom: 14px;
+}
+
+.stack-ia-rangee {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 10px;
+}
+
+.ia-puce {
+   display: inline-flex;
+   align-items: center;
+   gap: 8px;
+   padding: 7px 14px 7px 9px;
+   border-radius: 999px;
+   background: rgba(255, 255, 255, .04);
+   border: 1px solid var(--border-glass);
+   transition: border-color .25s, background .25s, transform .25s;
+}
+
+.ia-puce:hover {
+   border-color: var(--border-glow);
+   background: rgba(139, 92, 246, .1);
+   transform: translateY(-2px);
+}
+
+.ia-puce svg,
+.ia-puce img { width: 20px; height: 20px; object-fit: contain; display: block; }
+.ia-puce i { font-size: 17px; color: var(--neon-cyan); }
+.ia-puce b { font-size: 13px; font-weight: 500; color: var(--text); }
+
+/* Le poste en cours, marqué d'un point qui pulse. */
+.resume-item.now > h4::after {
+   content: "";
+   display: inline-block;
+   width: 7px; height: 7px;
+   margin-left: 9px;
+   border-radius: 50%;
+   background: #22d3ee;
+   box-shadow: 0 0 10px #22d3ee;
+   vertical-align: middle;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+   .resume-item.now > h4::after { animation: pulse-point 2.2s ease-in-out infinite; }
+}
+
+@keyframes pulse-point {
+   0%, 100% { opacity: 1; }
+   50%      { opacity: .25; }
+}
+
+/* ============================================================
+   4. PROJETS — les trois rangs
+   ============================================================ */
+
+.rang-titre {
+   display: grid;
+   grid-template-columns: auto 1fr;
+   gap: 4px 18px;
+   align-items: center;
+   margin: 74px 0 30px;
+   padding-bottom: 16px;
+   border-bottom: 1px solid var(--border-glass);
+}
+
+.rang-titre:first-of-type { margin-top: 0; }
+
+.rang-num {
+   grid-row: 1 / 3;
+   font-family: var(--font-display);
+   font-size: 40px;
+   font-weight: 800;
+   line-height: 1;
+   color: transparent;
+   -webkit-text-stroke: 1.5px rgba(139, 92, 246, .55);
+}
+
+.rang-titre h3 {
+   margin: 0;
+   font-family: var(--font-display);
+   font-size: clamp(19px, 2.6vw, 26px);
+   letter-spacing: .02em;
+   color: var(--heading);
+}
+
+.rang-titre p {
+   margin: 0;
+   grid-column: 2;
+   color: var(--text-mute);
+   font-size: 14.5px;
+   max-width: 70ch;
+}
+
+/* ---------- Les phares ---------- */
+
+.phare {
+   position: relative;
+   margin-bottom: 26px;
+   border-radius: var(--radius-lg);
+   border: 1px solid var(--carte-bord);
+   background: var(--carte-fond);
+   backdrop-filter: blur(16px) saturate(140%);
+   -webkit-backdrop-filter: blur(16px) saturate(140%);
+   overflow: hidden;
+   transition: border-color .4s, box-shadow .4s;
+}
+
+.phare::before {
+   content: "";
+   position: absolute;
+   inset: 0;
+   pointer-events: none;
+   background: linear-gradient(120deg, transparent 38%, var(--teinte-phare, rgba(139, 92, 246, .1)) 100%);
+   opacity: .6;
+}
+
+.phare-aegis      { --teinte-phare: rgba(139, 92, 246, .16); }
+.phare-undergears { --teinte-phare: rgba(61, 255, 133, .13); }
+
+.phare:hover {
+   border-color: var(--border-glow);
+   box-shadow: 0 24px 70px -30px rgba(139, 92, 246, .8);
+}
+
+.phare-grille {
+   position: relative;
+   display: grid;
+   grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+   gap: clamp(20px, 3vw, 42px);
+   align-items: center;
+   padding: clamp(20px, 2.6vw, 34px);
+}
+
+.phare-grille.inverse > .phare-visuel { order: 2; }
+
+@media (max-width: 900px) {
+   .phare-grille { grid-template-columns: 1fr; }
+   .phare-grille.inverse > .phare-visuel { order: 0; }
+}
+
+.phare-visuel {
+   position: relative;
+   border-radius: var(--radius-md);
+   overflow: hidden;
+   aspect-ratio: 16 / 10;
+   background: #06060f;
+   border: 1px solid var(--border-glass);
+}
+
+.phare-visuel img {
+   position: absolute;
+   inset: 0;
+   width: 100%;
+   height: 100%;
+   object-fit: cover;
+   display: block;
+}
+
+/* La vignette SVG sert de fond ; la vraie capture se pose par-dessus et
+   se révèle au survol. Quand il n'y a pas de capture, le motif reste seul. */
+.phare-motif { opacity: .55; transition: opacity .5s, transform .6s; }
+.phare-motif.seul { opacity: 1; }
+.phare-shot { opacity: 0; transition: opacity .5s, transform .6s; transform: scale(1.04); }
+
+.phare:hover .phare-shot { opacity: 1; transform: scale(1); }
+.phare:hover .phare-motif:not(.seul) { opacity: .12; }
+.phare:hover .phare-motif.seul { transform: scale(1.05); }
+
+.phare-statut {
+   position: absolute;
+   left: 12px;
+   top: 12px;
+   z-index: 2;
+   font-family: var(--font-mono);
+   font-size: 10px;
+   font-weight: 600;
+   letter-spacing: .14em;
+   padding: 5px 10px;
+   border-radius: 4px;
+   background: rgba(6, 6, 16, .82);
+   border: 1px solid rgba(255, 255, 255, .14);
+   color: var(--text-soft);
+}
+
+.phare-statut.en-cours {
+   color: #ffd479;
+   border-color: rgba(245, 158, 11, .5);
+}
+
+.phare-statut.en-cours::before {
+   content: "";
+   display: inline-block;
+   width: 6px; height: 6px;
+   margin-right: 7px;
+   border-radius: 50%;
+   background: #f59e0b;
+   box-shadow: 0 0 8px #f59e0b;
+   vertical-align: middle;
+}
+
+.phare-tags {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 7px;
+   margin-bottom: 14px;
+}
+
+.phare-tags span {
+   font-family: var(--font-mono);
+   font-size: 10.5px;
+   letter-spacing: .06em;
+   padding: 4px 10px;
+   border-radius: 999px;
+   background: rgba(255, 255, 255, .05);
+   border: 1px solid var(--border-glass);
+   color: var(--text-soft);
+}
+
+.phare-info h3 {
+   font-family: var(--font-display);
+   font-size: clamp(21px, 3vw, 30px);
+   margin: 0 0 6px;
+   color: var(--heading);
+}
+
+.phare-role {
+   font-family: var(--font-mono);
+   font-size: 12.5px;
+   color: var(--neon-cyan);
+   margin: 0 0 14px;
+}
+
+.phare-info > p {
+   color: var(--text-soft);
+   font-size: 15px;
+   line-height: 1.68;
+   margin: 0;
+}
+
+.phare-points {
+   list-style: none;
+   margin: 16px 0 20px;
+   padding: 0;
+   display: flex;
+   flex-direction: column;
+   gap: 9px;
+}
+
+.phare-points li {
+   position: relative;
+   padding-left: 22px;
+   font-size: 14px;
+   color: var(--text-mute);
+   line-height: 1.6;
+}
+
+.phare-points li::before {
+   content: "\25B8";
+   position: absolute;
+   left: 0;
+   top: 0;
+   color: var(--neon-violet);
+}
+
+.phare-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* ---------- Filtres ---------- */
+
+.filtres {
+   list-style: none;
+   display: flex;
+   flex-wrap: wrap;
+   gap: 8px;
+   padding: 0;
+   margin: 0 0 24px;
+}
+
+.filtres li {
+   cursor: pointer;
+   font-family: var(--font-mono);
+   font-size: 12px;
+   letter-spacing: .1em;
+   text-transform: uppercase;
+   padding: 8px 17px;
+   border-radius: 999px;
+   border: 1px solid var(--border-glass);
+   color: var(--text-mute);
+   background: rgba(255, 255, 255, .02);
+   transition: color .25s, border-color .25s, background .25s, transform .2s;
+   user-select: none;
+}
+
+.filtres li:hover { color: var(--text); transform: translateY(-2px); }
+
+.filtres li.actif {
+   color: #fff;
+   border-color: var(--border-glow);
+   background: rgba(139, 92, 246, .2);
+   box-shadow: 0 0 20px rgba(139, 92, 246, .3);
+}
+
+/* ---------- Grille des projets aboutis ---------- */
+
+.grille-projets {
+   display: grid;
+   grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+   gap: 20px;
+}
+
+.carte-projet {
+   position: relative;
+   display: flex;
+   flex-direction: column;
+   border-radius: var(--radius-md);
+   border: 1px solid var(--carte-bord);
+   background: var(--carte-fond);
+   backdrop-filter: blur(14px) saturate(140%);
+   -webkit-backdrop-filter: blur(14px) saturate(140%);
+   overflow: hidden;
+   cursor: pointer;
+   transition: transform .34s cubic-bezier(.22, 1, .36, 1), border-color .34s, box-shadow .34s;
+}
+
+.carte-projet.masquee { display: none; }
+
+.carte-projet:hover {
+   transform: translateY(-7px);
+   border-color: var(--border-glow);
+   box-shadow: 0 26px 50px -26px rgba(139, 92, 246, .85);
+}
+
+.carte-projet:focus-visible { outline: 2px solid var(--neon-cyan); outline-offset: 3px; }
+
+.carte-vignette {
+   position: relative;
+   aspect-ratio: 16 / 10;
+   overflow: hidden;
+   background: #06060f;
+}
+
+.carte-vignette img {
+   width: 100%;
+   height: 100%;
+   object-fit: cover;
+   display: block;
+   transition: transform .6s cubic-bezier(.22, 1, .36, 1);
+}
+
+.carte-projet:hover .carte-vignette img { transform: scale(1.07); }
+
+/* Balayage lumineux au survol — la carte « s'allume » au passage. */
+.carte-vignette::after {
+   content: "";
+   position: absolute;
+   inset: 0;
+   background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, .13) 50%, transparent 62%);
+   transform: translateX(-120%);
+   transition: transform .75s cubic-bezier(.22, 1, .36, 1);
+   pointer-events: none;
+}
+
+.carte-projet:hover .carte-vignette::after { transform: translateX(120%); }
+
+.carte-etiquette {
+   position: absolute;
+   left: 10px;
+   top: 10px;
+   z-index: 2;
+   font-family: var(--font-mono);
+   font-size: 9.5px;
+   font-weight: 600;
+   letter-spacing: .13em;
+   padding: 4px 9px;
+   border-radius: 4px;
+   background: rgba(6, 6, 16, .8);
+   border: 1px solid rgba(255, 255, 255, .13);
+   color: var(--text-soft);
+}
+
+.carte-corps {
+   display: flex;
+   flex-direction: column;
+   flex: 1;
+   padding: 18px 18px 20px;
+}
+
+.carte-corps h4 {
+   font-family: var(--font-display);
+   font-size: 16px;
+   line-height: 1.3;
+   margin: 0 0 9px;
+   color: var(--heading);
+}
+
+/* Les descriptions sont longues par choix — la fiche les montre en entier,
+   la carte en garde trois lignes pour que la grille reste régulière. */
+.carte-corps > p {
+   margin: 0;
+   font-size: 13.5px;
+   line-height: 1.6;
+   color: var(--text-mute);
+   display: -webkit-box;
+   -webkit-line-clamp: 3;
+   -webkit-box-orient: vertical;
+   overflow: hidden;
+}
+
+.carte-stack {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 6px;
+   margin: 14px 0 0;
+}
+
+.carte-stack span {
+   font-family: var(--font-mono);
+   font-size: 10px;
+   padding: 3px 8px;
+   border-radius: 4px;
+   background: rgba(255, 255, 255, .045);
+   border: 1px solid var(--border-glass);
+   color: var(--text-mute);
+}
+
+.carte-actions {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 8px;
+   margin-top: auto;
+   padding-top: 16px;
+}
+
+@keyframes carte-entre {
+   from { opacity: 0; transform: translateY(18px) scale(.97); }
+   to   { opacity: 1; transform: none; }
+}
+
+/* ---------- Archive ---------- */
+
+.archive {
+   border: 1px solid var(--border-glass);
+   border-radius: var(--radius-md);
+   background: rgba(10, 10, 24, .45);
+   overflow: hidden;
+}
+
+.archive-bascule {
+   width: 100%;
+   display: flex;
+   align-items: center;
+   gap: 12px;
+   padding: 16px 20px;
+   background: none;
+   border: 0;
+   cursor: pointer;
+   font-family: var(--font-mono);
+   font-size: 13px;
+   letter-spacing: .06em;
+   color: var(--text-soft);
+   transition: color .25s, background .25s;
+}
+
+.archive-bascule:hover { color: #fff; background: rgba(255, 255, 255, .03); }
+.archive-bascule i { transition: transform .3s cubic-bezier(.22, 1, .36, 1); color: var(--neon-cyan); }
+.archive-bascule.ouvert i { transform: rotate(90deg); }
+
+.archive-liste {
+   list-style: none;
+   margin: 0;
+   padding: 0;
+   display: flex;
+   flex-direction: column;
+   border-top: 1px solid var(--border-glass);
+}
+
+.archive-liste li {
+   display: grid;
+   grid-template-columns: 74px 1fr auto auto;
+   gap: 6px 16px;
+   align-items: center;
+   padding: 13px 20px;
+   transition: background .22s;
+   animation: carte-entre .4s cubic-bezier(.22, 1, .36, 1) both;
+}
+
+.archive-liste li:nth-child(1) { animation-delay: .02s; }
+.archive-liste li:nth-child(2) { animation-delay: .06s; }
+.archive-liste li:nth-child(3) { animation-delay: .10s; }
+.archive-liste li:nth-child(4) { animation-delay: .14s; }
+.archive-liste li:nth-child(5) { animation-delay: .18s; }
+.archive-liste li:nth-child(6) { animation-delay: .22s; }
+.archive-liste li:nth-child(7) { animation-delay: .26s; }
+
+.archive-liste li + li { border-top: 1px solid rgba(255, 255, 255, .05); }
+.archive-liste li:hover { background: rgba(255, 255, 255, .03); }
+
+.archive-liste img {
+   width: 74px;
+   height: 46px;
+   object-fit: cover;
+   border-radius: 6px;
+   border: 1px solid var(--border-glass);
+   display: block;
+}
+
+.archive-liste h5 {
+   margin: 0 0 3px;
+   font-size: 14px;
+   font-weight: 600;
+   color: var(--text);
+}
+
+.archive-liste p {
+   margin: 0;
+   font-size: 12.5px;
+   color: var(--text-mute);
+   line-height: 1.5;
+}
+
+.archive-annee {
+   font-family: var(--font-mono);
+   font-size: 12px;
+   color: var(--text-mute);
+}
+
+@media (max-width: 720px) {
+   .archive-liste li { grid-template-columns: 56px 1fr; }
+   .archive-liste img { width: 56px; height: 38px; }
+   .archive-annee { grid-column: 2; }
+   .archive-liste li > .btn-mini { grid-column: 2; justify-self: start; }
+}
+
+/* ============================================================
+   5. VITRINES — « mes capacités de création »
+   ============================================================ */
+
+.showcase-note {
+   display: flex;
+   align-items: flex-start;
+   gap: 11px;
+   max-width: 76ch;
+   margin: 0 auto 32px;
+   padding: 13px 18px;
+   border-radius: var(--radius-sm);
+   border: 1px solid rgba(245, 158, 11, .28);
+   background: rgba(245, 158, 11, .07);
+   color: var(--text-soft);
+   font-size: 13.5px;
+   line-height: 1.6;
+}
+
+.showcase-note i { color: var(--neon-amber); font-size: 15px; margin-top: 2px; flex: none; }
+
+.grille-vitrines {
+   display: grid;
+   grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+   gap: 22px;
+}
+
+.vitrine {
+   position: relative;
+   display: flex;
+   flex-direction: column;
+   border-radius: var(--radius-md);
+   border: 1px solid var(--carte-bord);
+   background: var(--carte-fond);
+   backdrop-filter: blur(14px);
+   -webkit-backdrop-filter: blur(14px);
+   overflow: hidden;
+   cursor: pointer;
+   transition: transform .34s cubic-bezier(.22, 1, .36, 1), border-color .34s, box-shadow .34s;
+}
+
+.vitrine:hover {
+   transform: translateY(-7px);
+   border-color: var(--teinte);
+   box-shadow: 0 26px 56px -26px var(--teinte);
+}
+
+.vitrine:focus-visible { outline: 2px solid var(--teinte); outline-offset: 3px; }
+
+.vitrine-ecran { position: relative; }
+
+.vitrine-chrome {
+   display: flex;
+   align-items: center;
+   gap: 6px;
+   padding: 9px 13px;
+   background: rgba(255, 255, 255, .05);
+   border-bottom: 1px solid var(--border-glass);
+}
+
+.vitrine-chrome i {
+   width: 8px; height: 8px;
+   border-radius: 50%;
+   background: rgba(255, 255, 255, .22);
+   display: block;
+}
+
+.vitrine-chrome span {
+   margin-left: 8px;
+   font-family: var(--font-mono);
+   font-size: 10.5px;
+   color: var(--text-mute);
+}
+
+/* L'aperçu est le VRAI site, rendu en 1280 de large puis réduit par
+   transform. La hauteur est posée en JS pour coller à l'échelle. */
+.vitrine-cadre {
+   position: relative;
+   overflow: hidden;
+   background: #fff;
+   min-height: 160px;
+}
+
+.vitrine-cadre iframe {
+   border: 0;
+   transform-origin: top left;
+   pointer-events: none;   /* la carte entière est le bouton */
+   display: block;
+}
+
+.vitrine-voile {
+   position: absolute;
+   inset: 0;
+   z-index: 2;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   gap: 10px;
+   background: rgba(6, 6, 16, .62);
+   backdrop-filter: blur(2px);
+   opacity: 0;
+   transition: opacity .3s;
+   pointer-events: none;
+}
+
+.vitrine-voile i { font-size: 26px; color: var(--teinte); }
+
+.vitrine-voile b {
+   font-family: var(--font-mono);
+   font-size: 12px;
+   letter-spacing: .12em;
+   text-transform: uppercase;
+   color: #fff;
+}
+
+.vitrine:hover .vitrine-voile,
+.vitrine:focus-visible .vitrine-voile { opacity: 1; }
+
+.vitrine-pied {
+   display: flex;
+   align-items: flex-start;
+   justify-content: space-between;
+   gap: 14px;
+   padding: 16px 18px 18px;
+   border-top: 1px solid var(--border-glass);
+}
+
+.vitrine-pied h4 {
+   font-family: var(--font-display);
+   font-size: 15px;
+   margin: 0 0 5px;
+   color: var(--heading);
+}
+
+.vitrine-pied p {
+   margin: 0;
+   font-size: 12.5px;
+   line-height: 1.55;
+   color: var(--text-mute);
+}
+
+.vitrine-genre {
+   flex: none;
+   font-family: var(--font-mono);
+   font-size: 9.5px;
+   letter-spacing: .1em;
+   text-transform: uppercase;
+   padding: 4px 9px;
+   border-radius: 999px;
+   color: var(--teinte);
+   border: 1px solid var(--border-glass);
+   background: rgba(255, 255, 255, .04);
+}
+
+/* ============================================================
+   6. PASSIONS
+   ============================================================ */
+
+.grille-passions {
+   display: grid;
+   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+   gap: 18px;
+}
+
+.passion {
+   padding: 28px 24px 26px;
+   border-radius: var(--radius-md);
+   border: 1px solid var(--carte-bord);
+   background: var(--carte-fond);
+   backdrop-filter: blur(14px);
+   -webkit-backdrop-filter: blur(14px);
+   transition: transform .3s cubic-bezier(.22, 1, .36, 1), border-color .3s, box-shadow .3s;
+}
+
+.passion:hover {
+   transform: translateY(-6px);
+   border-color: var(--border-glow);
+   box-shadow: 0 22px 44px -24px rgba(139, 92, 246, .8);
+}
+
+.passion-icone {
+   display: grid;
+   place-items: center;
+   width: 48px; height: 48px;
+   border-radius: 14px;
+   margin-bottom: 16px;
+   font-size: 21px;
+   color: var(--neon-cyan);
+   background: rgba(6, 182, 212, .1);
+   border: 1px solid rgba(6, 182, 212, .28);
+   transition: transform .35s cubic-bezier(.22, 1, .36, 1);
+}
+
+.passion:hover .passion-icone { transform: rotate(-9deg) scale(1.08); }
+
+.passion h3 {
+   font-family: var(--font-display);
+   font-size: 16px;
+   margin: 0 0 8px;
+   color: var(--heading);
+}
+
+.passion p {
+   margin: 0;
+   font-size: 13.5px;
+   line-height: 1.6;
+   color: var(--text-mute);
+}
+
+/* ============================================================
+   7. FENÊTRES MODALES
+   ============================================================ */
+
+body.modale-ouverte { overflow: hidden; }
+
+.modale {
+   position: fixed;
+   inset: 0;
+   z-index: 4000;
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   padding: clamp(12px, 3vw, 40px);
+}
+
+.modale-fond {
+   position: absolute;
+   inset: 0;
+   background: rgba(3, 3, 10, .82);
+   backdrop-filter: blur(9px);
+   -webkit-backdrop-filter: blur(9px);
+   opacity: 0;
+   transition: opacity .28s;
+}
+
+.modale.visible .modale-fond { opacity: 1; }
+
+.modale-boite,
+.site-boite {
+   position: relative;
+   z-index: 1;
+   width: 100%;
+   border-radius: var(--radius-lg);
+   border: 1px solid var(--border-glow);
+   background: rgba(10, 10, 24, .97);
+   box-shadow: 0 40px 100px -40px rgba(0, 0, 0, .95), 0 0 60px -20px rgba(139, 92, 246, .5);
+   overflow: hidden;
+   opacity: 0;
+   transform: translateY(22px) scale(.97);
+   transition: opacity .3s cubic-bezier(.22, 1, .36, 1), transform .3s cubic-bezier(.22, 1, .36, 1);
+}
+
+.modale.visible .modale-boite,
+.modale.visible .site-boite { opacity: 1; transform: none; }
+
+.modale-boite { max-width: 900px; max-height: 88vh; display: flex; flex-direction: column; }
+
+.modale-fermer {
+   position: absolute;
+   top: 12px; right: 12px;
+   z-index: 5;
+   width: 36px; height: 36px;
+   display: grid;
+   place-items: center;
+   border-radius: 50%;
+   border: 1px solid var(--border-glass);
+   background: rgba(6, 6, 16, .85);
+   color: var(--text-soft);
+   cursor: pointer;
+   transition: color .2s, border-color .2s, transform .2s;
+}
+
+.modale-fermer:hover { color: #fff; border-color: var(--border-glow); transform: rotate(90deg); }
+
+.modale-visuel {
+   flex: none;
+   aspect-ratio: 16 / 9;
+   background: #06060f;
+   border-bottom: 1px solid var(--border-glass);
+   overflow: hidden;
+}
+
+.modale-visuel img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.modale-texte { padding: 24px clamp(20px, 3vw, 32px) 28px; overflow-y: auto; }
+
+.modale-etiquettes { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; }
+
+.modale-etiquettes span {
+   font-family: var(--font-mono);
+   font-size: 10px;
+   letter-spacing: .08em;
+   padding: 4px 10px;
+   border-radius: 999px;
+   background: rgba(255, 255, 255, .05);
+   border: 1px solid var(--border-glass);
+   color: var(--text-mute);
+}
+
+.modale-etiquettes span.principale {
+   color: var(--neon-cyan);
+   border-color: rgba(6, 182, 212, .4);
+   background: rgba(6, 182, 212, .1);
+}
+
+.modale-texte h3 {
+   font-family: var(--font-display);
+   font-size: clamp(19px, 3vw, 26px);
+   margin: 0 0 12px;
+   color: var(--heading);
+}
+
+.modale-texte > p {
+   margin: 0 0 20px;
+   font-size: 15px;
+   line-height: 1.7;
+   color: var(--text-soft);
+}
+
+.modale-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* ---------- La modale « site vitrine » ---------- */
+
+.site-boite {
+   max-width: 1400px;
+   height: 92vh;
+   display: flex;
+   flex-direction: column;
+}
+
+.site-barre {
+   flex: none;
+   display: flex;
+   align-items: center;
+   gap: 14px;
+   padding: 11px 58px 11px 18px;
+   border-bottom: 1px solid var(--border-glass);
+   background: rgba(255, 255, 255, .04);
+}
+
+.site-nom {
+   font-family: var(--font-display);
+   font-size: 14px;
+   color: var(--heading);
+   margin-right: auto;
+}
+
+.site-tailles { display: flex; gap: 4px; }
+
+.site-tailles button {
+   width: 32px; height: 30px;
+   display: grid;
+   place-items: center;
+   border-radius: 7px;
+   border: 1px solid transparent;
+   background: none;
+   color: var(--text-mute);
+   cursor: pointer;
+   transition: color .2s, background .2s, border-color .2s;
+}
+
+.site-tailles button:hover { color: var(--text); background: rgba(255, 255, 255, .06); }
+
+.site-tailles button.actif {
+   color: var(--neon-cyan);
+   border-color: rgba(6, 182, 212, .4);
+   background: rgba(6, 182, 212, .12);
+}
+
+.site-onglet {
+   display: inline-flex;
+   align-items: center;
+   gap: 7px;
+   font-family: var(--font-mono);
+   font-size: 11px;
+   letter-spacing: .08em;
+   text-transform: uppercase;
+   color: var(--text-soft);
+   text-decoration: none;
+   padding: 7px 13px;
+   border-radius: 7px;
+   border: 1px solid var(--border-glass);
+   transition: color .2s, border-color .2s;
+}
+
+.site-onglet:hover { color: #fff; border-color: var(--border-glow); }
+
+@media (max-width: 640px) {
+   .site-tailles, .site-onglet span { display: none; }
+}
+
+.site-scene {
+   flex: 1;
+   min-height: 0;
+   display: flex;
+   justify-content: center;
+   background: #1a1a24;
+}
+
+.site-scene iframe {
+   width: var(--largeur-site, 100%);
+   height: 100%;
+   border: 0;
+   background: #fff;
+   transition: width .35s cubic-bezier(.22, 1, .36, 1);
+   box-shadow: 0 0 40px rgba(0, 0, 0, .6);
+}
+
+/* ============================================================
+   8. NANO — le drone et son micro-chat
+   ============================================================ */
+
+/* Le drone est maintenant un bouton : il faut annuler le style natif. */
+#nano-chibi {
+   border: 0;
+   padding: 0;
+   background: none;
+   -webkit-appearance: none;
+   appearance: none;
+}
+
+/* Chat ouvert : le drone se pose à côté de la fenêtre et arrête d'errer. */
+#nano-chibi.actif {
+   animation: chibi-float 4s ease-in-out infinite;
+   right: 25px;
+   filter: drop-shadow(0 0 22px rgba(139, 92, 246, .85));
+}
+
+#nano-chibi.actif .chibi-bubble { opacity: 0 !important; }
+
+.nano-chat {
+   position: fixed;
+   right: 22px;
+   bottom: 112px;
+   z-index: 1200;
+   width: min(380px, calc(100vw - 32px));
+   max-height: min(560px, calc(100vh - 160px));
+   display: flex;
+   flex-direction: column;
+   border-radius: 20px;
+   border: 1px solid var(--border-glow);
+   background: rgba(9, 9, 22, .95);
+   backdrop-filter: blur(20px) saturate(150%);
+   -webkit-backdrop-filter: blur(20px) saturate(150%);
+   box-shadow: 0 30px 70px -30px rgba(0, 0, 0, .95), 0 0 46px -14px rgba(139, 92, 246, .55);
+   overflow: hidden;
+   /* Le panneau se déplie depuis le drone, en bas à droite. */
+   transform-origin: bottom right;
+   opacity: 0;
+   transform: translateY(16px) scale(.86);
+   transition: opacity .26s cubic-bezier(.22, 1, .36, 1), transform .26s cubic-bezier(.22, 1, .36, 1);
+}
+
+.nano-chat.visible { opacity: 1; transform: none; }
+
+.nano-entete {
+   flex: none;
+   display: flex;
+   align-items: center;
+   gap: 11px;
+   padding: 13px 14px;
+   border-bottom: 1px solid var(--border-glass);
+   background: linear-gradient(120deg, rgba(139, 92, 246, .16), rgba(6, 182, 212, .1));
+}
+
+.nano-avatar { width: 34px; height: 34px; flex: none; }
+.nano-avatar svg { width: 100%; height: 100%; display: block; }
+
+@media (prefers-reduced-motion: no-preference) {
+   .nano-oeil { animation: nano-clignote 5s ease-in-out infinite; transform-origin: center; }
+}
+
+@keyframes nano-clignote {
+   0%, 92%, 100% { transform: scaleY(1); }
+   95%           { transform: scaleY(.1); }
+}
+
+.nano-id { display: flex; flex-direction: column; margin-right: auto; line-height: 1.25; }
+.nano-id b { font-family: var(--font-display); font-size: 14px; color: var(--heading); }
+
+.nano-id em {
+   font-style: normal;
+   font-family: var(--font-mono);
+   font-size: 10px;
+   letter-spacing: .1em;
+   text-transform: uppercase;
+   color: var(--text-mute);
+}
+
+.nano-id em[data-genre="enligne"]    { color: #34d399; }
+.nano-id em[data-genre="chargement"] { color: var(--neon-amber); }
+.nano-id em[data-genre="local"]      { color: var(--neon-cyan); }
+
+.nano-fermer {
+   width: 30px; height: 30px;
+   flex: none;
+   display: grid;
+   place-items: center;
+   border-radius: 50%;
+   border: 1px solid transparent;
+   background: none;
+   color: var(--text-mute);
+   cursor: pointer;
+   font-size: 12px;
+   transition: color .2s, border-color .2s, transform .2s;
+}
+
+.nano-fermer:hover { color: #fff; border-color: var(--border-glass); transform: rotate(90deg); }
+
+.nano-journal {
+   flex: 1;
+   min-height: 120px;
+   overflow-y: auto;
+   padding: 16px 14px;
+   display: flex;
+   flex-direction: column;
+   gap: 10px;
+   scrollbar-width: thin;
+}
+
+.nano-bulle {
+   max-width: 88%;
+   padding: 10px 13px;
+   border-radius: 14px;
+   font-size: 13.5px;
+   line-height: 1.6;
+   animation: bulle-entre .3s cubic-bezier(.22, 1, .36, 1) both;
+   overflow-wrap: break-word;
+}
+
+@keyframes bulle-entre {
+   from { opacity: 0; transform: translateY(9px); }
+   to   { opacity: 1; transform: none; }
+}
+
+.nano-bulle.nano {
+   align-self: flex-start;
+   background: rgba(255, 255, 255, .06);
+   border: 1px solid var(--border-glass);
+   border-bottom-left-radius: 4px;
+   color: var(--text);
+}
+
+.nano-bulle.moi {
+   align-self: flex-end;
+   background: linear-gradient(135deg, rgba(139, 92, 246, .32), rgba(6, 182, 212, .24));
+   border: 1px solid var(--border-glow);
+   border-bottom-right-radius: 4px;
+   color: #fff;
+}
+
+.nano-bulle.note {
+   align-self: stretch;
+   max-width: none;
+   background: none;
+   border: 0;
+   padding: 2px;
+   font-family: var(--font-mono);
+   font-size: 11px;
+   line-height: 1.55;
+   color: var(--text-mute);
+}
+
+.nano-jauge {
+   display: block;
+   height: 3px;
+   margin-top: 7px;
+   border-radius: 2px;
+   background: rgba(255, 255, 255, .08);
+   overflow: hidden;
+}
+
+.nano-jauge > i {
+   display: block;
+   height: 100%;
+   width: 0;
+   background: linear-gradient(90deg, var(--neon-violet), var(--neon-cyan));
+   transition: width .3s;
+}
+
+.nano-pct { color: var(--neon-cyan); }
+
+/* Trois points qui rebondissent pendant la génération. */
+.nano-points { display: inline-flex; gap: 4px; padding: 3px 0; }
+
+.nano-points i {
+   width: 6px; height: 6px;
+   border-radius: 50%;
+   background: var(--neon-cyan);
+   animation: points 1.3s ease-in-out infinite;
+}
+
+.nano-points i:nth-child(2) { animation-delay: .16s; }
+.nano-points i:nth-child(3) { animation-delay: .32s; }
+
+@keyframes points {
+   0%, 60%, 100% { transform: translateY(0); opacity: .45; }
+   30%           { transform: translateY(-5px); opacity: 1; }
+}
+
+.nano-puces {
+   flex: none;
+   display: flex;
+   gap: 6px;
+   padding: 0 14px 10px;
+   overflow-x: auto;
+   scrollbar-width: none;
+}
+
+.nano-puces::-webkit-scrollbar { display: none; }
+
+.nano-puces button {
+   flex: none;
+   font-family: var(--font-mono);
+   font-size: 10.5px;
+   white-space: nowrap;
+   padding: 6px 11px;
+   border-radius: 999px;
+   border: 1px solid var(--border-glass);
+   background: rgba(255, 255, 255, .03);
+   color: var(--text-mute);
+   cursor: pointer;
+   transition: color .2s, border-color .2s, background .2s;
+}
+
+.nano-puces button:hover {
+   color: #fff;
+   border-color: var(--border-glow);
+   background: rgba(139, 92, 246, .16);
+}
+
+.nano-saisie {
+   flex: none;
+   display: flex;
+   gap: 8px;
+   padding: 11px 12px;
+   border-top: 1px solid var(--border-glass);
+   background: rgba(255, 255, 255, .03);
+}
+
+.nano-saisie input {
+   flex: 1;
+   min-width: 0;
+   font-family: var(--font-body);
+   font-size: 13.5px;
+   padding: 10px 14px;
+   border-radius: 999px;
+   border: 1px solid var(--border-glass);
+   background: rgba(0, 0, 0, .35);
+   color: var(--text);
+}
+
+.nano-saisie input::placeholder { color: var(--text-mute); }
+
+.nano-saisie input:focus {
+   outline: none;
+   border-color: var(--border-glow);
+   box-shadow: 0 0 0 3px rgba(139, 92, 246, .16);
+}
+
+.nano-saisie button {
+   flex: none;
+   width: 40px; height: 40px;
+   display: grid;
+   place-items: center;
+   border-radius: 50%;
+   border: 0;
+   cursor: pointer;
+   color: #fff;
+   background: linear-gradient(135deg, var(--neon-violet), var(--neon-cyan));
+   transition: transform .2s, filter .2s;
+}
+
+.nano-saisie button:hover { transform: scale(1.08); filter: brightness(1.12); }
+
+@media (max-width: 520px) {
+   .nano-chat { right: 12px; left: 12px; width: auto; bottom: 104px; }
+}
+
+/* ============================================================
+   9. RESPECT DE prefers-reduced-motion
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+   .carte-projet,
+   .vitrine,
+   .passion,
+   .phare,
+   .modale-boite,
+   .site-boite,
+   .nano-chat { transition-duration: .01ms !important; }
+
+   .carte-vignette::after { display: none; }
+
+   .archive-liste li,
+   .nano-bulle { animation: none !important; }
+
+   .carte-projet:hover,
+   .vitrine:hover,
+   .passion:hover { transform: none; }
+}
+
+/* La pastille de disponibilite se detachait mal sur le halo du Soleil. */
+.hero .hero-tag {
+   background: rgba(6, 6, 16, .7);
+   backdrop-filter: blur(6px);
+   -webkit-backdrop-filter: blur(6px);
+   color: #7de9ff;
+   text-shadow: 0 1px 10px rgba(0, 0, 0, .9);
+}
+
+/* ============================================================
+   10. LISIBILITÉ DES BLOCS DE CONTENU (correctif de fond)
+   ============================================================ */
+
+/* Ces blocs étaient posés en opacity: 0 et ne se révélaient QUE lorsque leur
+   section devenait la section « active » du voyage. Dès que le calcul de
+   segment se décalait — deux sections courtes, un écran très haut, une arrivée
+   par ancre — le contenu restait purement et simplement invisible. C'était la
+   cause principale des zones illisibles. Ils sont désormais visibles par
+   défaut ; l'entrée lumineuse de la section active, elle, est conservée. */
+.glass-panel,
+.about-me,
+.resume-item,
+.service-item,
+.terminal,
+.claude-card,
+.portfolio-card,
+.contact-card {
+   opacity: 1;
+   transform: none;
+}
+
+/* Un fond à 3 % de blanc ne tient pas devant le Soleil : le texte devenait
+   illisible chaque fois qu'un astre brillant passait derrière. */
+.about .glass-panel {
+   background: rgba(10, 10, 24, .94);
+   backdrop-filter: blur(12px) saturate(130%);
+   -webkit-backdrop-filter: blur(12px) saturate(130%);
+}
+
+.resume-item,
+.contact-card {
+   background: rgba(10, 10, 24, .9);
+   backdrop-filter: blur(12px) saturate(130%);
+   -webkit-backdrop-filter: blur(12px) saturate(130%);
+}
+
+.resume-item {
+   border-radius: var(--radius-md);
+   padding: 18px 20px 18px 24px;
+   margin-bottom: 14px;
+}
+
+/* Les titres de rang et la note des vitrines vivent aussi sur le décor. */
+.rang-titre,
+.filtres,
+.archive,
+.showcase-note {
+   position: relative;
+   z-index: 1;
+}
+
+/* ============================================================
+   11. LE VRAI COUPABLE DES ZONES ILLISIBLES : backdrop-filter
+   ============================================================
+   Mesuré, pas supposé : sur un panneau à 94 % d'opacité, le disque du Soleil
+   ressortait à rgb(211,183,105) — c'est-à-dire PAR-DESSUS le panneau. En
+   retirant le seul backdrop-filter, le même point tombe à rgb(26,24,31).
+   Un élément qui déclare backdrop-filter passe dans sa propre couche de
+   composition, et le canvas WebGL en position fixed (z-index:-2) se retrouve
+   composé au-dessus de son fond. Les panneaux posés sur la scène 3D n'en
+   utilisent donc plus : ils s'appuient sur une couleur de fond franche.
+   (Le filtre reste sur l'en-tête et la pastille du HUD, où il fonctionne.) */
+
+.about .glass-panel,
+.resume-item,
+.contact-card,
+.phare,
+.carte-projet,
+.vitrine,
+.passion,
+.archive,
+.hero-scrim,
+.glass,
+.portfolio-card,
+.service-item,
+.terminal {
+   backdrop-filter: none !important;
+   -webkit-backdrop-filter: none !important;
+}
+
+/* Sans le flou, c'est la couleur qui doit tenir le contraste toute seule. */
+.hero-scrim {
+   background:
+      radial-gradient(ellipse 64% 60% at 50% 48%, rgba(4, 4, 12, .92) 0%,
+                                                  rgba(4, 4, 12, .74) 46%,
+                                                  transparent 78%);
+}
+
+.archive { background: rgba(10, 10, 24, .88); }
+
+/* Les surfaces flottantes (chat, fenêtres modales) sont dans le même cas :
+   elles passent au-dessus du canvas, donc pas de flou non plus. */
+.nano-chat {
+   backdrop-filter: none;
+   -webkit-backdrop-filter: none;
+   background: rgba(9, 9, 22, .985);
+}
+
+.modale-fond {
+   backdrop-filter: none;
+   -webkit-backdrop-filter: none;
+   background: rgba(3, 3, 10, .93);
+}
+
+.modale-boite,
+.site-boite { background: rgba(11, 11, 26, .99); }
+
+.vitrine-voile {
+   backdrop-filter: none;
+   -webkit-backdrop-filter: none;
+   background: rgba(6, 6, 16, .74);
+}
+
+/* ============================================================
+   ENTRÉES DE CONTENU  (pilotées par assets/js/reveal.js)
+
+   Une seule transition composée par bloc : `transform` + `opacity`,
+   rien d'autre. Pas de `filter: blur()` ici — sur une page qui a déjà
+   un canvas WebGL plein écran, chaque bloc flouté devient sa propre
+   couche de composition et le coût se paie au scroll.
+
+   La courbe est volontairement longue à la sortie (0.62s, ease-out
+   appuyé) : c'est ce qui donne le glissé, là où AOS claquait en 0.4s
+   linéaire sur les 26 blocs à l'identique.
+   ============================================================ */
+[data-reveal] {
+  will-change: transform, opacity;
+}
+
+.a-reveler {
+  opacity: 0;
+}
+
+.a-reveler,
+.revele {
+  transition:
+    opacity .62s cubic-bezier(.22, .68, .28, 1),
+    transform .72s cubic-bezier(.22, .68, .28, 1);
+}
+
+/* Les directions. Les distances restent courtes (28–54 px) : au-delà,
+   l'œil suit le déplacement au lieu de lire le contenu. */
+[data-reveal="left"].a-reveler   { transform: translate3d(-54px, 0, 0); }
+[data-reveal="right"].a-reveler  { transform: translate3d(54px, 0, 0); }
+[data-reveal="up"].a-reveler     { transform: translate3d(0, 34px, 0); }
+[data-reveal="scale"].a-reveler  { transform: scale(.94); }
+[data-reveal="tilt"].a-reveler   { transform: translate3d(0, 28px, 0) rotate(-1.1deg); }
+
+.revele {
+  opacity: 1;
+  transform: none;
+}
+
+/* Le voyage 3D donne déjà le mouvement de fond : si le visiteur a
+   demandé moins d'animation, les blocs sont simplement là. */
+@media (prefers-reduced-motion: reduce) {
+  .a-reveler,
+  .revele {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ============================================================
+   AMBITION — Mars
+   ============================================================ */
+.ambition-bloc {
+  display: grid;
+  grid-template-columns: 210px 1fr;
+  gap: 34px;
+  padding: 38px 40px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-glass);
+  border-left: 2px solid var(--neon-amber);
+  /* Fond opaque et pas de backdrop-filter : ce bloc est posé sur le
+     canvas, et un filtre ferait remonter le Soleil par-dessus le texte. */
+  background: rgba(11, 10, 24, .93);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .04);
+}
+
+.ambition-marge {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border-right: 1px dashed var(--border-glass);
+  padding-right: 24px;
+}
+
+.ambition-kicker {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: .1em;
+  color: var(--neon-amber);
+  text-transform: uppercase;
+}
+
+.ambition-statut {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 158, 11, .35);
+  background: rgba(245, 158, 11, .08);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .08em;
+  color: #fbbf24;
+}
+
+.ambition-statut i {
+  font-size: 9px;
+  animation: pouls-statut 2.4s ease-in-out infinite;
+}
+
+@keyframes pouls-statut {
+  0%, 100% { opacity: .45; }
+  50%      { opacity: 1; }
+}
+
+.ambition-texte p {
+  margin: 0 0 22px;
+  font-size: 16.5px;
+  line-height: 1.75;
+  color: var(--text);
+}
+
+/* La première phrase porte tout le propos : on la sort du gris. */
+.ambition-texte p::first-line {
+  color: #fff;
+  font-weight: 500;
+}
+
+.ambition-piliers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-top: 22px;
+}
+
+.pilier {
+  position: relative;
+  padding: 26px 24px 24px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-glass);
+  background: rgba(10, 10, 22, .88);
+  overflow: hidden;
+  transition: border-color .3s ease, transform .3s ease;
+}
+
+.pilier::after {
+  /* Trait d'accent qui se remplit au survol, de gauche à droite. */
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 0;
+  background: linear-gradient(90deg, var(--neon-amber), transparent);
+  transition: width .45s cubic-bezier(.22, .68, .28, 1);
+}
+
+.pilier:hover {
+  border-color: rgba(245, 158, 11, .34);
+  transform: translateY(-3px);
+}
+
+.pilier:hover::after { width: 100%; }
+
+.pilier-num {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: .14em;
+  color: var(--neon-amber);
+  opacity: .8;
+}
+
+.pilier h3 {
+  margin: 10px 0 8px;
+  font-family: var(--font-display);
+  font-size: 17px;
+  color: var(--heading);
+}
+
+.pilier p {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--text-soft);
+}
+
+@media (max-width: 900px) {
+  .ambition-bloc {
+    grid-template-columns: 1fr;
+    padding: 28px 24px;
+  }
+
+  .ambition-marge {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    border-right: 0;
+    border-bottom: 1px dashed var(--border-glass);
+    padding: 0 0 16px;
+  }
+
+  .ambition-piliers { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   CERBER — statut « en conception »
+   ============================================================ */
+.phare-statut.en-conception {
+  border-color: rgba(239, 68, 68, .45);
+  background: rgba(239, 68, 68, .12);
+  color: #fca5a5;
+}
+
+.phare-cerber { --teinte-phare: #ef4444; }
+
+/* ============================================================
+   PASSIONS — deux cartes mises en avant
+   ============================================================ */
+/* Six colonnes : deux cartes larges (3 + 3) sur la premiere ligne,
+   trois cartes normales (2 + 2 + 2) sur la seconde. */
+.grille-passions {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+.grille-passions .passion { grid-column: span 2; }
+.grille-passions .passion-large { grid-column: span 3; }
+
+.passion-large h3 { font-size: 19px; }
+
+@media (max-width: 1100px) {
+  .grille-passions { grid-template-columns: repeat(2, 1fr); }
+  .grille-passions .passion,
+  .grille-passions .passion-large { grid-column: span 1; }
+}
+
+@media (max-width: 640px) {
+  .grille-passions { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   CRÉATIONS — 3 + 2
+
+   Six colonnes : trois cartes de deux sur la première ligne, deux
+   cartes de trois sur la seconde. L'ancien `auto-fill` laissait un
+   trou béant en fin de grille dès que le compte ne tombait pas juste,
+   et les deux démos les plus parlantes (la boutique et le tableau de
+   bord) méritent la largeur.
+   ============================================================ */
+.grille-vitrines {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+.grille-vitrines .vitrine { grid-column: span 2; }
+
+.grille-vitrines .vitrine-large { grid-column: span 3; }
+
+@media (max-width: 1150px) {
+  .grille-vitrines { grid-template-columns: repeat(2, 1fr); }
+
+  .grille-vitrines .vitrine,
+  .grille-vitrines .vitrine-large { grid-column: span 1; }
+}
+
+@media (max-width: 720px) {
+  .grille-vitrines { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   AMBITION — colonne de gauche
+
+   La marge ne portait que le kicker et la pastille de statut : sous
+   un paragraphe de quinze lignes, ça laissait un vide qui sautait aux
+   yeux. Elle porte maintenant les trois mots qui résument l'offre,
+   reliés par un filet vertical.
+   ============================================================ */
+.ambition-piliers-mini {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0 0 0 18px;
+  position: relative;
+}
+
+.ambition-piliers-mini::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  background: linear-gradient(180deg, var(--neon-amber), rgba(245, 158, 11, 0));
+}
+
+.ambition-piliers-mini li {
+  position: relative;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  padding: 7px 0;
+}
+
+.ambition-piliers-mini li::before {
+  content: "";
+  position: absolute;
+  left: -19px;
+  top: 13px;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  border: 1px solid var(--neon-amber);
+  background: var(--bg-0);
+}
+
+.ambition-bloc .ambition-btn { margin-top: 4px; }
+
+/* ============================================================
+   CONTACT — la fin de page
+
+   Cinq cartes identiques en `auto-fit` donnaient 4 + 1 : une carte
+   orpheline sur la seconde ligne, puis un grand vide avant le pied de
+   page. La section se termine maintenant sur un vrai appel — l'e-mail
+   en action principale — et les liens tiennent en 2 × 2 + 1 large.
+   ============================================================ */
+.contact-bloc {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 30px;
+  align-items: start;
+  margin-bottom: 40px;
+}
+
+.contact-appel {
+  padding: 32px 34px 30px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-glass);
+  border-left: 2px solid var(--neon-cyan);
+  /* Opaque, sans backdrop-filter : ce bloc est posé sur le canvas. */
+  background: rgba(10, 10, 22, .93);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .04);
+}
+
+.contact-dispo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 13px;
+  border-radius: 999px;
+  border: 1px solid rgba(6, 182, 212, .35);
+  background: rgba(6, 182, 212, .09);
+  color: #67e8f9;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.contact-dispo i { font-size: 10px; animation: pouls-statut 2.4s ease-in-out infinite; }
+
+.contact-appel h3 {
+  margin: 18px 0 12px;
+  font-family: var(--font-display);
+  font-size: 26px;
+  line-height: 1.25;
+  color: var(--heading);
+}
+
+.contact-appel > p {
+  margin: 0 0 24px;
+  color: var(--text-soft);
+  font-size: 15.5px;
+  line-height: 1.7;
+  max-width: 48ch;
+}
+
+.contact-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+.contact-delai {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 22px 0 0;
+  padding-top: 18px;
+  border-top: 1px dashed var(--border-glass);
+  font-size: 13px;
+  color: var(--text-mute);
+}
+
+.contact-liens {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+/* Seule la localisation prend la largeur. Faire aussi s'étaler l'e-mail
+   laissait GitLab seul sur sa ligne : quatre cartes normales tombent sur
+   deux lignes pleines, la cinquième ferme le bloc. */
+.contact-liens .contact-card.large { grid-column: 1 / -1; }
+
+/* Le flou de fond faisait remonter le Soleil par-dessus ces cartes
+   (voir « Readability over the 3D scene ») : fond opaque à la place. */
+.contact-card {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: rgba(11, 11, 24, .9);
+}
+
+.contact-card:hover { background: rgba(17, 17, 36, .96); }
+
+.contact-grid { margin-bottom: 0; }
+
+@media (max-width: 980px) {
+  .contact-bloc { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 620px) {
+  .contact-liens { grid-template-columns: 1fr; }
+  .contact-liens .contact-card { grid-column: auto; }
+}
+
+/* ============================================================
+   CRÉATIONS — aperçus en veille
+
+   Les aperçus sont recyclés : au plus trois iframes vivantes à la fois
+   (voir gallery.js). Une carte éteinte doit donc avoir un fond, sinon
+   elle vire au blanc franc au milieu d'une page noire — bien plus
+   voyant que le chargement qu'on cherchait à éviter.
+   ============================================================ */
+.vitrine .vitrine-cadre {
+  background: #0d0d1c;
+}
+
+.vitrine.en-veille .vitrine-cadre {
+  background:
+    repeating-linear-gradient(135deg,
+      rgba(255, 255, 255, .022) 0 10px,
+      transparent 10px 20px),
+    radial-gradient(ellipse 70% 70% at 50% 40%,
+      color-mix(in srgb, var(--teinte, #8b5cf6) 18%, transparent) 0%,
+      #0d0d1c 72%);
+}
+
+.vitrine.en-veille .vitrine-cadre::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
