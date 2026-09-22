@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+   <meta charset="utf-8">
+   <meta content="width=device-width, initial-scale=1.0" name="viewport">
+   <title>Bastien Nieto — Développeur Fullstack &amp; Intégration IA</title>
+   <meta name="description"
+      content="Bastien Nieto, développeur fullstack et expert en intégration IA : systèmes multi-agents, fine-tuning, LoRA, web, mobile et jeux. Voyage dans un système solaire 3D et discute avec une IA qui tourne dans ton navigateur.">
+   <meta name="keywords"
+      content="Bastien Nieto, développeur fullstack, intégration IA, multi-agents, LoRA, Aegis, Luminai, UnderGears, portfolio">
+   <meta name="theme-color" content="#06060c">
+   <meta property="og:title" content="Bastien Nieto — Fullstack &amp; Intégration IA">
+   <meta property="og:description"
+      content="Systèmes multi-agents, intégration IA, fullstack. Fond système solaire 3D + IA locale dans le navigateur.">
+   <meta property="og:type" content="website">
+   <link href="assets/img/favicon.png" rel="icon">
+   <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+   <link href="https://fonts.googleapis.com" rel="preconnect">
+   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+   <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet">
+   <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+   <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+   <link href="assets/css/main.css?v=88d97eded0" rel="stylesheet">
+</head>
+
+<body class="index-page">
+   <canvas id="webgl-bg"></canvas>
+   <div class="scroll-progress" id="scroll-progress"></div>
+
+   <header id="header" class="header">
+      <div class="container-fluid">
+         <a href="#hero" class="logo d-flex align-items-center">
+            <h1 class="sitename">MyWorld</h1>
+         </a>
+         <nav id="navmenu" class="navmenu">
+            <ul>
+               <li><a href="#hero" class="active" data-i18n="home_ref">Accueil</a></li>
+               <li><a href="#about" data-i18n="about_ref">À propos</a></li>
+               <li><a href="#resume" data-i18n="resume_ref">Parcours</a></li>
+               <li><a href="#ambition" data-i18n="ambition_ref">Ambition</a></li>
+               <li><a href="#projects" data-i18n="portfolio_ref">Projets</a></li>
+               <li><a href="#showcase" data-i18n="showcase_ref">Créations</a></li>
+               <li><a href="#passions" data-i18n="passions_ref">Passions</a></li>
+               <li><a href="#contact" data-i18n="contact_ref">Contact</a></li>
+               <div class="dropdown" id="lang-switcher">
+                  <a href="#" id="current-lang" data-bs-toggle="dropdown" aria-expanded="false">
+                     <img src="assets/img/fr-flag.png" alt="langue" width="24" height="24">
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                     <li><a class="dropdown-item lang-item" href="#" data-lang="fr"><img src="assets/img/fr-flag.png"
+                              alt="fr" width="22" height="22"></a></li>
+                     <li><a class="dropdown-item lang-item" href="#" data-lang="en"><img src="assets/img/en-flag.png"
+                              alt="en" width="22" height="22"></a></li>
+                  </ul>
+               </div>
+               <span class="nav-indicator" aria-hidden="true"></span>
+            </ul>
+            <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+         </nav>
+      </div>
+   </header>
+
+   <main class="main">
+
+      <!-- ============ HERO — le Soleil ============ -->
+      <section id="hero" class="hero section">
+         <div class="hero-inner container">
+            <div class="hero-scrim" aria-hidden="true"></div>
+            <span class="hero-tag">
+               <span class="dot"></span>
+               <span data-i18n="hero_status">Dispo pour de nouveaux projets</span>
+            </span>
+            <h2 class="hero-name" data-i18n="mon_nom">Bastien Nieto</h2>
+            <p class="hero-role" data-i18n="hero_role">Développeur Fullstack &amp; Expert en Intégration IA</p>
+            <p class="hero-subtitle">
+               <span class="seq">&gt;_</span>
+               <span id="typed-text"
+                  data-typed-items="J'orchestre des agents IA, Je fine-tune des modèles, Je code en fullstack"></span>
+            </p>
+            <div class="hero-cta">
+               <a href="#projects" class="btn-neon"><i class="bi bi-grid-3x3-gap"></i> <span
+                     data-i18n="hero_cta_projects">Voir mes projets</span></a>
+               <button type="button" class="btn-neon ghost" data-nano-open><i class="bi bi-stars"></i> <span
+                     data-i18n="hero_cta_terminal">Parler à mon IA</span></button>
+               <a href="assets/files/bastien_nieto.pdf" download class="btn-neon ghost"><i class="bi bi-download"></i>
+                  <span data-i18n="hero_cta_cv">Mon CV</span></a>
+            </div>
+         </div>
+         <a href="#about" class="hero-scroll-hint">
+            <span data-i18n="hero_scroll">Embarquer</span> <i class="bi bi-chevron-double-down"></i>
+         </a>
+      </section>
+
+      <!-- ============ ABOUT — Mercure ============ -->
+      <section id="about" class="about section">
+         <div class="container section-title" data-reveal="up">
+            <span class="section-kicker">// ABOUT</span>
+            <h2 data-i18n="about_title">À propos</h2>
+            <p data-i18n="about_subtitle">Développeur fullstack, à fond dans l'intégration de l'IA.</p>
+         </div>
+         <div class="container">
+            <div class="row gy-4 align-items-stretch">
+               <div class="col-lg-5" data-reveal="left">
+                  <div class="glass-panel h-100">
+                     <div class="row gy-4 align-items-center">
+                        <div class="col-sm-5">
+                           <img src="assets/img/portrait-2026.jpg" class="portrait" alt="Portrait de Bastien Nieto">
+                        </div>
+                        <div class="col-sm-7 about-info">
+                           <p><strong data-i18n="name_about">Nom :</strong><span>Bastien Nieto</span></p>
+                           <p><strong data-i18n="profil_about">Profil :</strong><span
+                                 data-i18n="profil_about_2">Fullstack &amp; Intégration IA</span></p>
+                           <p><strong data-i18n="email_about">Email :</strong><span>bastien.nieto.pro@gmail.com</span></p>
+                           <p><strong data-i18n="phone_about">Spot :</strong><span data-i18n="loc_about">Côte d'Azur
+                                 (83)</span></p>
+                           <a href="assets/files/bastien_nieto.pdf" download class="btn-cv" id="download-cv">
+                              <i class="bi bi-download"></i> <span data-i18n="cv_download">Télécharger mon CV</span>
+                           </a>
+                        </div>
+                     </div>
+                     <div class="skills-content skills-animation">
+                        <h5 data-i18n="skills_title">Langues</h5>
+                        <div class="progress">
+                           <span class="skill"><span data-i18n="skills_fr">Français</span> <i class="val"
+                                 data-i18n="skills_fr_level">Maternelle</i></span>
+                           <div class="progress-bar-wrap">
+                              <div class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0"
+                                 aria-valuemax="100"></div>
+                           </div>
+                        </div>
+                        <div class="progress">
+                           <span class="skill"><span data-i18n="skills_en">Anglais</span> <i class="val"
+                                 data-i18n="skills_en_level">B2</i></span>
+                           <div class="progress-bar-wrap">
+                              <div class="progress-bar" role="progressbar" aria-valuenow="75" aria-valuemin="0"
+                                 aria-valuemax="100"></div>
+                           </div>
+                        </div>
+                        <div class="progress">
+                           <span class="skill"><span data-i18n="skills_it">Italien</span> <i class="val"
+                                 data-i18n="skills_it_level">A1</i></span>
+                           <div class="progress-bar-wrap">
+                              <div class="progress-bar" role="progressbar" aria-valuenow="30" aria-valuemin="0"
+                                 aria-valuemax="100"></div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+
+               <div class="col-lg-7" data-reveal="right" data-reveal-delay="90">
+                  <div class="glass-panel about-me h-100">
+                     <h4 data-i18n="about_headline">Ce que je fais, en trois phrases</h4>
+                     <p data-i18n="about_1">Développeur fullstack passé par trois ans d'alternance en entreprise, je
+                        construis et fais évoluer des applis web et mobiles en production (PHP/Symfony, Node.js,
+                        Java/Kotlin).</p>
+                     <p data-i18n="about_2">Du backend (API, bases de données, admin système) au frontend (UI/UX,
+                        intégration), je touche à toute la chaîne — et j'aime que ça parte en prod proprement.</p>
+                     <p data-i18n="about_3">Ma vraie passion : l'intégration de l'IA. J'orchestre des systèmes
+                        multi-agents, je fine-tune des modèles (LoRA) et je branche des LLM dans des produits concrets.
+                     </p>
+
+                     <!-- Les six « services » d'avant, ramenés à ce qu'ils étaient vraiment :
+                          une liste de compétences, pas une section entière. -->
+                     <ul class="capacites">
+                        <li><i class="bi bi-cpu"></i><span data-i18n="cap_ai">Ingénierie IA &amp; multi-agents</span>
+                        </li>
+                        <li><i class="bi bi-laptop"></i><span data-i18n="cap_web">Web fullstack</span></li>
+                        <li><i class="bi bi-phone"></i><span data-i18n="cap_mobile">Mobile</span></li>
+                        <li><i class="bi bi-arrow-repeat"></i><span data-i18n="cap_legacy">Modernisation de
+                              legacy</span></li>
+                        <li><i class="bi bi-cloud-upload"></i><span data-i18n="cap_ops">Serveurs &amp;
+                              déploiement</span></li>
+                        <li><i class="bi bi-robot"></i><span data-i18n="cap_auto">RAG &amp; automatisation</span></li>
+                     </ul>
+
+                     <p class="about-perso" data-i18n="about_perso">⚡ Hors du code : Formule 1, belles mécaniques et
+                        beaucoup (trop) de café.</p>
+
+                     <!-- L'ancienne section « Copilotes » réduite à ce qui était factuel :
+                          les outils que j'utilise pour de vrai. -->
+                     <div class="stack-ia">
+                        <span class="stack-ia-titre" data-i18n="stack_title">Ma stack IA au quotidien</span>
+                        <div class="stack-ia-rangee">
+                           <span class="ia-puce" title="Claude · Anthropic">
+                              <svg viewBox="0 0 120 120" aria-hidden="true">
+                                 <defs>
+                                    <path id="cl-blade" d="M60 60 C55 42 55 23 60 8 C65 23 65 42 60 60 Z"></path>
+                                 </defs>
+                                 <g fill="#D97757">
+                                    <use href="#cl-blade"></use>
+                                    <use href="#cl-blade" transform="rotate(45 60 60)"></use>
+                                    <use href="#cl-blade" transform="rotate(90 60 60)"></use>
+                                    <use href="#cl-blade" transform="rotate(135 60 60)"></use>
+                                    <use href="#cl-blade" transform="rotate(180 60 60)"></use>
+                                    <use href="#cl-blade" transform="rotate(225 60 60)"></use>
+                                    <use href="#cl-blade" transform="rotate(270 60 60)"></use>
+                                    <use href="#cl-blade" transform="rotate(315 60 60)"></use>
+                                    <circle cx="60" cy="60" r="8.5"></circle>
+                                 </g>
+                              </svg><b>Claude</b>
+                           </span>
+                           <span class="ia-puce" title="Gemini · Google">
+                              <svg viewBox="0 0 100 100" aria-hidden="true">
+                                 <defs>
+                                    <linearGradient id="gem-grad" x1="8" y1="14" x2="92" y2="86"
+                                       gradientUnits="userSpaceOnUse">
+                                       <stop offset="0" stop-color="#4796E3"></stop>
+                                       <stop offset="0.5" stop-color="#9177C7"></stop>
+                                       <stop offset="1" stop-color="#D56F82"></stop>
+                                    </linearGradient>
+                                 </defs>
+                                 <path fill="url(#gem-grad)"
+                                    d="M50 4 C53 27 73 47 96 50 C73 53 53 73 50 96 C47 73 27 53 4 50 C27 47 47 27 50 4 Z">
+                                 </path>
+                              </svg><b>Gemini</b>
+                           </span>
+                           <span class="ia-puce" title="Mistral AI">
+                              <img src="assets/img/mistral-logo.png" alt=""><b>Mistral</b>
+                           </span>
+                           <span class="ia-puce" title="Ollama — modèles locaux">
+                              <img src="assets/img/ollama-logo.png" alt=""><b>Ollama</b>
+                           </span>
+                           <span class="ia-puce" title="Qwen — fine-tuning LoRA">
+                              <i class="bi bi-diagram-3"></i><b>Qwen · LoRA</b>
+                           </span>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </section>
+
+      <!-- ============ RESUME — Vénus ============ -->
+      <section id="resume" class="resume section">
+         <div class="container section-title" data-reveal="up">
+            <span class="section-kicker">// RESUME</span>
+            <h2 data-i18n="resume_title">Parcours</h2>
+            <p data-i18n="resume_subtitle">Mon parcours, mes expériences et mes compétences clés.</p>
+         </div>
+         <div class="container">
+            <div class="row gy-5">
+               <div class="col-lg-6" data-reveal="up">
+                  <h3 class="resume-title" data-i18n="resume_education_title">Formations</h3>
+                  <div class="resume-item now">
+                     <h4 data-i18n="resume_polytech_title">Polytech — Cycle ingénieur</h4>
+                     <h5 data-i18n="resume_polytech_date">2026 – aujourd'hui</h5>
+                     <p><em data-i18n="resume_polytech_school">École d'ingénieurs · 1re année</em></p>
+                  </div>
+                  <div class="resume-item">
+                     <h4 data-i18n="resume_but_title">BUT Informatique (alternance)</h4>
+                     <h5 data-i18n="resume_but_date">2023 - 2026</h5>
+                     <p><em data-i18n="resume_but_school">IUT de Sophia Antipolis</em></p>
+                  </div>
+                  <div class="resume-item">
+                     <h4 data-i18n="resume_peip_title">Polytech Annecy — PeiP1</h4>
+                     <h5 data-i18n="resume_peip_date">2022 - 2023</h5>
+                     <p><em data-i18n="resume_peip_school">Cycle préparatoire intégré</em></p>
+                  </div>
+                  <div class="resume-item">
+                     <h4 data-i18n="resume_bac_title">Bac Général Mathématiques / NSI</h4>
+                     <h5 data-i18n="resume_bac_date">2022</h5>
+                     <p><em data-i18n="resume_bac_mention">Mention Bien</em></p>
+                  </div>
+               </div>
+               <div class="col-lg-6" data-reveal="left">
+                  <h3 class="resume-title" data-i18n="resume_exp_title">Expérience professionnelle</h3>
+                  <div class="resume-item now">
+                     <h4 data-i18n="resume_valiance_title">Développeur Full Stack &amp; Intégration IA (alternance)
+                     </h4>
+                     <h5 data-i18n="resume_valiance_date">2023 – aujourd'hui</h5>
+                     <p><em data-i18n="resume_valiance_company">Valiance, Sophia Antipolis</em></p>
+                     <ul>
+                        <li data-i18n="resume_valiance_ai">Intégration d'IA pour le service client : assistants,
+                           automatisation des réponses et des workflows internes.</li>
+                        <li data-i18n="resume_valiance_erp">Migration et évolution de l'ERP maison (Symfony 1.4 ➔ 4 ➔
+                           7), avec pont hybride pour la continuité de service.</li>
+                        <li data-i18n="resume_valiance_web">Développement web &amp; mobile fullstack. Portage Java ➔
+                           Kotlin, premiers pas en Swift.</li>
+                        <li data-i18n="resume_valiance_sys">Administration système &amp; infra : serveurs OVH, NAS
+                           QNAP, sauvegardes.</li>
+                        <li data-i18n="resume_valiance_team">Documentation, gestion de projet, réunions clients.</li>
+                     </ul>
+                  </div>
+                  <div class="resume-item">
+                     <h4 data-i18n="resume_monaclean_title">Stagiaire — Monaclean</h4>
+                     <h5 data-i18n="resume_monaclean_date">Juillet 2023</h5>
+                     <p data-i18n="resume_monaclean_desc">Découverte du monde pro et des métiers techniques et de
+                        gestion.</p>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </section>
+
+      <!-- ============ STATS — la Terre ============ -->
+      <section id="stats" class="stats section">
+         <div class="container">
+            <div class="row gy-4 justify-content-center">
+               <div class="col-lg-3 col-6" data-reveal="right" data-reveal-delay="90">
+                  <div class="stats-item">
+                     <span data-purecounter-start="0" data-purecounter-end="18" data-purecounter-duration="2"
+                        class="purecounter">0</span>
+                     <p data-i18n="stat_projects">Projets réalisés</p>
+                  </div>
+               </div>
+               <div class="col-lg-3 col-6" data-reveal="scale">
+                  <div class="stats-item">
+                     <span data-purecounter-start="0" data-purecounter-end="24" data-purecounter-duration="2"
+                        class="purecounter">0</span>
+                     <p data-i18n="stat_techs">Technologies</p>
+                  </div>
+               </div>
+               <div class="col-lg-3 col-6" data-reveal="scale" data-reveal-delay="80">
+                  <div class="stats-item">
+                     <span data-purecounter-start="0" data-purecounter-end="8" data-purecounter-duration="2"
+                        class="purecounter">0</span>
+                     <p data-i18n="stat_experience">Années de code</p>
+                  </div>
+               </div>
+               <div class="col-lg-3 col-6" data-reveal="scale" data-reveal-delay="160">
+                  <div class="stats-item">
+                     <span data-purecounter-start="0" data-purecounter-end="7" data-purecounter-duration="2"
+                        class="purecounter">0</span>
+                     <p data-i18n="stat_agents">Agents dans Aegis</p>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </section>
+
+      <!-- ============ AMBITION — Mars ============ -->
+      <section id="ambition" class="ambition section">
+         <div class="container section-title" data-reveal="scale" data-reveal-delay="240">
+            <span class="section-kicker">// AMBITION</span>
+            <h2 data-i18n="ambition_title">Créer mon entreprise</h2>
+            <p data-i18n="ambition_subtitle">L'étape d'après, et le fil qui relie tout le reste de cette page.</p>
+         </div>
+
+         <div class="container">
+            <div class="ambition-bloc" data-reveal="left">
+               <div class="ambition-marge">
+                  <span class="ambition-kicker" data-i18n="ambition_kicker">// ce vers quoi je construis</span>
+                  <span class="ambition-statut"><i class="bi bi-record-circle"></i> <span
+                        data-i18n="ambition_status">Statut : en préparation</span></span>
+                  <ul class="ambition-piliers-mini" aria-hidden="true">
+                     <li>IA locale</li>
+                     <li>Souveraine</li>
+                     <li>RGPD by design</li>
+                  </ul>
+               </div>
+               <div class="ambition-texte">
+                  <p data-i18n="ambition_p1">Mon objectif n'est pas de rester à intégrer l'IA des autres : je veux
+                     monter ma propre entreprise, à mon nom, et vendre aux entreprises ce que je sais faire de mieux —
+                     installer de l'IA locale et souveraine directement chez elles. Aujourd'hui, une société qui veut
+                     de l'IA n'a en pratique qu'une seule porte d'entrée : envoyer ses données chez un fournisseur
+                     étranger, payer au token, et ne jamais vraiment savoir où ses documents atterrissent ni ce qu'ils
+                     entraînent. Je veux ouvrir l'autre porte. D'abord le conseil — venir regarder ce qu'il y a
+                     réellement dans leurs processus, et leur dire honnêtement ce que l'IA peut faire chez eux, ce
+                     qu'elle ne fera pas, et ce que ça coûte pour de vrai. Ensuite la construction — entraîner et
+                     fine-tuner les modèles sur leurs données à elles, les déployer sur leurs machines à elles, puis
+                     repartir en laissant leurs équipes capables de s'en servir sans moi. Le tout dans les clous du
+                     RGPD, pas comme une case cochée en fin de projet, mais comme la contrainte de départ qui décide
+                     de l'architecture. C'est exactement le fil qui relie tout ce qu'il y a sur cette page : Aegis
+                     tourne sans une seule API, Nano tourne dans votre navigateur et pas sur mon serveur, Cerber
+                     n'existe que pour empêcher des données de fuir. Je ne vendrai pas une techno parce qu'elle est à
+                     la mode — je vendrai la seule façon de faire que je pratique déjà, tous les jours, sur mes
+                     propres projets.</p>
+                  <a href="#contact" class="btn-neon ambition-btn"><i class="bi bi-send"></i> <span
+                        data-i18n="ambition_cta">En parler avec moi</span></a>
+               </div>
+            </div>
+
+            <div class="ambition-piliers">
+               <article class="pilier" data-reveal="up" data-reveal-delay="0">
+                  <span class="pilier-num">01</span>
+                  <h3 data-i18n="ambition_pill1_title">Conseiller</h3>
+                  <p data-i18n="ambition_pill1_desc">Auditer les processus, cartographier ce qui est automatisable, et
+                     dire non quand l'IA n'est pas la réponse.</p>
+               </article>
+               <article class="pilier" data-reveal="up" data-reveal-delay="90">
+                  <span class="pilier-num">02</span>
+                  <h3 data-i18n="ambition_pill2_title">Entraîner &amp; déployer</h3>
+                  <p data-i18n="ambition_pill2_desc">Fine-tuner des modèles sur les données de l'entreprise, et les
+                     faire tourner sur son infrastructure à elle.</p>
+               </article>
+               <article class="pilier" data-reveal="up" data-reveal-delay="180">
+                  <span class="pilier-num">03</span>
+                  <h3 data-i18n="ambition_pill3_title">Garder la souveraineté</h3>
+                  <p data-i18n="ambition_pill3_desc">RGPD posé comme contrainte d'architecture dès le premier schéma,
+                     pas comme une case cochée à la fin.</p>
+               </article>
+            </div>
+         </div>
+      </section>
+
+      <!-- ============ PROJECTS — Jupiter ============ -->
+      <section id="projects" class="portfolio section">
+         <div class="container section-title" data-reveal="up">
+            <span class="section-kicker">// PROJECTS</span>
+            <h2 data-i18n="portfolio_title">Mes Projets</h2>
+            <p data-i18n="portfolio_subtitle">Trois projets au long cours, dix projets aboutis, et les travaux
+               d'école qui m'ont appris le métier.</p>
+         </div>
+
+         <div class="container">
+
+            <!-- ---------- RANG 1 : LES PHARES ---------- -->
+            <div class="rang-titre" data-reveal="up">
+               <span class="rang-num">01</span>
+               <h3 data-i18n="tier_flagship_title">Les projets phares</h3>
+               <p data-i18n="tier_flagship_sub">Ceux sur lesquels je travaille depuis des mois, et qui disent le mieux
+                  comment je bosse.</p>
+            </div>
+
+            <!-- Aegis / Luminai -->
+            <article class="phare phare-aegis" data-reveal="left">
+               <div class="phare-grille">
+                  <div class="phare-visuel">
+                     <img src="assets/img/thumbs/aegis.svg" alt="" class="phare-motif">
+                     <img src="assets/img/portfolio/aegis.jpg" alt="Aegis — Luminai" class="phare-shot">
+                     <span class="phare-statut en-cours" data-i18n="statut_encours">EN DÉVELOPPEMENT</span>
+                  </div>
+                  <div class="phare-info">
+                     <div class="phare-tags">
+                        <span>Qwen2.5 · LoRA</span><span>Multi-agents · 7</span><span>100 % local · 0 API</span>
+                        <span>Twitch · Pokémon</span>
+                     </div>
+                     <h3 data-i18n="aegis_title">Aegis — IA souveraine</h3>
+                     <p class="phare-role" data-i18n="aegis_role">// de loin le plus gros projet de ma vie</p>
+                     <p data-i18n="aegis_desc">Aegis (nom de code « Luminai ») est une IA quasi-humaine qui tourne
+                        100 % en local, sans aucune API. Son « Mind » est un Qwen2.5 que j'ai fine-tuné moi-même en
+                        LoRA, orchestré par une architecture multi-agents — chat, pensée, monologue intérieur, mémoire
+                        hiérarchique, émotions, vision et jeu. Concrètement, elle perçoit, décide et agit seule : elle
+                        joue à Pokémon en autonomie totale et discute en direct sur Twitch.</p>
+                     <ul class="phare-points">
+                        <li data-i18n="aegis_pt1">Un score de « vivacité » mesuré sur 4 axes — initiative, variété,
+                           mémoire, à-propos — pour arrêter de juger à l'impression.</li>
+                        <li data-i18n="aegis_pt2">Pipeline voix complet (Piper), mémoire hiérarchique, file Redis et
+                           agents isolés en processus.</li>
+                        <li data-i18n="aegis_pt3">Zéro euro d'API : tout tourne sur ma machine, modèles compris.</li>
+                     </ul>
+                     <div class="phare-actions">
+                        <span class="btn-neon ghost disabled"><i class="bi bi-shield-lock"></i> <span
+                              data-i18n="aegis_btn">Dépôt privé</span></span>
+                     </div>
+                  </div>
+               </div>
+            </article>
+
+            <!-- UnderGears -->
+            <article class="phare phare-undergears" data-reveal="right" data-reveal-delay="60">
+               <div class="phare-grille inverse">
+                  <div class="phare-visuel">
+                     <img src="assets/img/thumbs/undergears.svg" alt="UnderGears — Sous les Rouages"
+                        class="phare-motif seul">
+                     <span class="phare-statut en-cours" data-i18n="statut_encours">EN DÉVELOPPEMENT</span>
+                  </div>
+                  <div class="phare-info">
+                     <div class="phare-tags">
+                        <span>Godot 4 · GDScript</span><span>FPS · mouvement</span><span>100 % codé par IA</span>
+                        <span>73 salles</span>
+                     </div>
+                     <h3 data-i18n="undergears_title">UnderGears — Sous les Rouages</h3>
+                     <p class="phare-role" data-i18n="undergears_role">// je dirige, l'IA exécute</p>
+                     <p data-i18n="undergears_desc">Un FPS de mouvement nerveux sous Godot, dont je n'ai pas écrit une
+                        seule ligne à la main : tout le code, les shaders et les outils sont produits par des agents
+                        IA que je pilote. Ce qui est à moi, c'est tout le reste — l'architecture, l'univers, le game
+                        design, et surtout l'arbitrage permanent de ce qui est acceptable ou non.</p>
+                     <ul class="phare-points">
+                        <li data-i18n="undergears_pt1">Un registre de décisions et un journal de tâches : chaque
+                           arbitrage est écrit, daté et opposable — c'est ce qui empêche le projet de partir en vrille.
+                        </li>
+                        <li data-i18n="undergears_pt2">Des outils de contrôle qualité automatiques qui mesurent
+                           l'image rendue, les textures et le skinning, et refusent ce qui sort des seuils.</li>
+                        <li data-i18n="undergears_pt3">Un Prologue jouable de 4 salles, un univers écrit (l'Aether, le
+                           Kronis, le Complexe Prométhée) et 73 salles cartographiées.</li>
+                     </ul>
+                     <div class="phare-actions">
+                        <span class="btn-neon ghost disabled"><i class="bi bi-hammer"></i> <span
+                              data-i18n="undergears_btn">En chantier</span></span>
+                     </div>
+                  </div>
+               </div>
+            </article>
+
+            <!-- Cerber -->
+            <article class="phare phare-cerber" data-reveal="right" data-reveal-delay="60">
+               <div class="phare-grille">
+                  <div class="phare-visuel">
+                     <img src="assets/img/thumbs/cerber.svg" alt="Cerber — bouclier de vie privée"
+                        class="phare-motif seul">
+                     <span class="phare-statut en-conception" data-i18n="statut_conception">EN CONCEPTION</span>
+                  </div>
+                  <div class="phare-info">
+                     <div class="phare-tags">
+                        <span>DLP local</span><span>nftables · WFP</span><span>6 modules spécifiés</span>
+                        <span>Cahier des charges</span>
+                     </div>
+                     <h3 data-i18n="cerber_title">Cerber — bouclier de vie privée</h3>
+                     <p class="phare-role" data-i18n="cerber_role">// spécifié avant d'être codé</p>
+                     <p data-i18n="cerber_desc">Cerber est l'outil que je veux pour moi-même : un garde-fou posé
+                        entre ma machine et tout ce qui essaie d'en faire sortir mon identité. Soyons clairs sur
+                        l'état des lieux — ce n'est pas encore du code. C'est une architecture complète, six modules
+                        spécifiés et un périmètre écrit noir sur blanc. Sur un outil de vie privée, se tromper de
+                        périmètre coûte bien plus cher que se tromper de langage : je pose donc le cahier des charges
+                        d'abord, et je le montre tel quel plutôt que de faire passer une intention pour un produit.</p>
+                     <ul class="phare-points">
+                        <li data-i18n="cerber_pt1">Un moteur DLP local qui surveille le presse-papiers et les frappes :
+                           dès qu'un motif correspond à mon IBAN, mon numéro de sécu ou mon vrai numéro, le flux
+                           sortant est coupé ou la valeur remplacée à la volée.</li>
+                        <li data-i18n="cerber_pt2">Un kill switch au niveau du noyau — nftables sous Linux, WFP sous
+                           Windows : si le tunnel chiffré tombe, plus un paquet ne sort en clair. DNS forcé en
+                           DoH/DoT, WebRTC neutralisé, télémétrie de l'OS envoyée au trou noir.</li>
+                        <li data-i18n="cerber_pt4">Camouflage de l'empreinte matérielle et sessions jetables :
+                           rotation d'adresse MAC, normalisation des identifiants machine, et navigation dans des bacs
+                           à sable montés en RAM qui s'autodétruisent à la fermeture.</li>
+                        <li data-i18n="cerber_pt3">Et le reste du périmètre : chiffrement à la volée des bases de
+                           cookies, memory scraping interdit sur les navigateurs et gestionnaires de mots de passe,
+                           purge EXIF automatique, broyage multi-passes et alias e-mail jetables par service.</li>
+                     </ul>
+                     <div class="phare-actions">
+                        <span class="btn-neon ghost disabled"><i class="bi bi-shield-lock"></i> <span
+                              data-i18n="cerber_btn">Spécification en cours</span></span>
+                     </div>
+                  </div>
+               </div>
+            </article>
+
+            <!-- ---------- RANG 2 : LES PROJETS ---------- -->
+            <div class="rang-titre" data-reveal="up">
+               <span class="rang-num">02</span>
+               <h3 data-i18n="tier_solid_title">Les projets aboutis</h3>
+               <p data-i18n="tier_solid_sub">Finis, jouables ou en production. Clique sur une carte pour voir le
+                  détail et les vraies captures.</p>
+            </div>
+
+            <ul class="filtres" data-reveal="up">
+               <li class="actif" data-filtre="*" data-i18n="filter_all">Tout</li>
+               <li data-filtre="ia" data-i18n="filter_ai">IA</li>
+               <li data-filtre="web" data-i18n="filter_web">Web</li>
+               <li data-filtre="mobile" data-i18n="filter_app">Mobile</li>
+               <li data-filtre="jeu" data-i18n="filter_game">Jeux</li>
+            </ul>
+
+            <div class="grille-projets" id="grille-projets" data-reveal="tilt" data-reveal-delay="60">
+
+               <article class="carte-projet" data-cat="ia" data-shot="" tabindex="0">
+                  <div class="carte-vignette">
+                     <img src="assets/img/thumbs/tinyml.svg" alt="" loading="lazy">
+                     <span class="carte-etiquette">IA · EMBARQUÉ</span>
+                  </div>
+                  <div class="carte-corps">
+                     <h4 data-i18n="portfolio_tinyml_title">Reconnaissance de gestes (TinyML)</h4>
+                     <p data-i18n="portfolio_tinyml_desc">Capture et nettoyage de datasets de mouvements,
+                        entraînement d'un modèle TinyML avec Edge Impulse, puis inférence directement sur Arduino — du
+                        capteur au modèle qui tourne sur microcontrôleur.</p>
+                     <div class="carte-stack"><span>Edge Impulse</span><span>Arduino</span><span>Python</span></div>
+                     <div class="carte-actions">
+                        <span class="btn-mini disabled"><i class="bi bi-cpu"></i> <span
+                              data-i18n="portfolio_tinyml_btn">Projet embarqué</span></span>
+                     </div>
+                  </div>
+               </article>
+
+               <article class="carte-projet" data-cat="jeu web" data-shot="assets/img/portfolio/beatforge.png"
+                  tabindex="0">
+                  <div class="carte-vignette">
+                     <img src="assets/img/thumbs/beatforge.svg" alt="" loading="lazy">
+                     <span class="carte-etiquette">JEU · RYTHME</span>
+                  </div>
+                  <div class="carte-corps">
+                     <h4 data-i18n="portfolio_beat_title">BeatForge</h4>
+                     <p data-i18n="portfolio_beat_desc">Jeu de rythme web ultra-stylisé où tu forges tes armes au
+                        rythme de la musique : détection des temps, système de combos et feedback nerveux — le tout en
+                        néon, pensé pour être satisfaisant à jouer.</p>
+                     <div class="carte-stack"><span>JavaScript</span><span>Web Audio</span><span>Canvas</span></div>
+                     <div class="carte-actions">
+                        <a href="assets/files/beatforge/index.html" class="btn-mini" target="_blank"
+                           rel="noopener"><i class="bi bi-play"></i> <span data-i18n="portfolio_beat_btn">Jouer</span></a>
+                     </div>
+                  </div>
+               </article>
+
+               <article class="carte-projet" data-cat="web ia" data-shot="assets/img/portfolio/solar.png" tabindex="0">
+                  <div class="carte-vignette">
+                     <img src="assets/img/thumbs/solar.svg" alt="" loading="lazy">
+                     <span class="carte-etiquette">WEB · VISION</span>
+                  </div>
+                  <div class="carte-corps">
+                     <h4 data-i18n="portfolio_solar_title">Système Solaire (Hand Tracking)</h4>
+                     <p data-i18n="portfolio_solar_desc">Système solaire 3D entièrement piloté à la main : la computer
+                        vision suit tes gestes pour naviguer, zoomer et explorer les planètes, sans clavier ni souris.
+                     </p>
+                     <div class="carte-stack"><span>MediaPipe</span><span>Three.js</span><span>JavaScript</span></div>
+                     <div class="carte-actions">
+                        <a href="assets/files/solaire/index.html" class="btn-mini" target="_blank" rel="noopener"><i
+                              class="bi bi-eye"></i> <span data-i18n="portfolio_solar_btn">Voir le projet</span></a>
+                     </div>
+                  </div>
+               </article>
+
+               <article class="carte-projet" data-cat="web" data-shot="assets/img/portfolio/valiance.png" tabindex="0">
+                  <div class="carte-vignette">
+                     <img src="assets/img/thumbs/erp.svg" alt="" loading="lazy">
+                     <span class="carte-etiquette">WEB · ERP</span>
+                  </div>
+                  <div class="carte-corps">
+                     <h4 data-i18n="portfolio_erp_title">Migration ERP Valiance</h4>
+                     <p data-i18n="portfolio_erp_desc">Migration d'un ERP legacy de Symfony 1.4 jusqu'à 7, par étapes
+                        (1.4 → 4 → 7) avec des ponts hybrides faisant cohabiter ancien et nouveau code en production —
+                        sans tout casser d'un coup.</p>
+                     <div class="carte-stack"><span>Symfony</span><span>PHP</span><span>MySQL</span><span>Prod</span>
+                     </div>
+                     <div class="carte-actions">
+                        <a href="http://valiance-bm.com/" class="btn-mini" target="_blank" rel="noopener"><i
+                              class="bi bi-building"></i> <span data-i18n="portfolio_erp_btn">Valiance</span></a>
+                     </div>
+                  </div>
+               </article>
+
+               <article class="carte-projet" data-cat="jeu web" data-shot="assets/img/portfolio/valorant.svg"
+                  tabindex="0">
+                  <div class="carte-vignette">
+                     <img src="assets/img/thumbs/valorant.svg" alt="" loading="lazy">
+                     <span class="carte-etiquette">TACTIQUE · API</span>
+                  </div>
+                  <div class="carte-corps">
+                     <h4 data-i18n="portfolio_valorant_title">Valorant Tactical Protocol</h4>
+                     <p data-i18n="portfolio_valorant_desc">Générateur tactique exploitant l'API Valorant : roulette
+                        d'agents/armes avec bans, mode Nuzlocke (permadeath) persistant et mini-jeux intégrés
+                        (Reflexes, Gridshot, Defuse).</p>
+                     <div class="carte-stack"><span>API REST</span><span>JavaScript</span><span>LocalStorage</span>
+                     </div>
+                     <div class="carte-actions">
+                        <a href="assets/files/roulette.html" class="btn-mini" target="_blank" rel="noopener"><i
+                              class="bi bi-controller"></i> <span data-i18n="portfolio_valorant_btn">Jouer</span></a>
+                     </div>
+                  </div>
+               </article>
+
+               <article class="carte-projet" data-cat="jeu" data-shot="assets/img/portfolio/whiskersrebelion.png"
+                  tabindex="0">
+                  <div class="carte-vignette">
+                     <img src="assets/img/thumbs/whiskers.svg" alt="" loading="lazy">
+                     <span class="carte-etiquette">JEU · JAVA</span>
+                  </div>
+                  <div class="carte-corps">
+                     <h4 data-i18n="whiskers_title">Whiskers Rebellion II</h4>
+                     <p data-i18n="whiskers_desc">Action-RPG narratif en Java : architecture de jeu complète, IA
+                        d'ennemis, système de combat et rendu — un vrai moteur maison plutôt qu'un assemblage.</p>
+                     <div class="carte-stack"><span>Java</span><span>POO</span><span>Moteur maison</span></div>
+                     <div class="carte-actions">
+                        <a href="https://github.com/Bibwann/Project_R" class="btn-mini" target="_blank"
+                           rel="noopener"><i class="bi bi-github"></i> <span data-i18n="whiskers_btn">Voir sur
+                              Github</span></a>
+                     </div>
+                  </div>
+               </article>
+
+               <article class="carte-projet" data-cat="mobile" data-shot="assets/img/portfolio/potify.png" tabindex="0">
+                  <div class="carte-vignette">
+                     <img src="assets/img/thumbs/potify.svg" alt="" loading="lazy">
+                     <span class="carte-etiquette">MOBILE · AUDIO</span>
+                  </div>
+                  <div class="carte-corps">
+                     <h4 data-i18n="portfolio_music_title">Potify (App Mobile)</h4>
+                     <p data-i18n="portfolio_music_desc">Application mobile de lecture musicale : playlists, lecteur
+                        audio et intégration d'une API externe.</p>
+                     <div class="carte-stack"><span>Java</span><span>Android</span><span>API REST</span></div>
+                     <div class="carte-actions">
+                        <a href="assets/files/Potify.zip" class="btn-mini" download><i class="bi bi-download"></i>
+                           <span data-i18n="portfolio_music_btn">Télécharger</span></a>
+                     </div>
+                  </div>
+               </article>
+
+               <article class="carte-projet" data-cat="web" data-shot="assets/img/portfolio/trieuse.png" tabindex="0">
+                  <div class="carte-vignette">
+                     <img src="assets/img/thumbs/mongo.svg" alt="" loading="lazy">
+                     <span class="carte-etiquette">WEB · DOCKER</span>
+                  </div>
+                  <div class="carte-corps">
+                     <h4 data-i18n="portfolio_steam_title">MongoDB Docker + Import</h4>
+                     <p data-i18n="portfolio_steam_desc">Stack MongoDB 7 et Mongo Express conteneurisée, avec des
+                        scripts d'import automatisés pour repartir d'un jeu de données propre en une commande.</p>
+                     <div class="carte-stack"><span>Docker</span><span>MongoDB</span><span>Shell</span></div>
+                     <div class="carte-actions">
+                        <a href="assets/files/trieuse/trieuse/index.html" class="btn-mini" target="_blank"
+                           rel="noopener"><i class="bi bi-eye"></i> <span data-i18n="portfolio_steam_btn">Voir le
+                              projet</span></a>
+                     </div>
+                  </div>
+               </article>
+
+               <article class="carte-projet" data-cat="jeu" data-shot="" tabindex="0">
+                  <div class="carte-vignette">
+                     <img src="assets/img/thumbs/pvz.svg" alt="" loading="lazy">
+                     <span class="carte-etiquette">JEU · C</span>
+                  </div>
+                  <div class="carte-corps">
+                     <h4 data-i18n="portfolio_zombie_title">Player vs Zombie (C)</h4>
+                     <p data-i18n="portfolio_zombie_desc">Jeu de survie tactique en console C : 1 à 4 zombies dotés
+                        d'algorithmes de traque active, sur des cartes réelles. Sauvegarde locale.</p>
+                     <div class="carte-stack"><span>C</span><span>Algorithmie</span><span>Pathfinding</span></div>
+                     <div class="carte-actions">
+                        <a href="assets/files/PlayerVsZombieV3.zip" class="btn-mini" download><i
+                              class="bi bi-download"></i> <span
+                              data-i18n="portfolio_zombie_btn">Télécharger</span></a>
+                     </div>
+                  </div>
+               </article>
+
+               <article class="carte-projet" data-cat="web" data-shot="" tabindex="0">
+                  <div class="carte-vignette">
+                     <img src="assets/img/thumbs/steamdb.svg" alt="" loading="lazy">
+                     <span class="carte-etiquette">DONNÉES · DOCKER</span>
+                  </div>
+                  <div class="carte-corps">
+                     <h4 data-i18n="portfolio_steam2_title">BDD Steam Docker</h4>
+                     <p data-i18n="portfolio_steam2_desc">Gestion et structuration d'une base de données Steam sous
+                        Docker.</p>
+                     <div class="carte-stack"><span>Docker</span><span>SQL</span><span>Modélisation</span></div>
+                     <div class="carte-actions">
+                        <a href="assets/files/BDD-Steam-main/" class="btn-mini" target="_blank" rel="noopener"><i
+                              class="bi bi-eye"></i> <span data-i18n="portfolio_steam2_btn">Voir le projet</span></a>
+                     </div>
+                  </div>
+               </article>
+
+            </div>
+
+            <!-- ---------- RANG 3 : L'ARCHIVE ---------- -->
+            <div class="rang-titre" data-reveal="up">
+               <span class="rang-num">03</span>
+               <h3 data-i18n="tier_archive_title">L'archive</h3>
+               <p data-i18n="tier_archive_sub">Les travaux d'école et les premiers projets. Ils ne me représentent plus,
+                  mais ils m'ont appris à coder — et le tout premier date de 2018.</p>
+            </div>
+
+            <div class="archive" data-reveal="up" data-reveal-delay="60">
+               <button type="button" class="archive-bascule" id="archive-bascule" aria-expanded="false"
+                  aria-controls="archive-liste">
+                  <i class="bi bi-chevron-right"></i>
+                  <span data-i18n="archive_open">Dérouler les 7 projets d'archive</span>
+               </button>
+               <ul class="archive-liste" id="archive-liste" hidden>
+                  <li>
+                     <img src="assets/img/thumbs/kanban.svg" alt="" loading="lazy">
+                     <div>
+                        <h5 data-i18n="portfolio_tms_title">Gestionnaire de tâches (Python MVC)</h5>
+                        <p data-i18n="portfolio_tms_desc">Appli de gestion en architecture MVC : MySQL, interface,
+                           tests pytest, doc Sphinx et CI GitLab.</p>
+                     </div>
+                     <span class="archive-annee">2024</span>
+                     <span class="btn-mini disabled"><i class="bi bi-git"></i> <span
+                           data-i18n="portfolio_tms_btn">Projet IUT</span></span>
+                  </li>
+                  <li>
+                     <img src="assets/img/thumbs/pendu.svg" alt="" loading="lazy">
+                     <div>
+                        <h5 data-i18n="portfolio_pendu_title">Jeu du Pendu (Docker &amp; CI/CD)</h5>
+                        <p data-i18n="portfolio_pendu_desc">Jeu web classique encapsulé dans un conteneur Docker et
+                           déployé automatiquement via une pipeline GitLab CI/CD.</p>
+                     </div>
+                     <span class="archive-annee">2024</span>
+                     <a href="https://iut-git.unice.fr/ta208995/idleiut/" class="btn-mini" target="_blank"
+                        rel="noopener"><i class="bi bi-git"></i> <span data-i18n="portfolio_pendu_btn">Voir sur
+                           GitLab</span></a>
+                  </li>
+                  <li>
+                     <img src="assets/img/thumbs/idle.svg" alt="" loading="lazy">
+                     <div>
+                        <h5 data-i18n="portfolio_idle_title">Jeu Evolution Idle</h5>
+                        <p data-i18n="portfolio_idle_desc">Idle game web (HTML/CSS/JS) avec progression et sauvegarde
+                           locale.</p>
+                     </div>
+                     <span class="archive-annee">2023</span>
+                     <a href="assets/files/evolutionidle/index.html" class="btn-mini" target="_blank"
+                        rel="noopener"><i class="bi bi-play"></i> <span
+                           data-i18n="portfolio_idle_btn">Jouer</span></a>
+                  </li>
+                  <li>
+                     <img src="assets/img/thumbs/rollaball.svg" alt="" loading="lazy">
+                     <div>
+                        <h5 data-i18n="portfolio_rollaball_title">Roll a Ball (Unity)</h5>
+                        <p data-i18n="portfolio_rollaball_desc">Mini-jeu Unity, scripts C#, collisions et score.</p>
+                     </div>
+                     <span class="archive-annee">2022</span>
+                     <a href="assets/files/Roll A Ball.zip" class="btn-mini" download><i class="bi bi-download"></i>
+                        <span data-i18n="portfolio_rollaball_btn">Télécharger</span></a>
+                  </li>
+                  <li>
+                     <img src="assets/img/thumbs/pong.svg" alt="" loading="lazy">
+                     <div>
+                        <h5 data-i18n="portfolio_pong_title">Pong Python</h5>
+                        <p data-i18n="portfolio_pong_desc">Reproduction de Pong en Python. Mon tout premier projet.</p>
+                     </div>
+                     <span class="archive-annee">2018</span>
+                     <a href="assets/files/PongV5.py" class="btn-mini" download><i class="bi bi-download"></i> <span
+                           data-i18n="portfolio_pong_btn">Télécharger</span></a>
+                  </li>
+               </ul>
+            </div>
+         </div>
+      </section>
+
+      <!-- ============ SHOWCASE — Saturne ============ -->
+      <section id="showcase" class="showcase section">
+         <div class="container section-title" data-reveal="up">
+            <span class="section-kicker">// CREATIONS</span>
+            <h2 data-i18n="showcase_title">Mes capacités de création</h2>
+            <p data-i18n="showcase_subtitle">Huit sites, et surtout huit formats qui n'ont rien à voir entre eux :
+               une boutique avec panier, un tableau de bord applicatif, un configurateur de produit, un moteur de
+               réservation, un moteur de recherche d'annonces, un planning de cours, une revue en ligne et un parcours
+               de qualification. Aucune base commune, aucune librairie — ouvre-les et sers-t'en.</p>
+         </div>
+         <div class="container">
+            <p class="showcase-note" data-reveal="scale" data-reveal-delay="60">
+               <i class="bi bi-info-circle"></i>
+               <span data-i18n="showcase_note">Ce sont des démonstrations que j'ai conçues et codées de A à Z, sans
+                  aucune librairie. Les marques, les textes, les prix et les disponibilités sont inventés — aucune de
+                  ces entreprises n'existe.</span>
+            </p>
+
+            <div class="grille-vitrines" id="grille-vitrines">
+
+               <article class="vitrine" data-site="assets/showcase/maison-lumiere.html" tabindex="0" data-reveal="left" data-reveal-delay="0"
+                  style="--teinte:#a9853f">
+                  <div class="vitrine-ecran">
+                     <div class="vitrine-chrome"><i></i><i></i><i></i><span>maison-lumiere.fr</span></div>
+                     <div class="vitrine-cadre"><iframe title="Aperçu — Maison Lumière" loading="lazy" tabindex="-1"
+                           aria-hidden="true" scrolling="no" data-src="assets/showcase/maison-lumiere.html"></iframe>
+                     </div>
+                     <span class="vitrine-voile"><i class="bi bi-arrows-fullscreen"></i>
+                        <b data-i18n="showcase_open">Ouvrir le site</b></span>
+                  </div>
+                  <div class="vitrine-pied">
+                     <div>
+                        <h4>Maison Lumière</h4>
+                        <p data-i18n="showcase_1_desc">Vitrine éditoriale doublée d'un moteur de réservation : couverts,
+                           jour, service, créneaux réellement disponibles, salle ou terrasse, puis confirmation.</p>
+                     </div>
+                     <span class="vitrine-genre" data-i18n="showcase_1_genre">Réservation</span>
+                  </div>
+               </article>
+
+               <article class="vitrine" data-site="assets/showcase/ironhaus.html" tabindex="0" data-reveal="right" data-reveal-delay="70" style="--teinte:#d8ff00">
+                  <div class="vitrine-ecran">
+                     <div class="vitrine-chrome"><i></i><i></i><i></i><span>ironhaus.fr</span></div>
+                     <div class="vitrine-cadre"><iframe title="Aperçu — IRONHAUS" loading="lazy" tabindex="-1"
+                           aria-hidden="true" scrolling="no" data-src="assets/showcase/ironhaus.html"></iframe></div>
+                     <span class="vitrine-voile"><i class="bi bi-arrows-fullscreen"></i>
+                        <b data-i18n="showcase_open">Ouvrir le site</b></span>
+                  </div>
+                  <div class="vitrine-pied">
+                     <div>
+                        <h4>IRONHAUS</h4>
+                        <p data-i18n="showcase_2_desc">Le planning de la salle, pas sa plaquette : grille hebdomadaire,
+                           filtres par discipline, places qui décrémentent, liste d'attente quand c'est complet.</p>
+                     </div>
+                     <span class="vitrine-genre" data-i18n="showcase_2_genre">Planning</span>
+                  </div>
+               </article>
+
+               <article class="vitrine" data-site="assets/showcase/cabinet-verlaine.html" tabindex="0" data-reveal="left" data-reveal-delay="140"
+                  style="--teinte:#96743c">
+                  <div class="vitrine-ecran">
+                     <div class="vitrine-chrome"><i></i><i></i><i></i><span>verlaine-associes.fr</span></div>
+                     <div class="vitrine-cadre"><iframe title="Aperçu — Cabinet Verlaine" loading="lazy" tabindex="-1"
+                           aria-hidden="true" scrolling="no" data-src="assets/showcase/cabinet-verlaine.html"></iframe>
+                     </div>
+                     <span class="vitrine-voile"><i class="bi bi-arrows-fullscreen"></i>
+                        <b data-i18n="showcase_open">Ouvrir le site</b></span>
+                  </div>
+                  <div class="vitrine-pied">
+                     <div>
+                        <h4>Verlaine &amp; Associés</h4>
+                        <p data-i18n="showcase_3_desc">Un parcours de qualification en quatre étapes : il oriente le
+                           dossier vers le bon associé, motive une fourchette d'honoraires et pose le rendez-vous.</p>
+                     </div>
+                     <span class="vitrine-genre" data-i18n="showcase_3_genre">Parcours guidé</span>
+                  </div>
+               </article>
+
+               <article class="vitrine vitrine-large" data-site="assets/showcase/nova-studio.html" tabindex="0" data-reveal="right" data-reveal-delay="0"
+                  style="--teinte:#ff2d84">
+                  <div class="vitrine-ecran">
+                     <div class="vitrine-chrome"><i></i><i></i><i></i><span>nova-studio.fr</span></div>
+                     <div class="vitrine-cadre"><iframe title="Aperçu — NOVA" loading="lazy" tabindex="-1"
+                           aria-hidden="true" scrolling="no" data-src="assets/showcase/nova-studio.html"></iframe>
+                     </div>
+                     <span class="vitrine-voile"><i class="bi bi-arrows-fullscreen"></i>
+                        <b data-i18n="showcase_open">Ouvrir le site</b></span>
+                  </div>
+                  <div class="vitrine-pied">
+                     <div>
+                        <h4>NOVA</h4>
+                        <p data-i18n="showcase_4_desc">Une vraie boutique : filtres, tailles en rupture, panier latéral
+                           avec quantités, seuil de livraison offerte et tunnel de commande en trois étapes.</p>
+                     </div>
+                     <span class="vitrine-genre" data-i18n="showcase_4_genre">Boutique</span>
+                  </div>
+               </article>
+
+               <article class="vitrine vitrine-large" data-site="assets/showcase/flux-saas.html" tabindex="0" data-reveal="left" data-reveal-delay="70"
+                  style="--teinte:#2563eb">
+                  <div class="vitrine-ecran">
+                     <div class="vitrine-chrome"><i></i><i></i><i></i><span>flux.fr</span></div>
+                     <div class="vitrine-cadre"><iframe title="Aperçu — Flux" loading="lazy" tabindex="-1"
+                           aria-hidden="true" scrolling="no" data-src="assets/showcase/flux-saas.html"></iframe></div>
+                     <span class="vitrine-voile"><i class="bi bi-arrows-fullscreen"></i>
+                        <b data-i18n="showcase_open">Ouvrir le site</b></span>
+                  </div>
+                  <div class="vitrine-pied">
+                     <div>
+                        <h4>Flux</h4>
+                        <p data-i18n="showcase_5_desc">L'intérieur du logiciel : KPI, graphes tracés à la main,
+                           table triable et filtrable, et un sélecteur de période qui recalcule tout le tableau de
+                           bord.</p>
+                     </div>
+                     <span class="vitrine-genre" data-i18n="showcase_5_genre">Tableau de bord</span>
+                  </div>
+               </article>
+
+
+               <article class="vitrine" data-site="assets/showcase/atelier-mesure.html" tabindex="0" data-reveal="right"
+                  data-reveal-delay="0" style="--teinte:#8a5a2b">
+                  <div class="vitrine-ecran">
+                     <div class="vitrine-chrome"><i></i><i></i><i></i><span>atelier-mesure.fr</span></div>
+                     <div class="vitrine-cadre"><iframe title="Aperçu — Atelier Mesure" loading="lazy" tabindex="-1"
+                           aria-hidden="true" scrolling="no" data-src="assets/showcase/atelier-mesure.html"></iframe></div>
+                     <span class="vitrine-voile"><i class="bi bi-arrows-fullscreen"></i>
+                        <b data-i18n="showcase_open">Ouvrir le site</b></span>
+                  </div>
+                  <div class="vitrine-pied">
+                     <div>
+                        <h4>Atelier Mesure</h4>
+                        <p data-i18n="showcase_6_desc">Un configurateur : essence, largeur, piètement, options et gravure redessinent un aperçu SVG paramétré et recalculent le devis ligne à ligne, délai de fabrication compris.</p>
+                     </div>
+                     <span class="vitrine-genre" data-i18n="showcase_6_genre">Configurateur</span>
+                  </div>
+               </article>
+
+               <article class="vitrine" data-site="assets/showcase/revue-latitude.html" tabindex="0" data-reveal="left"
+                  data-reveal-delay="70" style="--teinte:#e0a33e">
+                  <div class="vitrine-ecran">
+                     <div class="vitrine-chrome"><i></i><i></i><i></i><span>revue-latitude.fr</span></div>
+                     <div class="vitrine-cadre"><iframe title="Aperçu — Latitude" loading="lazy" tabindex="-1"
+                           aria-hidden="true" scrolling="no" data-src="assets/showcase/revue-latitude.html"></iframe></div>
+                     <span class="vitrine-voile"><i class="bi bi-arrows-fullscreen"></i>
+                        <b data-i18n="showcase_open">Ouvrir le site</b></span>
+                  </div>
+                  <div class="vitrine-pied">
+                     <div>
+                        <h4>Latitude</h4>
+                        <p data-i18n="showcase_7_desc">Une revue en ligne, donc une expérience de lecture : barre de progression, sommaire qui suit la section lue, notes en marge et temps restant qui décroît vraiment.</p>
+                     </div>
+                     <span class="vitrine-genre" data-i18n="showcase_7_genre">Lecture longue</span>
+                  </div>
+               </article>
+
+               <article class="vitrine" data-site="assets/showcase/clef-immobilier.html" tabindex="0" data-reveal="right"
+                  data-reveal-delay="140" style="--teinte:#1f6f56">
+                  <div class="vitrine-ecran">
+                     <div class="vitrine-chrome"><i></i><i></i><i></i><span>clef-immobilier.fr</span></div>
+                     <div class="vitrine-cadre"><iframe title="Aperçu — CLEF" loading="lazy" tabindex="-1"
+                           aria-hidden="true" scrolling="no" data-src="assets/showcase/clef-immobilier.html"></iframe></div>
+                     <span class="vitrine-voile"><i class="bi bi-arrows-fullscreen"></i>
+                        <b data-i18n="showcase_open">Ouvrir le site</b></span>
+                  </div>
+                  <div class="vitrine-pied">
+                     <div>
+                        <h4>CLEF</h4>
+                        <p data-i18n="showcase_8_desc">Un moteur de recherche d'annonces : filtres qui se combinent, tri, favoris, et une carte liée à la liste — survolez d'un côté, ça s'allume de l'autre.</p>
+                     </div>
+                     <span class="vitrine-genre" data-i18n="showcase_8_genre">Recherche</span>
+                  </div>
+               </article>
+            </div>
+         </div>
+      </section>
+
+      <!-- ============ PASSIONS — Uranus ============ -->
+      <section id="passions" class="passions section">
+         <div class="container section-title" data-reveal="up">
+            <span class="section-kicker">// PASSIONS</span>
+            <h2 data-i18n="passions_title">Hors du code</h2>
+            <p data-i18n="passions_subtitle">Ce qui m'anime quand je ne suis pas en train de faire tourner une IA.</p>
+         </div>
+         <div class="container">
+            <div class="grille-passions">
+               <div class="passion passion-large" data-reveal="left">
+                  <span class="passion-icone"><i class="bi bi-fire"></i></span>
+                  <h3 data-i18n="passions_sport_title">Street workout, escalade &amp; salle</h3>
+                  <p data-i18n="passions_sport_desc">Cinq séances par semaine depuis un an, entre la salle, le mur et
+                     les barres. En ce moment je travaille le muscle-up et l'handstand — deux mouvements qui ne se
+                     négocient pas : soit la position tient, soit elle ne tient pas.</p>
+               </div>
+               <div class="passion passion-large" data-reveal="right">
+                  <span class="passion-icone"><i class="bi bi-smartwatch"></i></span>
+                  <h3 data-i18n="passions_watch_title">Montres &amp; horlogerie</h3>
+                  <p data-i18n="passions_watch_desc">La mécanique, la précision, le tic-tac. Une Pierre Lannier
+                     squelette au poignet, choisie exprès pour voir les rouages tourner — et une Seiko sur la liste.</p>
+               </div>
+               <div class="passion" data-reveal="up" data-reveal-delay="0">
+                  <span class="passion-icone"><i class="bi bi-music-note-beamed"></i></span>
+                  <h3 data-i18n="passions_music_title">Musique</h3>
+                  <p data-i18n="passions_music_desc">Toujours un son dans les oreilles — ma bande-son pour coder, créer
+                     et décrocher.</p>
+               </div>
+               <div class="passion" data-reveal="up" data-reveal-delay="90">
+                  <span class="passion-icone"><i class="bi bi-controller"></i></span>
+                  <h3 data-i18n="passions_games_title">Jeux vidéo</h3>
+                  <p data-i18n="passions_games_desc">Du compétitif au chill — Pokémon, Valorant et compagnie.
+                     D'ailleurs Aegis joue à Pokémon en autonomie.</p>
+               </div>
+               <div class="passion" data-reveal="up" data-reveal-delay="180">
+                  <span class="passion-icone"><i class="bi bi-car-front-fill"></i></span>
+                  <h3 data-i18n="passions_cars_title">Voitures &amp; F1</h3>
+                  <p data-i18n="passions_cars_desc">Passionné par tout ce qui va vite et qui fait vroom. L'ingénierie
+                     automobile me fascine.</p>
+               </div>
+            </div>
+         </div>
+      </section>
+
+      <!-- ============ CONTACT — Neptune ============ -->
+      <section id="contact" class="contact section">
+         <div class="container section-title" data-reveal="left">
+            <span class="section-kicker">// CONTACT</span>
+            <h2 data-i18n="contact_title">Contact</h2>
+            <p data-i18n="contact_subtitle">Un projet, une opportunité, ou juste envie de parler IA ? Écris-moi.</p>
+         </div>
+         <div class="container">
+            <div class="contact-bloc">
+
+               <div class="contact-appel" data-reveal="left">
+                  <span class="contact-dispo"><i class="bi bi-broadcast"></i> <span
+                        data-i18n="hero_status">Dispo pour de nouveaux projets</span></span>
+                  <h3 data-i18n="contact_appel_titre">Parlons de ce que vous voulez construire</h3>
+                  <p data-i18n="contact_appel_texte">Une alternance, une mission, un projet d'IA locale à monter dans
+                     votre entreprise, ou juste une question technique — j'ouvre tous les messages et je réponds à
+                     tout le monde.</p>
+                  <div class="contact-actions">
+                     <a class="btn-neon" href="mailto:bastien.nieto.pro@gmail.com"><i class="bi bi-envelope"></i>
+                        <span data-i18n="contact_appel_mail">M'écrire</span></a>
+                     <a class="btn-neon ghost" href="assets/files/bastien_nieto.pdf" download><i
+                           class="bi bi-download"></i> <span data-i18n="contact_appel_cv">Télécharger mon CV</span></a>
+                  </div>
+                  <p class="contact-delai"><i class="bi bi-clock"></i> <span data-i18n="contact_delai">Je réponds sous
+                        24 h, en français ou en anglais.</span></p>
+               </div>
+
+               <div class="contact-liens" data-reveal="right" data-reveal-delay="90">
+                  <a class="contact-card" href="mailto:bastien.nieto.pro@gmail.com">
+                     <span class="contact-icon email"><i class="bi bi-envelope"></i></span>
+                     <div><strong data-i18n="contact_email_title">Email</strong><span
+                           class="contact-detail">bastien.nieto.pro@gmail.com</span></div>
+                  </a>
+                  <a class="contact-card" href="https://github.com/Bibwann" target="_blank" rel="noopener">
+                     <span class="contact-icon github"><i class="bi bi-github"></i></span>
+                     <div><strong data-i18n="contact_github_title">Github</strong><span
+                           class="contact-detail">github.com/Bibwann</span></div>
+                  </a>
+                  <a class="contact-card" href="https://www.linkedin.com/in/bastien-nieto-5aa5b8341/" target="_blank"
+                     rel="noopener">
+                     <span class="contact-icon linkedin"><i class="bi bi-linkedin"></i></span>
+                     <div><strong data-i18n="contact_linkedin_title">LinkedIn</strong><span
+                           class="contact-detail">bastien-nieto</span></div>
+                  </a>
+                  <a class="contact-card" href="https://iut-git.unice.fr/nb312097" target="_blank" rel="noopener">
+                     <span class="contact-icon gitlab"><i class="bi bi-git"></i></span>
+                     <div><strong data-i18n="contact_gitlab_title">GitLab</strong><span
+                           class="contact-detail">iut-git.unice.fr/nb312097</span></div>
+                  </a>
+                  <a class="contact-card large" href="https://maps.google.com/?q=Les+Adrets-de-l'Esterel,+Var"
+                     target="_blank" rel="noopener">
+                     <span class="contact-icon location"><i class="bi bi-geo-alt"></i></span>
+                     <div><strong data-i18n="contact_location_title">Localisation</strong><span class="contact-detail"
+                           data-i18n="contact_location_value">Les Adrets-de-l'Esterel (83)</span></div>
+                  </a>
+               </div>
+
+            </div>
+         </div>
+      </section>
+
+   </main>
+
+   <footer id="footer" class="footer">
+      <div class="container">
+         <div class="copyright">
+            <p>
+               <span data-i18n="footer_copyright_prefix">© Copyright</span>
+               <strong class="px-1 sitename" data-i18n="footer_site">MyWorld</strong>
+               <span data-i18n="footer_copyright_suffix">Tous droits réservés</span>
+            </p>
+         </div>
+         <div class="social-links">
+            <a href="https://x.com/Bone71456521" target="_blank" rel="noopener" aria-label="X"><i
+                  class="bi bi-twitter-x"></i></a>
+            <a href="https://www.instagram.com/bast.niet/" target="_blank" rel="noopener" aria-label="Instagram"><i
+                  class="bi bi-instagram"></i></a>
+            <a href="https://www.linkedin.com/in/bastien-nieto-5aa5b8341/" target="_blank" rel="noopener"
+               aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+            <a href="https://github.com/Bibwann" target="_blank" rel="noopener" aria-label="GitHub"><i
+                  class="bi bi-github"></i></a>
+         </div>
+         <div class="credits" data-i18n="footer_built">Conçu avec un peu d'aide de Claude · codé maison.</div>
+      </div>
+   </footer>
+
+   <a href="#hero" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i
+         class="bi bi-arrow-up-short"></i></a>
+   <div id="preloader"></div>
+
+   <!-- ============ NANO — le drone et son micro-chat ============ -->
+   <button type="button" id="nano-chibi" aria-label="Ouvrir le chat avec Nano" aria-expanded="false"
+      aria-controls="nano-chat">
+      <span class="chibi-bubble" data-i18n="nano_bubble">Salut ! Clique pour me parler.</span>
+      <span class="chibi-drone">
+         <svg viewBox="0 0 100 100" role="img" aria-label="Nano">
+            <defs>
+               <linearGradient id="drone-glow" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#8b5cf6" />
+                  <stop offset="100%" stop-color="#06b6d4" />
+               </linearGradient>
+            </defs>
+            <path d="M 25 30 L 15 10 L 40 20 Z" fill="#1e1e2e" stroke="url(#drone-glow)" stroke-width="2" />
+            <path d="M 75 30 L 85 10 L 60 20 Z" fill="#1e1e2e" stroke="url(#drone-glow)" stroke-width="2" />
+            <rect x="20" y="25" width="60" height="50" rx="20" fill="#11111a" stroke="url(#drone-glow)"
+               stroke-width="3" />
+            <rect x="25" y="35" width="50" height="25" rx="10" fill="#000000" />
+            <circle class="chibi-eye" cx="50" cy="47.5" r="5" fill="#22d3ee" />
+            <path d="M 40 75 L 60 75 L 55 85 L 45 85 Z" fill="#2d2d3f" />
+         </svg>
+         <span class="chibi-flame"></span>
+      </span>
+   </button>
+
+   <div id="nano-chat" class="nano-chat" role="dialog" aria-labelledby="nano-titre" hidden>
+      <div class="nano-entete">
+         <span class="nano-avatar">
+            <svg viewBox="0 0 100 100" aria-hidden="true">
+               <rect x="20" y="25" width="60" height="50" rx="20" fill="#11111a" stroke="url(#drone-glow)"
+                  stroke-width="4" />
+               <rect x="25" y="35" width="50" height="25" rx="10" fill="#05050c" />
+               <circle class="nano-oeil" cx="50" cy="47.5" r="6" fill="#22d3ee" />
+            </svg>
+         </span>
+         <span class="nano-id">
+            <b id="nano-titre">Nano</b>
+            <em id="nano-etat" data-i18n="nano_state_off">en veille</em>
+         </span>
+         <button type="button" class="nano-fermer" id="nano-fermer" aria-label="Fermer le chat">
+            <i class="bi bi-x-lg"></i>
+         </button>
+      </div>
+
+      <div class="nano-journal" id="nano-journal" aria-live="polite"></div>
+
+      <div class="nano-puces" id="nano-puces">
+         <button type="button" data-i18n="terminal_chip_who">Qui es-tu ?</button>
+         <button type="button" data-i18n="terminal_chip_aegis">C'est quoi Aegis ?</button>
+         <button type="button" data-i18n="terminal_chip_undergears">C'est quoi UnderGears ?</button>
+         <button type="button" data-i18n="terminal_chip_stack">Quelle est sa stack ?</button>
+         <button type="button" data-i18n="terminal_chip_contact">Comment le contacter ?</button>
+      </div>
+
+      <form class="nano-saisie" id="nano-form">
+         <label class="visuellement-masque" for="nano-input" data-i18n="nano_label">Ta question pour Nano</label>
+         <input type="text" id="nano-input" autocomplete="off" spellcheck="false"
+            data-i18n-placeholder="terminal_placeholder" placeholder="Pose ta question…">
+         <button type="submit" aria-label="Envoyer"><i class="bi bi-send-fill"></i></button>
+      </form>
+   </div>
+
+   <!-- ============ Fenêtres modales (projet / vitrine) ============ -->
+   <div class="modale" id="modale-projet" role="dialog" aria-modal="true" aria-labelledby="modale-projet-titre" hidden>
+      <div class="modale-fond" data-fermer></div>
+      <div class="modale-boite">
+         <button type="button" class="modale-fermer" data-fermer aria-label="Fermer"><i class="bi bi-x-lg"></i></button>
+         <div class="modale-visuel"><img id="modale-projet-img" src="" alt=""></div>
+         <div class="modale-texte">
+            <div class="modale-etiquettes" id="modale-projet-stack"></div>
+            <h3 id="modale-projet-titre"></h3>
+            <p id="modale-projet-desc"></p>
+            <div class="modale-actions" id="modale-projet-actions"></div>
+         </div>
+      </div>
+   </div>
+
+   <div class="modale modale-site" id="modale-site" role="dialog" aria-modal="true" aria-label="Aperçu du site" hidden>
+      <div class="modale-fond" data-fermer></div>
+      <div class="site-boite">
+         <div class="site-barre">
+            <span class="site-nom" id="site-nom"></span>
+            <span class="site-tailles" role="group" aria-label="Largeur d'aperçu">
+               <button type="button" data-largeur="100%" class="actif" title="Bureau"><i
+                     class="bi bi-display"></i></button>
+               <button type="button" data-largeur="820px" title="Tablette"><i class="bi bi-tablet"></i></button>
+               <button type="button" data-largeur="400px" title="Mobile"><i class="bi bi-phone"></i></button>
+            </span>
+            <a class="site-onglet" id="site-onglet" href="#" target="_blank" rel="noopener"><i
+                  class="bi bi-box-arrow-up-right"></i> <span data-i18n="showcase_newtab">Nouvel onglet</span></a>
+            <button type="button" class="modale-fermer" data-fermer aria-label="Fermer"><i
+                  class="bi bi-x-lg"></i></button>
+         </div>
+         <div class="site-scene"><iframe id="site-iframe" title="Site vitrine" src=""></iframe></div>
+      </div>
+   </div>
+
+   <!-- Vendor JS -->
+   <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+   <script src="assets/vendor/typed.js/typed.umd.js"></script>
+   <script src="assets/vendor/waypoints/noframework.waypoints.js"></script>
+   <script src="assets/vendor/purecounter/purecounter_vanilla.js"></script>
+
+   <!-- Three.js (solar-system background) -->
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+   <!-- 3D Background -->
+   <div id="bg"></div>
+
+   <!-- Space Labels Overlay (for overview mode) -->
+   <div id="space-labels"></div>
+
+   <!-- Holographic overlay shown in overview mode -->
+   <div id="overview-hologram" class="overview-overlay-hud">
+      <div class="holo-frame-top">STELLAR NAVIGATION SYSTEM v1.0.8</div>
+      <div class="holo-frame-bottom">SYSTEME SOLAIRE // ANGLE MORT ET SYSTEMES VOISINS LOCK-ON</div>
+      <div class="holo-grid"></div>
+      <div class="holo-scanlines"></div>
+   </div>
+
+   <!-- HUD de navigation stellaire — replié par défaut, il ne montre que sa pastille -->
+   <div class="stellar-hud collapsed" id="stellar-hud">
+      <button type="button" id="hud-toggle" class="hud-toggle-btn" aria-label="Afficher la navigation stellaire"
+         aria-expanded="false">
+         <i class="bi bi-radar"></i>
+      </button>
+      <div class="hud-scanner"><span class="scanner-line"></span></div>
+      <div class="hud-field"><span class="hud-label">TARGET_SYS //</span> <span class="hud-val"
+            id="hud-planet">SYSTEME SOLAIRE</span></div>
+      <div class="hud-field"><span class="hud-label">SUN_DIST //</span> <span class="hud-val" id="hud-dist">0.00
+            AU</span></div>
+      <div class="hud-field"><span class="hud-label">ORB_VEL //</span> <span class="hud-val" id="hud-vel">N/A</span>
+      </div>
+      <div class="hud-field"><span class="hud-label">NAV_SPEED //</span> <span class="hud-val" id="hud-speed">0.0
+            KM/S</span></div>
+      <div class="hud-field"><span class="hud-label">TELEMETRY //</span> <span class="hud-val" id="hud-coords">X:000
+            Y:000 Z:000</span></div>
+      <div class="hud-field status"><span class="hud-label">LOCK_STAT //</span> <span class="hud-val ok"
+            id="hud-status">STANDBY</span></div>
+      <div class="hud-menu">
+         <button type="button" class="hud-menu-btn" id="menu-solar">
+            <i class="bi bi-brightness-high"></i> <span data-i18n="hud_menu_solar">SYSTÈME SOLAIRE</span>
+         </button>
+         <button type="button" class="hud-menu-btn hud-back-btn" id="nav-back">
+            <i class="bi bi-arrow-left-circle-fill"></i> <span data-i18n="hud_back">RETOUR</span>
+         </button>
+         <button type="button" class="hud-menu-btn hud-close-3d-btn" id="nav-close-3d">
+            <i class="bi bi-x-circle-fill"></i> <span data-i18n="hud_close_3d">RETOUR AU PORTFOLIO</span>
+         </button>
+      </div>
+   </div>
+
+   <!-- App JS -->
+   <script src="assets/js/lang.js?v=11d5442ed1"></script>
+   <script src="assets/js/reveal.js?v=95aad794ff"></script>
+   <script src="assets/js/main.js?v=0ea05f7766"></script>
+   <script src="assets/js/solar-system.js?v=ddc50979a7"></script>
+   <script src="assets/js/ai-console.js?v=4c91846ee9"></script>
+   <script src="assets/js/gallery.js?v=19d77c42b7"></script>
+   <script src="assets/js/cyber.js?v=ab401c7767"></script>
+</body>
+
+</html>
