@@ -1,0 +1,14 @@
+{
+  "name": "codex-tests",
+  "private": true,
+  "type": "module",
+  "description": "Tests de Codex : RLS et comptes sur PGlite, et bout en bout dans Chrome.",
+  "scripts": {
+    "test": "node rls.test.mjs",
+    "e2e": "node e2e.test.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "puppeteer-core": "^25.11.0"
+  }
+}

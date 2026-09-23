@@ -1,0 +1,3 @@
+# Propres à Codex (le reste est dans le .gitignore racine)
+tests/captures/
+tests/node_modules/
