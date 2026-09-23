@@ -29,7 +29,7 @@
   function plier(t) { return String(t).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim(); }
 
   // ---- Données de départ ----
-  var db = { membres: [], dossiers: [], fiches: [], ressources: [], revisions: [] };
+  var db = { membres: [], dossiers: [], fiches: [], ressources: [], revisions: [], progression: [] };
   var fichiers = {}; // chemin → Blob
 
   db.membres.push({ email: EMAILS.admin, role: "admin", ajoute_le: maintenant(60 * 24 * 30) });
@@ -66,7 +66,19 @@
       { id: reduction, dossier_id: maths, titre: "Réduction des endomorphismes", contenu: CONTENU, cree_le: maintenant(9000), maj_le: maintenant(95), maj_par: EMAILS.editeur },
       { id: ev, dossier_id: maths, titre: "Espaces vectoriels", contenu: "## Vue d'ensemble\n\nUn espace vectoriel sur $\\K$…\n\n::: definition Famille libre\n$\\sum \\lambda_i x_i = 0 \\Rightarrow \\forall i,\\ \\lambda_i = 0$\n:::\n\nSuite logique : [[Réduction des endomorphismes]].", cree_le: maintenant(12000), maj_le: maintenant(60 * 30), maj_par: EMAILS.admin },
       { id: poly, dossier_id: maths, titre: "Polynômes annulateurs", contenu: "## Vue d'ensemble\n\nSi $P(u) = 0$ avec $P$ scindé à racines simples, alors $u$ est diagonalisable. Prérequis : [[Espaces vectoriels]].", cree_le: maintenant(8000), maj_le: maintenant(60 * 50), maj_par: EMAILS.admin },
-      { id: sd, dossier_id: info, titre: "Structures de données", contenu: "## Piles et files\n\n```c\ntypedef struct { int t[100]; int sommet; } Pile;\n```\n\n::: astuce Retenir\nPile = LIFO, file = FIFO.\n:::", cree_le: maintenant(7000), maj_le: maintenant(60 * 70), maj_par: EMAILS.editeur },
+      { id: sd, dossier_id: info, titre: "Structures de données", contenu: [
+        "## Piles et files", "",
+        "```c", "typedef struct { int t[100]; int sommet; } Pile;", "```", "",
+        "::: astuce Retenir : `push` et `pop` en $O(1)$", "Pile = LIFO, file = FIFO.", ":::", "",
+        "```mermaid", "flowchart LR", "    E[Entrée] --> P((Pile))", "    P -- pop --> S[Sortie]", "```", "",
+        "## Exercices", "",
+        "### Exercice 1 — Empiler", "",
+        "::: exercice Énoncé", "Empile 1, 2, 3 puis dépile une fois. Que reste-t-il ?", ":::", "",
+        "::: corrige- Corrigé", "1 et 2 : le 3, entré en dernier, sort en premier.", ":::", "",
+        "### Exercice 2 — File", "",
+        "Enfile 1, 2, 3 puis défile une fois.", "",
+        "::: corrige- Corrigé", "2 et 3 : le premier entré sort en premier.", ":::"
+      ].join("\n"), cree_le: maintenant(7000), maj_le: maintenant(60 * 70), maj_par: EMAILS.editeur },
       { id: meca, dossier_id: phys, titre: "Mécanique du point", contenu: "## Principe fondamental\n\n$$\\sum \\vec F = m \\vec a$$", cree_le: maintenant(3000), maj_le: maintenant(60 * 24 * 9), maj_par: EMAILS.admin });
 
     var pdf = new Blob(["%PDF-1.4\n% faux PDF du banc d'essai\n"], { type: "application/pdf" });
@@ -128,6 +140,7 @@
       if (!r) return false;
       if (t === "membres") return r === "admin" || l.email === email;
       if (t === "revisions") return ecrit;
+      if (t === "progression") return l.email === email;   // chacun son carnet, admin compris
       return true;
     }
     function fin(data) {
@@ -147,8 +160,9 @@
       return fin(res);
     }
 
-    var peut = t === "membres" ? r === "admin" : ecrit;
+    var peut = t === "membres" ? r === "admin" : t === "progression" ? !!r : ecrit;
     if (!peut || t === "revisions") return refus();
+    if (t === "progression" && this.op === "update") return refus();
 
     if (this.op === "insert" || this.op === "upsert") {
       var liste = Array.isArray(this.valeurs) ? this.valeurs : [this.valeurs];
@@ -161,6 +175,12 @@
             return { data: null, error: { code: "23505", message: "duplicate key value" } };
           }
           v.ajoute_le = maintenant();
+        } else if (t === "progression") {
+          v.email = email;   // posé par la base, comme default email_courant()
+          if (db.progression.some(function (p) { return p.email === v.email && p.fiche_id === v.fiche_id && p.cle === v.cle; })) {
+            return { data: null, error: { code: "23505", message: "duplicate key value" } };
+          }
+          v.fait_le = maintenant();
         } else {
           v.id = uuid();
           v.cree_le = maintenant();
@@ -180,6 +200,7 @@
 
     var cibles = lignes.filter(correspond);
     if (t === "membres") cibles = cibles.filter(function (m) { return m.email !== email; });
+    if (t === "progression") cibles = cibles.filter(function (p) { return p.email === email; });
 
     if (this.op === "update") {
       cibles.forEach(function (l) {
@@ -208,6 +229,7 @@
         var ids = cibles.map(function (f) { return f.id; });
         db.ressources = db.ressources.filter(function (x) { return ids.indexOf(x.fiche_id) < 0; });
         db.revisions = db.revisions.filter(function (x) { return ids.indexOf(x.fiche_id) < 0; });
+        db.progression = db.progression.filter(function (x) { return ids.indexOf(x.fiche_id) < 0; });
       }
       return fin([]);
     }
@@ -261,6 +283,16 @@
       if (monRole() !== "admin") throw erreurRpc("42501", "Réservé aux admins.");
       if (a.p_email === email) throw erreurRpc("22023", "Tu ne peux pas supprimer ton propre compte.");
       db.membres = db.membres.filter(function (m) { return m.email !== a.p_email; });
+      db.progression = db.progression.filter(function (p) { return p.email !== a.p_email; });
+    },
+    // Même règle que public.exercices() : les encadrés « corrigé » repliés.
+    exercices: function () {
+      if (!monRole()) return [];
+      var re = /^(:::[ \t]*(corrige|corrigé|correction|solution|reponse|réponse)[+-]?([ \t]|$)|:::[ \t]*succes-|>[ \t]?\[!(corrige|corrigé|correction|solution|reponse|réponse)\]|>[ \t]?\[!(succes|success|check|done)\]-)/gim;
+      return db.fiches.map(function (f) {
+        var n = (f.contenu.match(re) || []).length;
+        return n ? { fiche_id: f.id, nombre: n } : null;
+      }).filter(Boolean);
     },
     etiquettes: function () {
       if (!monRole()) return [];

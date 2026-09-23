@@ -11,32 +11,94 @@
   // Signés en un seul appel à l'ouverture de la fiche, valables une
   // heure. Si la page reste ouverte plus longtemps, le clic en redemande
   // un au lieu d'ouvrir un lien mort.
+  // Nom proposé à l'enregistrement : le titre du document (lisible),
+  // pas le nom technique du stockage (« a1b2c3-poly-reduction.pdf »).
+  function nomTelechargement(r) {
+    var ext = /\.(\w{2,5})$/.exec(r.fichier || "");
+    var base = String(r.titre || "document").replace(/[\\/:*?"<>|]+/g, "-").replace(/\s+/g, " ").trim().slice(0, 120) || "document";
+    return ext && base.toLowerCase().slice(-ext[0].length) !== ext[0].toLowerCase() ? base + ext[0].toLowerCase() : base;
+  }
+
+  // Supabase Storage renvoie le fichier « en pièce jointe » quand le lien
+  // signé porte `download=<nom>` : le navigateur l'enregistre au lieu de
+  // l'afficher. (Les liens `blob:` du banc d'essai n'acceptent pas de
+  // paramètre : l'attribut `download` du lien suffit.)
+  function urlTelechargement(url, nom) {
+    if (!url || /^(blob|data):/.test(url)) return url;
+    return url + (url.indexOf("?") >= 0 ? "&" : "?") + "download=" + encodeURIComponent(nom);
+  }
+
   function lienRessource(r, signes, signesLe) {
     var t = C.TYPE[r.type] || C.TYPE.lien;
     var meta = r.fichier
       ? [/\.(\w{2,5})$/.exec(r.fichier) ? /\.(\w{2,5})$/.exec(r.fichier)[1].toUpperCase() : "Fichier", C.taille(r.taille)].filter(Boolean).join(" · ")
       : C.domaine(r.url);
-    var a = h("a.ressource", {
-      href: r.url || signes[r.fichier] || "#", target: "_blank", rel: "noopener noreferrer"
-    }, h("span.ressource-icone", icone(t.icone)),
-      h("span.ressource-texte", h("span.ressource-titre", r.titre), h("span.ressource-meta", meta)),
-      icone(r.fichier ? "download" : "box-arrow-up-right"));
-    if (r.fichier) {
-      a.addEventListener("click", function (e) {
-        var perime = Date.now() - signesLe > (C.api.DUREE_LIEN - 300) * 1000;
-        if (signes[r.fichier] && !perime) return;
-        e.preventDefault();
-        // Fenêtre ouverte tout de suite, dans le geste de l'utilisateur :
-        // ouverte après l'attente réseau, le bloqueur de pop-up la tuerait.
-        var w = window.open("", "_blank");
-        C.api.liensSignes([r.fichier]).then(function (m) {
-          if (!m[r.fichier]) throw new Error("Fichier introuvable dans le stockage.");
-          signes[r.fichier] = m[r.fichier];
-          if (w) { w.opener = null; w.location.href = m[r.fichier]; } else location.href = m[r.fichier];
-        }).catch(function (err) { if (w) w.close(); C.toast(err.message, "erreur"); });
+    var texte = h("span.ressource-texte", h("span.ressource-titre", r.titre), h("span.ressource-meta", meta));
+    if (!r.fichier) {
+      return h("a.ressource", { href: r.url || "#", target: "_blank", rel: "noopener noreferrer" },
+        h("span.ressource-icone", icone(t.icone)), texte, icone("box-arrow-up-right"));
+    }
+
+    var perime = function () { return Date.now() - signesLe > (C.api.DUREE_LIEN - 300) * 1000; };
+    var nom = nomTelechargement(r);
+    var ouvrir = h("a.ressource-ouvrir", {
+      href: signes[r.fichier] || "#", target: "_blank", rel: "noopener noreferrer",
+      title: "Ouvrir « " + r.titre + " » dans un nouvel onglet"
+    }, h("span.ressource-icone", icone(t.icone)), texte);
+    var telecharger = h("a.ressource-dl", {
+      href: urlTelechargement(signes[r.fichier], nom) || "#", download: nom,
+      title: "Télécharger « " + nom + " »", "aria-label": "Télécharger « " + r.titre + " »"
+    }, icone("download"), h("span.ressource-dl-texte", "Télécharger"));
+
+    // Lien absent ou bientôt périmé (page restée ouverte) : on en redemande
+    // un au moment du clic, au lieu d'ouvrir un lien mort.
+    function resigner() {
+      return C.api.liensSignes([r.fichier]).then(function (m) {
+        if (!m[r.fichier]) throw new Error("Fichier introuvable dans le stockage.");
+        signes[r.fichier] = m[r.fichier];
+        signesLe = Date.now();
+        ouvrir.href = m[r.fichier];
+        telecharger.href = urlTelechargement(m[r.fichier], nom);
+        return m[r.fichier];
       });
     }
-    return a;
+    ouvrir.addEventListener("click", function (e) {
+      if (signes[r.fichier] && !perime()) return;
+      e.preventDefault();
+      // Fenêtre ouverte tout de suite, dans le geste de l'utilisateur :
+      // ouverte après l'attente réseau, le bloqueur de pop-up la tuerait.
+      var w = window.open("", "_blank");
+      resigner().then(function (url) {
+        if (w) { w.opener = null; w.location.href = url; } else location.href = url;
+      }).catch(function (err) { if (w) w.close(); C.toast(err.message, "erreur"); });
+    });
+    telecharger.addEventListener("click", function (e) {
+      if (signes[r.fichier] && !perime()) return;
+      e.preventDefault();
+      resigner().then(function () { telecharger.click(); })
+        .catch(function (err) { C.toast(err.message, "erreur"); });
+    });
+    return h("div.ressource.ressource-fichier", ouvrir, telecharger);
+  }
+
+  // Sur petit écran, le panneau passe après le cours : les documents du
+  // cours restent accessibles tout de suite, sous le titre.
+  function docsRapides(fiche, signes, signesLe) {
+    var fichiers = C.trier(fiche.ressources.filter(function (r) { return r.fichier; }), "titre");
+    if (!fichiers.length) return null;
+    return h("div.docs-rapides", { "aria-label": "Documents du cours" },
+      h("p.docs-rapides-titre", icone("file-earmark-arrow-down"), "Documents du cours"),
+      fichiers.map(function (r) { return lienRessource(r, signes, signesLe); }));
+  }
+
+  // « Reprendre » sur l'accueil : la dernière fiche lue, sur cet appareil.
+  function memoriserLecture(fiche) {
+    try { localStorage.setItem("codex.derniere", fiche.id); } catch (e) { /* stockage indisponible : tant pis */ }
+  }
+  function derniereLecture() {
+    var id = null;
+    try { id = localStorage.getItem("codex.derniere"); } catch (e) { return null; }
+    return id && C.etat.ficheParId[id] && !C.etat.ficheParId[id].accueil ? C.etat.ficheParId[id] : null;
   }
 
   function carteRessources(fiche, signes, signesLe) {
@@ -93,6 +155,102 @@
       // Sur l'accueil : tout le cours ; sur une fiche : ses voisins directs (comme Quartz).
       var g = C.graphe.monter(zone, fiche.accueil ? { compact: true } : { centre: fiche.id, profondeur: 1, compact: true });
       nettoyages.push(g.detruire);
+    });
+    return carte;
+  }
+
+  // ---- Révision : corrigés et exercices faits ----
+  // Un « exercice » est un corrigé repliable (::: corrige- …, ou le genre
+  // succes replié) ou un encadré corrige. Sa clé de suivi : l'ancre de la
+  // section qui le précède + son rang dans la section. Renommer la
+  // section fait donc « oublier » l'exercice : c'est le prix d'une clé qui
+  // ne dépend pas de la position dans toute la fiche.
+  function exercicesDe(prose) {
+    var liste = [], section = "debut", rang = 0;
+    prose.querySelectorAll("h1, h2, h3, h4, details.encadre-succes, .encadre-corrige").forEach(function (n) {
+      if (/^H[1-4]$/.test(n.tagName)) {
+        section = n.id ? n.id.replace(/^h-/, "") : C.slug(n.textContent);
+        rang = 0;
+        return;
+      }
+      if (n.parentElement && n.parentElement.closest(".encadre")) return; // encadré dans un encadré
+      rang++;
+      liste.push({ el: n, cle: (section + "#" + rang).slice(0, 200) });
+    });
+    return liste;
+  }
+
+  function revision(fiche, exos) {
+    if (!exos.length) return null;
+    var faits = {};
+    var repliables = exos.map(function (x) { return x.el; }).filter(function (el) { return el.tagName === "DETAILS"; });
+    var texte = h("span.revision-texte", "Chargement du suivi…");
+    var rempli = h("span.revision-rempli");
+    var barre = h("span.revision-barre", { role: "progressbar", "aria-valuemin": "0", "aria-valuemax": String(exos.length), "aria-label": "Exercices faits" }, rempli);
+    var bascule = h("button.btn.btn-mini", { type: "button" });
+    var carte = h("section.carte.carte-revision", { "aria-labelledby": "titre-revision" },
+      h("h2.carte-titre", { id: "titre-revision" }, icone("check2-square"), "Révision"),
+      h("div.revision-etat", texte, barre),
+      repliables.length ? bascule : null);
+
+    function majBascule() {
+      var fermes = repliables.some(function (d) { return !d.open; });
+      C.vider(bascule).appendChild(icone(fermes ? "eye" : "eye-slash"));
+      bascule.appendChild(document.createTextNode(fermes ? " Afficher les corrigés" : " Masquer les corrigés"));
+      bascule.setAttribute("aria-label", (fermes ? "Afficher" : "Masquer") + " tous les corrigés de la fiche");
+    }
+    bascule.addEventListener("click", function () {
+      var ouvrir = repliables.some(function (d) { return !d.open; });
+      repliables.forEach(function (d) { d.open = ouvrir; });
+      majBascule();
+    });
+    repliables.forEach(function (d) { d.addEventListener("toggle", majBascule); });
+    majBascule();
+
+    function majCompte() {
+      var n = exos.filter(function (x) { return faits[x.cle]; }).length;
+      var pl = exos.length > 1 ? "s" : "";
+      texte.textContent = n + " / " + exos.length + " exercice" + pl + " fait" + pl;
+      rempli.style.width = (n / exos.length * 100) + "%";
+      barre.setAttribute("aria-valuenow", String(n));
+      carte.classList.toggle("revision-finie", n === exos.length);
+    }
+
+    // Un bouton sous chaque corrigé.
+    var boutons = exos.map(function (x) {
+      var b = h("button.exo-fait", { type: "button", "aria-pressed": "false", disabled: true });
+      function dessiner() {
+        var fait = !!faits[x.cle];
+        b.setAttribute("aria-pressed", String(fait));
+        C.vider(b).appendChild(icone(fait ? "check-circle-fill" : "circle"));
+        b.appendChild(h("span", fait ? "Fait" : "Marquer comme fait"));
+        x.el.classList.toggle("exo-termine", fait);
+      }
+      b.addEventListener("click", function () {
+        var fait = !faits[x.cle];
+        if (fait) faits[x.cle] = true; else delete faits[x.cle];
+        dessiner();
+        majCompte();
+        b.disabled = true;
+        C.api.marquerFait(fiche.id, x.cle, fait).catch(function (e) {
+          if (fait) delete faits[x.cle]; else faits[x.cle] = true;
+          dessiner();
+          majCompte();
+          C.toast(e.message, "erreur");
+        }).then(function () { b.disabled = false; });
+      });
+      x.el.insertAdjacentElement("afterend", b);
+      dessiner();
+      return { b: b, dessiner: dessiner };
+    });
+
+    C.api.progression(fiche.id).then(function (cles) {
+      cles.forEach(function (c) { faits[c] = true; });
+      boutons.forEach(function (o) { o.b.disabled = false; o.dessiner(); });
+      majCompte();
+    }).catch(function (e) {
+      texte.textContent = "Suivi indisponible : " + e.message;
+      boutons.forEach(function (o) { o.b.title = e.message; });
     });
     return carte;
   }
@@ -224,6 +382,20 @@
     var recentes = e.fiches.filter(function (f) { return !f.accueil; })
       .sort(function (a, b) { return b.maj_le < a.maj_le ? -1 : 1; }).slice(0, 8);
     if (!racines.length && !recentes.length) return null;
+    // Quand l'arbre a des matières : une carte par matière (fiches,
+    // exercices, documents), plus lisible qu'une arborescence.
+    var cartes = C.pages ? C.pages.cartesMatieres() : null;
+    var derniere = derniereLecture();
+    var reprendre = derniere ? h("a.reprendre", { href: "#/fiche/" + derniere.id },
+      icone("bookmark-check"),
+      h("span.reprendre-texte", h("span.reprendre-label", "Reprendre ma lecture"), h("span.reprendre-titre", derniere.titre),
+        h("span.reprendre-chemin", C.nav.chemin(derniere.dossier_id).map(function (d) { return d.titre; }).join(" › "))),
+      icone("arrow-right")) : null;
+    if (cartes) {
+      return h("div.index-accueil", reprendre,
+        h("h2.index-titre", "Les cours"), cartes,
+        recentes.length ? h("div.prose", h("h2", "Modifié récemment"), listeFiches(recentes)) : null);
+    }
     return h("div.prose.index-accueil",
       racines.length ? h("h2", "Les cours") : null,
       racines.length ? h("ul.index-dossiers", racines.map(function (d) {
@@ -296,10 +468,12 @@
         h("span", { title: C.dateComplete(fiche.maj_le) }, C.dateCourte(fiche.maj_le)),
         h("span", Math.max(1, Math.round(fiche.contenu.split(/\s+/).length / 220)) + " min de lecture"),
         fiche.maj_par ? h("span", "par " + C.prenom(C.api.identifiantDe(fiche.maj_par))) : null),
-      null);
+      options.accueil ? null : docsRapides(fiche, signes, signesLe));
+    if (!options.accueil) memoriserLecture(fiche);
 
     var panneau = h("aside.panneau", { "aria-label": "Ressources et navigation" },
       options.accueil && !fiche.ressources.length ? null : carteRessources(fiche, signes, signesLe),
+      revision(fiche, exercicesDe(prose)),
       carteGraphe(fiche, nettoyages),
       sommaire(plan, fiche.id, nettoyages),
       carteCitePar(fiche));
@@ -322,4 +496,5 @@
   C.vues = C.vues || {};
   C.vues.lecture = vue;
   C.vues.listeFiches = listeFiches;
+  C.vues.lienRessource = lienRessource;
 })(window.Codex);

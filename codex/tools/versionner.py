@@ -37,11 +37,12 @@ def empreinte(chemin_rel):
     chemin = os.path.join(RACINE, chemin_rel.replace("/", os.sep))
     if not os.path.isfile(chemin):
         return None
-    h = hashlib.sha1()
+    # Fins de ligne ramenées à LF : sous Windows, git peut extraire les
+    # fichiers en CRLF ; sans cela l'empreinte changerait d'une machine à
+    # l'autre pour un fichier identique dans le dépôt.
     with open(chemin, "rb") as f:
-        for bloc in iter(lambda: f.read(65536), b""):
-            h.update(bloc)
-    return h.hexdigest()[:10]
+        contenu = f.read().replace(b"\r\n", b"\n")
+    return hashlib.sha1(contenu).hexdigest()[:10]
 
 
 def lire(p):

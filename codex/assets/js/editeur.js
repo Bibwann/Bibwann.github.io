@@ -18,6 +18,10 @@
     "::: methode Pour résoudre un exercice type", "1. …", "2. …", "3. …", ":::", "",
     "::: attention Piège classique", "…", ":::", "",
     "## Exemple corrigé", "", "…", "",
+    "## Exercices", "",
+    "### Exercice 1 — Titre", "",
+    "Énoncé de l'exercice.", "",
+    "::: corrige- Corrigé", "La solution, repliée jusqu'au clic.", ":::", "",
     "## Liens", "", "- Prérequis : [[Titre d'une autre fiche]]", ""
   ].join("\n");
 
@@ -30,11 +34,14 @@
     "## Méthode (étapes numérotées pour les exercices types)",
     "## Exemple corrigé",
     "## Pièges fréquents",
+    "## Exercices (3 à 5, du plus simple au plus difficile, chacun sous un titre « ### Exercice N — … »)",
     "",
     "Règles de format :",
     "- Formules en LaTeX : $…$ dans le texte, $$…$$ seules sur leur ligne. Raccourcis disponibles : \\R \\N \\Z \\Q \\C \\K \\Ker \\Im \\Vect \\rg \\tr.",
     "- Encadrés : une ligne « ::: definition Titre », le contenu, puis une ligne « ::: ».",
-    "  Genres possibles : definition, theoreme, propriete, methode, exemple, astuce, attention, danger.",
+    "  Genres possibles : definition, theoreme, propriete, methode, exemple, astuce, attention, danger, exercice, corrige.",
+    "- Chaque exercice : l'énoncé, puis son corrigé replié : « ::: corrige- Corrigé », la solution détaillée, « ::: ».",
+    "- Schémas (étapes, arbres, échanges, états) : un bloc ```mermaid (flowchart, sequenceDiagram, classDiagram, stateDiagram).",
     "- Code : blocs ``` avec le langage (```python, ```c…).",
     "- Pas de titre de niveau 1 (#) : le titre de la fiche existe déjà.",
     "- Quand une notion relève d'un autre chapitre, écris [[Nom du chapitre]].",
@@ -47,8 +54,16 @@
     ["definition", "bookmark-star", "Définition"], ["theoreme", "award", "Théorème"],
     ["propriete", "diagram-3", "Propriété"], ["methode", "list-check", "Méthode"],
     ["exemple", "lightbulb", "Exemple"], ["astuce", "stars", "Astuce"],
-    ["attention", "exclamation-triangle", "Attention"], ["danger", "x-octagon", "Piège"]
+    ["attention", "exclamation-triangle", "Attention"], ["danger", "x-octagon", "Piège"],
+    ["exercice", "pencil-square", "Exercice"], ["corrige-", "check2-square", "Corrigé (replié)"]
   ];
+
+  var DIAGRAMME = [
+    "flowchart TD",
+    "    A[Énoncé] --> B{Condition ?}",
+    "    B -- oui --> C[Cas 1]",
+    "    B -- non --> D[Cas 2]"
+  ].join("\n");
 
   function titreDeFichier(nom) {
     return nom.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim() || nom;
@@ -184,7 +199,7 @@
     }
     var btnEncadre = outil("bookmark-star", "Encadré (définition, théorème…)", function () {
       C.menu(btnEncadre, ENCADRES.map(function (e) {
-        return { icone: e[1], texte: e[2], action: function () { bloc("::: " + e[0] + " ", "\n…\n:::\n", e[2]); } };
+        return { icone: e[1], texte: e[2], action: function () { bloc("::: " + e[0] + " ", "\n…\n:::\n", e[2].replace(/ \(replié\)$/, "")); } };
       }));
     });
     var outils = h("div.editeur-outils",
@@ -200,6 +215,7 @@
         outil("calculator", "Formule centrée : $$…$$", function () { bloc("$$\n", "\n$$\n", "\\sum_{k=1}^{n} k = \\frac{n(n+1)}{2}"); }),
         btnEncadre,
         outil("code-slash", "Bloc de code", function () { bloc("```python\n", "\n```\n", "print('bonjour')"); }),
+        outil("diagram-2", "Diagramme (Mermaid)", function () { bloc("```mermaid\n", "\n```\n", DIAGRAMME); }),
         outil("link", "Lien vers une fiche : [[Titre]]", function () { inserer("[[", "]]", ""); ouvrirAutocompletion(); })),
       h("div.outils-groupe.outils-texte",
         h("button.btn.btn-mini.btn-fantome", { type: "button", title: "Insérer une structure de fiche", on: { click: function () {

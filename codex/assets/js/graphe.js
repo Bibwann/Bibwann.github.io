@@ -18,8 +18,18 @@
   // d'une fiche (colonne de droite), sinon tout le cours.
   function donnees(centre, profondeur) {
     var noeuds = {}, aretes = [];
-    C.etat.dossiers.forEach(function (d) { noeuds["d:" + d.id] = { id: "d:" + d.id, type: "dossier", titre: d.titre, ref: d.id }; });
-    C.etat.fiches.forEach(function (f) { noeuds["f:" + f.id] = { id: "f:" + f.id, type: "fiche", titre: f.titre, ref: f.id, accueil: !!f.accueil }; });
+    var couleurs = {}, estMatiere = {};
+    C.nav.matieres().forEach(function (m) { couleurs[m.dossier.id] = m.couleur; estMatiere[m.dossier.id] = true; });
+    function couleurDe(dossierId) {
+      var m = dossierId ? C.nav.matiere(dossierId) : null;
+      return m ? couleurs[m.id] || null : null;
+    }
+    C.etat.dossiers.forEach(function (d) {
+      noeuds["d:" + d.id] = { id: "d:" + d.id, type: "dossier", titre: d.titre, ref: d.id, couleur: couleurDe(d.id), matiere: !!estMatiere[d.id] };
+    });
+    C.etat.fiches.forEach(function (f) {
+      noeuds["f:" + f.id] = { id: "f:" + f.id, type: "fiche", titre: f.titre, ref: f.id, accueil: !!f.accueil, couleur: couleurDe(f.dossier_id) };
+    });
     C.etat.dossiers.forEach(function (d) {
       if (d.parent_id && noeuds["d:" + d.parent_id]) aretes.push({ a: "d:" + d.parent_id, b: "d:" + d.id, lien: false });
     });
@@ -73,7 +83,7 @@
   }
 
   // Taille d'un nœud : comme Quartz, elle grandit avec le nombre de liens.
-  function rayon(n) { return (n.type === "dossier" ? 2.5 : 3) + Math.sqrt(n.degre) * 1.1; }
+  function rayon(n) { return n.matiere ? 8 : (n.type === "dossier" ? 3 : 3.5) + Math.sqrt(n.degre) * 1.1; }
 
   function monter(conteneur, options) {
     options = options || {};
@@ -124,31 +134,38 @@
       });
       ctx.setLineDash([]);
 
+      // Couleur de la matière ; la fiche courante (ou survolée) cerclée.
       noeuds.forEach(function (n) {
         var proche = !focus || n === focus || focus.voisins[n.id];
-        ctx.globalAlpha = proche ? 1 : 0.3;
-        ctx.fillStyle = n.id === centreId || n === focus ? coul.courant
-          : focus && focus.voisins[n.id] ? coul.voisin
-          : n.type === "dossier" ? coul.dossier : coul.noeud;
+        ctx.globalAlpha = proche ? 1 : 0.2;
+        ctx.fillStyle = n.couleur || (n.type === "dossier" ? coul.dossier : coul.noeud);
         ctx.beginPath(); ctx.arc(n.x, n.y, rayon(n), 0, Math.PI * 2); ctx.fill();
+        if (n.id === centreId || n === focus) {
+          ctx.lineWidth = 2.5 / Math.sqrt(t.k);
+          ctx.strokeStyle = coul.courant;
+          ctx.beginPath(); ctx.arc(n.x, n.y, rayon(n) + 3 / t.k, 0, Math.PI * 2); ctx.stroke();
+        }
       });
 
-      // Étiquettes : fondu avec le zoom (comme Quartz), toujours visibles
-      // pour le nœud courant, le nœud survolé et ses voisins.
-      var fondu = compact ? Math.max(0, Math.min(1, (t.k - 1.3) * 1.5)) : Math.max(0, Math.min(1, (t.k - 0.7) * 1.8));
+      // Étiquettes : trop de titres superposés ne se lisent plus. On écrit
+      // toujours les matières, la fiche courante, la fiche survolée et ses
+      // voisines ; les autres n'apparaissent qu'en zoomant (graphe complet)
+      // ou quand le voisinage est petit.
+      var fondu = compact ? (noeuds.length <= 6 ? 1 : 0) : Math.max(0, Math.min(1, (t.k - 1.4) * 2));
       if (!compact && noeuds.length <= 25) fondu = 1;
-      ctx.font = "600 " + (12 / t.k) + "px " + police;
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
       ctx.lineJoin = "round";
       noeuds.forEach(function (n) {
         var fort = n.id === centreId || n === focus || (focus && focus.voisins[n.id]);
-        var a = fort ? 1 : (focus ? fondu * 0.25 : fondu);
+        var a = fort ? 1 : n.matiere && !compact ? (focus ? 0.35 : 1) : (focus ? fondu * 0.2 : fondu);
         if (a <= 0.02) return;
         ctx.globalAlpha = a;
-        var texte = n.titre.length > 30 ? n.titre.slice(0, 28) + "…" : n.titre;
+        var taille = n.matiere && !compact ? 15 : 12.5;
+        ctx.font = (n.matiere ? "700 " : "600 ") + (taille / t.k) + "px " + police;
+        var texte = n.titre.length > 34 ? n.titre.slice(0, 32) + "…" : n.titre;
         var y = n.y + rayon(n) + 4 / t.k;
-        ctx.lineWidth = 3 / t.k; ctx.strokeStyle = coul.halo; ctx.strokeText(texte, n.x, y);
+        ctx.lineWidth = 4 / t.k; ctx.strokeStyle = coul.halo; ctx.strokeText(texte, n.x, y);
         ctx.fillStyle = coul.texte; ctx.fillText(texte, n.x, y);
       });
       ctx.restore();

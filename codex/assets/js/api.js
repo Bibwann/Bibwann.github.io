@@ -32,7 +32,8 @@
     else if (code === "23514") texte = "Valeur refusée : vérifie ce que tu as saisi.";
     // Site plus récent que la base : colonne ou fonction ajoutée par une
     // nouvelle version de schema.sql, pas encore exécutée dans Supabase.
-    else if (code === "42703" || code === "PGRST202" || /column .* does not exist|could not find the function/i.test(msg)) {
+    else if (code === "42703" || code === "42P01" || code === "PGRST202" || code === "PGRST205" ||
+      /column .* does not exist|could not find the (function|table)|relation .* does not exist/i.test(msg)) {
       texte = "La base n'est pas à jour : relance supabase/schema.sql dans Supabase (SQL Editor), puis recharge la page.";
     }
     else if (/failed to fetch|networkerror|load failed/i.test(msg)) texte = "Connexion impossible. Vérifie ton réseau puis réessaie.";
@@ -126,11 +127,23 @@
   // Une seule lecture pour tout l'arbre, sans le contenu des fiches :
   // c'est ce qui rend la navigation instantanée ensuite.
 
+  // `ordre` (ordre de lecture) vient d'une version récente de schema.sql :
+  // si la base ne l'a pas encore, on relit sans, et tout reste utilisable.
+  var sansOrdre = false;
   function arbre() {
-    return Promise.all([
-      q(sb.from("dossiers").select("id, parent_id, titre")),
-      q(sb.from("fiches").select("id, dossier_id, titre, maj_le, maj_par, accueil"))
-    ]).then(function (r) { return { dossiers: r[0], fiches: r[1] }; });
+    function lire(avecOrdre) {
+      var o = avecOrdre ? ", ordre" : "";
+      return Promise.all([
+        q(sb.from("dossiers").select("id, parent_id, titre" + o)),
+        q(sb.from("fiches").select("id, dossier_id, titre, maj_le, maj_par, accueil" + o))
+      ]).then(function (r) { return { dossiers: r[0], fiches: r[1] }; });
+    }
+    if (sansOrdre) return lire(false);
+    return lire(true).catch(function (e) {
+      if (!/base n'est pas à jour/.test(e.message)) throw e;
+      sansOrdre = true;
+      return lire(false);
+    });
   }
 
   function creerDossier(titre, parentId) {
@@ -283,6 +296,50 @@
     });
   }
 
+  // ---- Progression : les exercices que J'AI faits ----
+  // La RLS ne renvoie que les lignes du membre connecté, et la base pose
+  // elle-même son e-mail : on ne l'envoie jamais.
+
+  function progression(ficheId) {
+    return q(sb.from("progression").select("cle").eq("fiche_id", ficheId)).then(function (l) {
+      return l.map(function (x) { return x.cle; });
+    });
+  }
+
+  function marquerFait(ficheId, cle, fait) {
+    if (fait) {
+      return q(sb.from("progression").insert({ fiche_id: ficheId, cle: cle })).catch(function (e) {
+        // Déjà marqué (autre onglet, double clic) : c'est le résultat voulu.
+        if (e.cause && e.cause.code === "23505") return null;
+        throw e;
+      });
+    }
+    return q(sb.from("progression").delete().eq("fiche_id", ficheId).eq("cle", cle));
+  }
+
+  // Toute ma progression (page Exercices) : { fiche_id: nombre fait }.
+  function maProgression() {
+    return q(sb.from("progression").select("fiche_id")).then(function (l) {
+      var n = {};
+      l.forEach(function (x) { n[x.fiche_id] = (n[x.fiche_id] || 0) + 1; });
+      return n;
+    });
+  }
+
+  // Nombre d'exercices corrigés par fiche : { fiche_id: nombre }.
+  function exercices() {
+    return q(sb.rpc("exercices")).then(function (l) {
+      var n = {};
+      (l || []).forEach(function (x) { n[x.fiche_id] = x.nombre; });
+      return n;
+    });
+  }
+
+  // Tous les documents et liens de toutes les fiches (page Documents).
+  function toutesRessources() {
+    return q(sb.from("ressources").select("id, fiche_id, type, titre, url, fichier, taille"));
+  }
+
   // ---- Membres (admin) ----
 
   function membres() { return q(sb.from("membres").select("*").order("email")); }
@@ -309,6 +366,8 @@
     revisions: revisions, revision: revision, rechercher: rechercher,
     ajouterLien: ajouterLien, ajouterFichier: ajouterFichier, supprimerRessource: supprimerRessource,
     liensSignes: liensSignes,
+    progression: progression, marquerFait: marquerFait, maProgression: maProgression,
+    exercices: exercices, toutesRessources: toutesRessources,
     membres: membres, changerRole: changerRole
   };
 })(window.Codex);

@@ -79,7 +79,7 @@ try {
     replie: !!document.querySelector('#prose details.encadre:not([open])'),
     tag: !!document.querySelector('#prose a.etiquette[href="#/tag/accueil"]'),
     recents: document.querySelectorAll('.index-accueil .page-item').length,
-    dossiers: document.querySelectorAll('.index-dossier').length,
+    dossiers: document.querySelectorAll('.matiere-carte').length,
     graphe: !!document.querySelector('.panneau .graphe-local canvas'),
     explorateurSansAccueil: ![...document.querySelectorAll('.arbre-fiche')].some(a => a.textContent.includes('Bienvenue')),
   }));
@@ -87,7 +87,7 @@ try {
   ok(A.titre === 'Bienvenue sur Codex', "accueil : c'est la note d'accueil qui s'affiche");
   ok(A.callout && A.replie, 'callouts Obsidian « > [!tip] » et repliable « > [!info]- »');
   ok(A.tag, '#tag rendu en lien vers sa page');
-  ok(A.recents >= 5 && A.dossiers === 2, 'index sous la note : dossiers et fiches récentes');
+  ok(A.recents >= 5 && A.dossiers === 3, 'index sous la note : une carte par matière et fiches récentes');
   ok(A.graphe, 'graphe dans la colonne de droite');
   ok(A.explorateurSansAccueil, "la note d'accueil n'encombre pas l'explorateur");
   await p.click('#prose details.encadre summary');
@@ -175,7 +175,7 @@ try {
   await p.keyboard.press('Escape');
 
   // 5. Pages de dossier et de tag
-  const idMaths = await p.evaluate(() => [...document.querySelectorAll('.arbre-dossier')].find(a => a.textContent === 'Mathématiques').dataset.dossier);
+  const idMaths = await p.evaluate(() => [...document.querySelectorAll('.arbre-dossier')].find(a => a.querySelector('.arbre-titre').textContent === 'Mathématiques').dataset.dossier);
   await aller(p, '#/dossier/' + idMaths);
   await p.waitForSelector('.page-simple .fiche-titre');
   await pause(300);
@@ -187,6 +187,65 @@ try {
   await aller(p, '#/tag');
   await p.waitForSelector('.nuage-tags');
   ok((await p.$$('.nuage-tags li')).length >= 1, 'page de tous les tags');
+
+  // 5 bis. Pages transversales : Documents, Exercices ; explorateur rangé
+  await aller(p, '#/');
+  await p.waitForSelector('.index-accueil');
+  await pause(300);
+  ok(await p.evaluate(id => { const a = document.querySelector('.reprendre'); return !!a && a.getAttribute('href') === '#/fiche/' + id; }, idRed),
+    'accueil : « Reprendre ma lecture » mène à la dernière fiche ouverte');
+  await aller(p, '#/documents');
+  await p.waitForSelector('.documents-fiche');
+  await pause(300);
+  const D = await p.evaluate(() => ({
+    filtres: document.querySelectorAll('.filtre-type').length,
+    sections: document.querySelectorAll('.page-section').length,
+    ressources: document.querySelectorAll('.documents-fiche .ressource').length,
+    pastille: !!document.querySelector('.page-matiere .pastille-matiere'),
+  }));
+  console.log('   ', JSON.stringify(D));
+  ok(D.filtres >= 3 && D.ressources === 5 && D.pastille, 'Documents : les 5 supports, rangés par matière, filtres par type');
+  const DL = await p.evaluate(() => [...document.querySelectorAll('.documents-fiche .ressource-dl')].map(a => ({ nom: a.getAttribute('download'), href: a.getAttribute('href') })));
+  console.log('   ', JSON.stringify(DL));
+  ok(DL.length === 1 && DL[0].nom === 'Polycopié du chapitre 4.pdf' && DL[0].href && DL[0].href !== '#',
+    'Documents : bouton « Télécharger » sur le fichier, enregistré sous le titre du document (pas le nom de stockage)');
+  await p.evaluate(() => [...document.querySelectorAll('.filtre-type')].find(b => b.dataset.type === 'video').click());
+  await pause(150);
+  ok(await p.evaluate(() => [...document.querySelectorAll('.documents-fiche .ressource')].filter(a => !a.hidden).length === 1
+    && document.querySelector('.filtre-type[data-type="video"]').getAttribute('aria-pressed') === 'true'), 'Documents : filtre « Vidéos »');
+  await p.evaluate(() => [...document.querySelectorAll('.filtre-type')].find(b => b.dataset.type === 'tous').click());
+  await p.type('.champ-filtre', 'zzz-introuvable');
+  await pause(150);
+  ok(await p.$eval('.prose-vide', e => !e.hidden), 'Documents : filtre sans résultat annoncé');
+  await cap(p, '04b-documents');
+
+  await aller(p, '#/exercices');
+  await p.waitForSelector('.liste-exercices li');
+  await pause(300);
+  const X = await p.evaluate(() => ({
+    fiches: [...document.querySelectorAll('.liste-exercices .exercice-titre')].map(a => a.textContent),
+    global: document.querySelector('.progres-global strong')?.textContent,
+  }));
+  console.log('   ', JSON.stringify(X));
+  ok(X.fiches.includes('Structures de données') && /^0 \/ \d+ exercices faits$/.test(X.global || ''), 'Exercices : fiches à exercices et progression globale');
+  await p.click('.page-entete label.case input');
+  await pause(150);
+  ok((await p.$$('.liste-exercices li:not([hidden])')).length === X.fiches.length, 'Exercices : « ce qu\'il me reste » garde tout quand rien n\'est fait');
+  await cap(p, '04c-exercices');
+
+  const E = await p.evaluate(() => {
+    const pied = document.querySelector('.nav-pied').getBoundingClientRect();
+    const arbre = document.querySelector('.nav-arbre').getBoundingClientRect();
+    return {
+      pastilles: document.querySelectorAll('.arbre-pastille').length,
+      pied: [...document.querySelectorAll('.nav-pied .nav-lien')].map(a => a.getAttribute('href')),
+      chevauche: arbre.bottom > pied.top + 1,
+    };
+  });
+  console.log('   ', JSON.stringify(E));
+  ok(E.pastilles === 3, 'explorateur : une pastille de couleur par matière');
+  ok(E.pied.includes('#/documents') && E.pied.includes('#/exercices') && E.pied.includes('#/importer'), 'barre latérale : liens Documents, Exercices, Importer');
+  ok(!E.chevauche, "l'explorateur ne déborde pas sur les liens du bas");
 
   // 6. Éditeur
   await aller(p, '#/editer/' + idRed);
@@ -244,8 +303,134 @@ try {
   await aller(p, '#/graphe');
   await p.waitForSelector('.graphe-plein canvas');
   await pause(1200);
-  ok(true, 'graphe complet affiché');
+  ok((await p.$$('.legende .puce')).length === 3, 'graphe complet : légende, une couleur par matière');
   await cap(p, '06-graphe');
+
+  // 7 bis. Révision, diagrammes, titres d'encadrés en Markdown
+  const idSd = await p.evaluate(() => [...document.querySelectorAll('.arbre-fiche')].find(x => x.textContent.includes('Structures')).dataset.fiche);
+  await aller(p, '#/fiche/' + idSd);
+  await p.waitForSelector('.lecture .prose h2');
+  await p.waitForSelector('#prose figure.diagramme[data-etat="ok"] img', { timeout: 60000 }).catch(() => {});
+  const R = await p.evaluate(() => ({
+    diagramme: !!document.querySelector('#prose figure.diagramme img.diagramme-image[src^="data:image/svg+xml"]'),
+    svgInsere: document.querySelectorAll('#prose figure svg').length + document.querySelectorAll('body > [id^="dcodex-diagramme"], body > [id^="codex-diagramme"]').length,
+    titreCode: !!document.querySelector('#prose .encadre-astuce .encadre-titre code') && !!document.querySelector('#prose .encadre-astuce .encadre-titre .katex'),
+    exercice: !!document.querySelector('#prose .encadre-exercice'),
+    boutons: document.querySelectorAll('#prose .exo-fait').length,
+    carte: document.querySelector('.carte-revision .revision-texte')?.textContent,
+  }));
+  console.log('   ', JSON.stringify(R));
+  ok(R.diagramme && R.svgInsere === 0, 'diagramme Mermaid dessiné, affiché en image inerte (aucun SVG inséré dans la page)');
+  ok(R.titreCode, "titre d'encadré en Markdown : `code` et $formule$ rendus");
+  ok(R.exercice && R.boutons === 2, 'encadrés Exercice / Corrigé, un bouton « fait » sous chaque corrigé');
+  ok(R.carte === '0 / 2 exercices faits', 'carte Révision : compteur (' + R.carte + ')');
+  await p.click('#prose .exo-fait');
+  await pause(500);
+  ok(await p.evaluate(() => CODEX_BANC.db.progression.length === 1 && document.querySelector('.carte-revision .revision-texte').textContent.startsWith('1 / 2')), 'exercice marqué fait : enregistré, compteur à jour');
+  await p.click('.carte-revision .btn');
+  ok(await p.evaluate(() => [...document.querySelectorAll('#prose details.encadre-corrige')].every(d => d.open)), '« Afficher les corrigés » les ouvre tous');
+  await cap(p, '06b-revision');
+  await aller(p, '#/graphe');
+  await pause(300);
+  await aller(p, '#/fiche/' + idSd);
+  await p.waitForSelector('#prose .exo-fait:not([disabled])', { timeout: 3000 }).catch(() => {});
+  ok((await p.$$('#prose .exo-fait[aria-pressed="true"]')).length === 1, 'le suivi est retrouvé en rouvrant la fiche');
+  await p.waitForSelector('#prose figure.diagramme[data-etat="ok"] img', { timeout: 20000 }).catch(() => {});
+  const srcAvant = await p.$eval('#prose .diagramme-image', i => i.src).catch(() => '');
+  await p.click('.btn-theme');
+  await p.waitForFunction(s => { const i = document.querySelector('#prose .diagramme-image'); return i && i.src !== s; }, { timeout: 20000 }, srcAvant).catch(() => {});
+  ok(srcAvant && (await p.$eval('#prose .diagramme-image', i => i.src).catch(() => srcAvant)) !== srcAvant, 'changer de thème redessine le diagramme');
+  await p.click('.btn-theme');
+  const erreurMermaid = await p.evaluate(async () => {
+    const d = document.createElement('div');
+    document.body.appendChild(d);
+    Codex.rendu.rendre(d, '```mermaid\nflowchart TD\n  A -->\n```');
+    await new Promise(r => setTimeout(r, 3000));
+    const txt = d.querySelector('.diagramme-erreur')?.textContent || '';
+    const orphelins = document.querySelectorAll('body > [id^="dcodex-diagramme"]').length;
+    d.remove();
+    return { txt, orphelins };
+  });
+  ok(/non dessiné/.test(erreurMermaid.txt) && erreurMermaid.orphelins === 0, 'diagramme faux : message clair, source affichée, rien d\'orphelin dans la page');
+
+  // Analyse d'import (pure)
+  const A2 = await p.evaluate(() => {
+    const r = Codex.importer.analyser([
+      { nom: 'note.md', dossiers: ['Vault', 'Algo'], texte: '---\ntitle: Tri rapide\ntags:\n  - algo\n  - tri\n---\n# Tri rapide\n\nPivot.' },
+      { nom: 'lot.md', dossiers: [], texte: '@@ A / B\nparasite\n+++ Un\n+ video | V | https://y.fr/v\n+ inconnu | X | https://y.fr\nCorps' }
+    ]);
+    const carte = Codex.importer.lireCorrespondance('fichier;fiche;type\nTD 1.pdf;Structures de données;td');
+    return { n: r.fiches.length, tri: r.fiches[0], un: r.fiches[1], erreurs: r.erreurs.length, carte };
+  });
+  ok(A2.n === 2 && A2.tri.titre === 'Tri rapide' && A2.tri.chemin.join('/') === 'Vault/Algo' && A2.tri.contenu.trim() === 'Pivot.\n\n#algo #tri',
+    'import : note Obsidian (en-tête YAML, tags en liste, « # Titre » retiré, dossiers conservés)');
+  ok(A2.un.titre === 'Un' && A2.un.chemin.join('/') === 'A/B' && A2.un.ressources.length === 1 && A2.erreurs === 2, 'import : lot Codex (@@, +++, liens valides seulement, lignes fautives signalées)');
+  ok(A2.carte && A2.carte['td 1.pdf'] && A2.carte['td 1.pdf'].fiche === 'Structures de données', 'import : fichier de correspondance CSV lu');
+
+  // 7 ter. Importer des fiches depuis l'interface
+  await aller(p, '#/importer');
+  await p.waitForSelector('#import-md');
+  const lot = path.join(os.tmpdir(), 'codex-e2e-lot.md');
+  fs.writeFileSync(lot, '@@ Import test / Partie 1\n\n+++ Lot : première fiche\n+ video | Une vidéo | https://www.youtube.com/watch?v=abc\nVoir [[Lot : seconde fiche]] et [[Fiche absente]].\n\n+++ Lot : seconde fiche\nSecond contenu.\n\n+++ Structures de données\nNe doit pas écraser la vraie.\n');
+  const note = path.join(os.tmpdir(), 'codex-e2e-note.md');
+  fs.writeFileSync(note, '---\ntitle: Note Obsidian\ntags: [algo, tri]\n---\n# Note Obsidian\n\nCorps de la note.\n');
+  const [entreeMd] = await p.$$('#import-md');
+  await entreeMd.uploadFile(lot, note);
+  await p.waitForSelector('.table-import tbody tr', { timeout: 5000 }).catch(() => {});
+  const I = await p.evaluate(() => ({
+    lignes: [...document.querySelectorAll('.table-import tbody tr')].map(tr => tr.querySelector('.import-etat').textContent),
+    absents: document.querySelector('.import-avert')?.textContent || '',
+    bouton: document.querySelector('.import-actions .btn-primaire:not([hidden])')?.textContent || '',
+  }));
+  console.log('   ', JSON.stringify(I));
+  ok(I.lignes.length === 4 && I.lignes.filter(e => e === 'À créer').length === 3 && I.lignes.includes('Existe déjà : gardée'), 'import : aperçu avant écriture (3 à créer, 1 existante gardée)');
+  ok(/1 lien/.test(I.absents) && /Importer 3 fiches/.test(I.bouton), 'import : lien vers une fiche absente signalé, bouton « Importer 3 fiches »');
+  ok(await p.evaluate(() => !CODEX_BANC.db.fiches.some(f => f.titre === 'Note Obsidian')), "import : rien n'est écrit avant validation");
+  await p.click('.import-actions .btn-primaire');
+  await p.waitForSelector('.import-fin .alerte', { timeout: 15000 }).catch(() => {});
+  const J = await p.evaluate(() => {
+    const db = CODEX_BANC.db;
+    const f1 = db.fiches.find(f => f.titre === 'Lot : première fiche');
+    const d1 = f1 && db.dossiers.find(d => d.id === f1.dossier_id);
+    const d0 = d1 && db.dossiers.find(d => d.id === d1.parent_id);
+    const nObs = db.fiches.find(f => f.titre === 'Note Obsidian');
+    return {
+      chemin: d0 && d1 ? d0.titre + '/' + d1.titre + '/' + (d0.parent_id === null) : null,
+      liens: f1 ? db.ressources.filter(r => r.fiche_id === f1.id && r.url).length : -1,
+      nav: f1 ? f1.contenu.includes('[[Lot : seconde fiche]] →') : false,
+      obs: nObs ? nObs.contenu : null,
+      intacte: db.fiches.find(f => f.titre === 'Structures de données').contenu.includes('Piles et files'),
+      arbre: [...document.querySelectorAll('.arbre-dossier')].some(a => a.querySelector('.arbre-titre').textContent === 'Import test'),
+    };
+  });
+  console.log('   ', JSON.stringify(J));
+  ok(J.chemin === 'Import test/Partie 1/true' && J.liens === 1 && J.nav, 'import : dossiers créés, liens ajoutés, navigation précédent / suivant du lot');
+  ok(J.obs && J.obs.startsWith('Corps de la note.') && J.obs.includes('#algo #tri'), 'import : note Obsidian avec ses tags');
+  ok(J.intacte && J.arbre, 'import : fiche existante intacte, explorateur rechargé');
+  await cap(p, '06c-import');
+
+  // 7 quater. Déposer des fichiers en lot, rangés par un fichier de correspondance
+  await p.click('.page-import .segments .segment:nth-child(2)');
+  const csv = path.join(os.tmpdir(), 'codex-e2e-correspondance.csv');
+  fs.writeFileSync(csv, 'fichier;fiche;type;titre\n' + path.basename(PDF_TEST) + ';Réduction des endomorphismes;annale;Rapport importé\n');
+  const [entreeLot] = await p.$$('#import-fichiers');
+  await entreeLot.uploadFile(PDF_TEST, csv);
+  await p.waitForSelector('.table-fichiers tbody tr', { timeout: 5000 }).catch(() => {});
+  const K = await p.evaluate(id => {
+    const tr = document.querySelectorAll('.table-fichiers tbody tr');
+    const s = tr[0]?.querySelectorAll('select');
+    return { n: tr.length, fiche: s && s[0].value === id, type: s && s[1].value, titre: tr[0]?.querySelector('input[type=text]').value };
+  }, idRed);
+  ok(K.n === 1 && K.fiche && K.type === 'annale' && K.titre === 'Rapport importé', 'dépôt en lot : la correspondance range le fichier (fiche, type, titre), le CSV n\'est pas déposé');
+  await p.click('.page-import .import-panneau:not([hidden]) .import-actions .btn-primaire');
+  await p.waitForSelector('.table-fichiers tr.import-ok, .table-fichiers tr.import-erreur', { timeout: 120000 }).catch(() => {});
+  ok(await p.evaluate(id => CODEX_BANC.db.ressources.some(r => r.fiche_id === id && r.titre === 'Rapport importé' && r.type === 'annale' && r.fichier), idRed), 'dépôt en lot : fichier compressé et rattaché à sa fiche');
+  const devine = await p.evaluate(() => {
+    const f = [{ id: '1', titre: 'Structures de données' }, { id: '2', titre: 'Mécanique du point' }];
+    return [Codex.importer.deviner('TD structures de donnees.pdf', f)?.id, Codex.importer.deviner('scan_0042.pdf', f)];
+  });
+  ok(devine[0] === '1' && devine[1] === null, 'dépôt en lot : fiche devinée d\'après le nom, rien de proposé sans ressemblance');
+  await cap(p, '06d-depot-lot');
 
   // 8. Comptes (admin)
   await aller(p, '#/admin');
@@ -284,10 +469,28 @@ try {
   await p.waitForSelector('.lecture .prose h2');
   await pause(600);
   ok((await p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)) <= 0, 'mobile : pas de défilement horizontal');
+  const M = await p.evaluate(() => {
+    const docs = document.querySelector('.docs-rapides'), prose = document.querySelector('#prose'), panneau = document.querySelector('.panneau');
+    return {
+      docs: !!docs && getComputedStyle(docs).display !== 'none',
+      dl: docs ? docs.querySelectorAll('.ressource-dl').length : 0,
+      avantCours: !!docs && docs.getBoundingClientRect().top < prose.getBoundingClientRect().top,
+      panneauApres: panneau.getBoundingClientRect().top > prose.getBoundingClientRect().top,
+      ressourcesMasquees: getComputedStyle(document.querySelector('.panneau .carte-ressources')).display === 'none',
+    };
+  });
+  console.log('   ', JSON.stringify(M));
+  ok(M.docs && M.dl === 1 && M.avantCours, 'mobile : les documents du cours, à télécharger, juste sous le titre');
+  ok(M.panneauApres && M.ressourcesMasquees, 'mobile : le cours d\'abord, le panneau ensuite (sans doublon des ressources)');
   await cap(p, '08-mobile-lecture');
   await p.click('.burger');
   await pause(400);
   await cap(p, '09-mobile-nav');
+  await aller(p, '#/importer');
+  await p.waitForSelector('#import-md');
+  await pause(300);
+  ok((await p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)) <= 0, 'mobile : page Importer sans défilement horizontal');
+  await cap(p, '09b-mobile-import');
   await p.close();
 
   // 11. Rôles
@@ -301,6 +504,15 @@ try {
   await aller(p, '#/admin');
   await pause(300);
   ok(!(await p.$('.table-membres')), 'lecteur : pas de page Membres');
+  ok(!(await p.$('a.nav-lien[href="#/importer"]')), 'lecteur : pas de lien Importer');
+  await aller(p, '#/importer');
+  await pause(300);
+  ok(!(await p.$('#import-md')), 'lecteur : /importer redirige');
+  await aller(p, '#/fiche/' + idSd);
+  await p.waitForSelector('#prose .exo-fait:not([disabled])', { timeout: 3000 }).catch(() => {});
+  await p.click('#prose .exo-fait');
+  await pause(400);
+  ok(await p.evaluate(() => document.querySelector('.carte-revision .revision-texte').textContent.startsWith('1 / 2')), 'lecteur : peut suivre ses propres exercices');
   await p.close();
 
   p = await page(BASE + 'tools/banc.html?role=intrus');
