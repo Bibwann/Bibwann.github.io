@@ -17,8 +17,8 @@
   --bordure: #e5e5e5;
   --bordure-forte: #cfcdcd;
   --texte: #2b2b2b;
-  --texte-doux: #4e4e4e;
-  --texte-faible: #6b6b6b;
+  --texte-doux: #363636;
+  --texte-faible: #5d5d5d;
   --titre: #1f1f1f;
   --accent: #284b63;
   --accent-fort: #284b63;
@@ -53,18 +53,18 @@
   --surface: #1e1e21;
   --surface-2: #262629;
   --surface-graphe: #161618;
-  --bordure: #2e2c2e;
-  --bordure-forte: #454245;
+  --bordure: #333136;
+  --bordure-forte: #4d4a50;
   --texte: #ebebec;
-  --texte-doux: #d4d4d4;
-  --texte-faible: #9c9c9e;
+  --texte-doux: #dcdcdc;
+  --texte-faible: #acacaf;
   --titre: #f2f2f3;
-  --accent: #7b97aa;
-  --accent-fort: #7b97aa;
+  --accent: #94b5cb;
+  --accent-fort: #7b9db3;
   --accent-2: #84a59d;
   --accent-fond: rgba(123, 151, 170, 0.12);
   --sur-accent: #111113;
-  --lien: #9fbacd;
+  --lien: #a9c8dd;
   --ok: #7fb893;
   --alerte: #d6a656;
   --danger: #e08a8a;
@@ -104,8 +104,8 @@ body {
   background: var(--fond);
   color: var(--texte);
   font-family: var(--police);
-  font-size: 16px;
-  line-height: 1.55;
+  font-size: 17px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 a { color: var(--lien); }
@@ -237,7 +237,14 @@ textarea.champ { resize: vertical; line-height: 1.5; }
 .nav-outils { display: flex; align-items: center; gap: 6px; }
 .nav-outils .btn-icone { width: 30px; height: 30px; font-size: 1.15rem; color: var(--texte-doux); }
 .nav-outils .btn-icone[aria-pressed="true"] { color: var(--accent); }
-.nav-arbre { flex: 1; min-height: 0; }
+/* L'arbre défile seul : le pied (Documents, Exercices…) reste visible dessous. */
+.nav-arbre { flex: 1 1 auto; min-height: 140px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; margin-right: -10px; padding-right: 10px; }
+.nav-pied { flex: 0 0 auto; }
+.arbre-tronc {
+  display: block; margin: 0 0 6px; color: var(--texte-faible); font-size: .82rem; font-weight: 600;
+  letter-spacing: .02em; text-transform: uppercase; text-decoration: none;
+}
+.arbre-tronc:hover { color: var(--accent); }
 .nav-entete { display: flex; align-items: center; justify-content: space-between; margin: 0 0 8px; }
 .explorateur-titre {
   display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none;
@@ -260,7 +267,7 @@ textarea.champ { resize: vertical; line-height: 1.5; }
 /* Explorateur, comme celui de Quartz : dossiers en gras couleur d'accent,
    fiches en gris foncé, une ligne verticale discrète par niveau. */
 .arbre, .arbre-enfants { list-style: none; margin: 0; padding: 0; }
-.arbre-enfants { padding-left: 14px; margin-left: 6px; border-left: 1px solid var(--bordure); }
+.arbre-enfants { padding-left: 10px; margin-left: 6px; border-left: 1px solid var(--bordure); }
 .arbre-ligne { display: flex; align-items: center; gap: 2px; }
 .arbre-bascule {
   flex: 0 0 auto; display: grid; place-items: center; width: 18px; height: 24px; padding: 0; border: 0; background: none;
@@ -273,7 +280,10 @@ textarea.champ { resize: vertical; line-height: 1.5; }
   font-family: var(--police-titre); font-weight: 600; font-size: .98rem; color: var(--accent); text-decoration: none;
 }
 .arbre-dossier:hover { color: var(--accent-2); }
-.arbre-titre { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.arbre-titre { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.arbre-num { flex: 0 0 auto; min-width: 1.5em; color: var(--texte-faible); font-variant-numeric: tabular-nums; font-size: .85em; }
+.arbre-compte { flex: 0 0 auto; margin-left: 6px; color: var(--texte-faible); font-family: var(--police); font-weight: 400; font-size: .78rem; }
+.arbre-pastille { flex: 0 0 auto; width: 9px; height: 9px; border-radius: 50%; margin-right: 7px; }
 .arbre-plus {
   flex: 0 0 auto; width: 24px; height: 24px; border: 0; border-radius: var(--r-s);
   background: none; color: var(--texte-faible); opacity: 0;
@@ -281,12 +291,12 @@ textarea.champ { resize: vertical; line-height: 1.5; }
 .arbre-ligne:hover .arbre-plus, .arbre-plus:focus-visible { opacity: 1; }
 .arbre-plus:hover { background: var(--surface-2); color: var(--titre); }
 .arbre-fiche {
-  display: flex; align-items: center; padding: 3px 0 3px 20px;
-  color: var(--texte-doux); text-decoration: none; font-size: .95rem; line-height: 1.35;
+  display: flex; align-items: baseline; gap: 2px; padding: 4px 0 4px 20px;
+  color: var(--texte-doux); text-decoration: none; font-size: .93rem; line-height: 1.35;
 }
 .arbre-enfants .arbre-fiche { padding-left: 4px; }
 .arbre-fiche:hover { color: var(--accent-2); }
-.arbre-fiche.actif { color: var(--accent); font-weight: 600; }
+.arbre-fiche.actif { color: var(--accent); font-weight: 700; }
 @media (hover: none) { .arbre-plus { opacity: 1; } }
 
 .compte {
@@ -466,10 +476,37 @@ body.mode-lecture .sortie-lecture:hover { color: var(--accent); }
 .ressource-texte { flex: 1; min-width: 0; display: grid; line-height: 1.3; }
 .ressource-titre { font-weight: 600; font-size: .95rem; color: var(--accent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ressource-meta { font-size: .8rem; color: var(--texte-faible); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Un fichier : le titre ouvre (nouvel onglet), le bouton à droite télécharge. */
+.ressource-fichier { padding: 2px 2px 2px 6px; }
+.ressource-ouvrir { flex: 1; min-width: 0; display: flex; align-items: center; gap: 9px; color: inherit; text-decoration: none; padding: 2px 0; }
+.ressource-dl {
+  flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-width: 34px; height: 34px; padding: 0 8px; border: 1px solid var(--bordure); border-radius: var(--r-m);
+  background: var(--surface); color: var(--texte-doux); font-size: .85rem; font-weight: 600; text-decoration: none;
+}
+.ressource-dl:hover, .ressource-dl:focus-visible { border-color: var(--accent); color: var(--accent); }
+.ressource-dl .bi { font-size: .95rem; }
+/* Dans le panneau étroit, l'icône suffit ; sur la page Documents et en tête de fiche, le mot est affiché. */
+.panneau .ressource-dl-texte { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.docs-rapides { display: none; }
+
+.reprendre {
+  display: flex; align-items: center; gap: 14px; margin: 0 0 2rem; padding: 14px 16px;
+  border: 1px solid var(--bordure); border-left: 4px solid var(--accent); border-radius: var(--r-l);
+  background: var(--surface); color: var(--texte); text-decoration: none;
+}
+.reprendre:hover { border-color: var(--accent); }
+.reprendre > .bi { font-size: 1.3rem; color: var(--accent); }
+.reprendre > .bi:last-child { font-size: 1rem; color: var(--texte-faible); }
+.reprendre-texte { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.reprendre-label { font-size: .78rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--texte-faible); }
+.reprendre-titre { font-family: var(--police-titre); font-weight: 700; font-size: 1.1rem; color: var(--titre); }
+.reprendre-chemin { font-size: .85rem; color: var(--texte-faible); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .liste-liens { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .liste-liens a { font-weight: 600; font-size: .95rem; color: var(--accent); text-decoration: none; background: none; padding: 0; }
 .liste-liens a:hover { color: var(--accent-2); }
-.graphe-local { position: relative; height: 250px; border: 1px solid var(--bordure); border-radius: 5px; background: var(--surface-graphe); overflow: hidden; }
+.graphe-local { position: relative; height: 220px; border: 1px solid var(--bordure); border-radius: 5px; background: var(--surface-graphe); overflow: hidden; }
 .graphe-global {
   position: absolute; top: 8px; right: 8px; z-index: 2; display: grid; place-items: center; width: 26px; height: 26px;
   border-radius: 5px; color: var(--texte-faible); text-decoration: none;
@@ -477,12 +514,12 @@ body.mode-lecture .sortie-lecture:hover { color: var(--accent); }
 .graphe-global:hover { color: var(--accent); background: var(--surligne); }
 .sommaire { list-style: none; margin: 0; padding: 0; }
 .sommaire a {
-  display: block; padding: 2px 0; color: var(--texte-doux); text-decoration: none; font-size: .95rem; line-height: 1.45;
-  opacity: .35; transition: opacity .3s;
+  display: block; padding: 3px 0 3px 10px; border-left: 2px solid transparent; color: var(--texte-doux); text-decoration: none; font-size: .93rem; line-height: 1.4;
+  transition: color .2s, border-color .2s;
 }
-.sommaire a.niveau-3 { padding-left: 16px; }
-.sommaire a.dans-vue { opacity: 1; }
-.sommaire a:hover { color: var(--accent-2); opacity: 1; }
+.sommaire a.niveau-3 { padding-left: 24px; font-size: .88rem; }
+.sommaire a.dans-vue { color: var(--titre); border-left-color: var(--accent); }
+.sommaire a:hover { color: var(--accent); }
 
 /* Aperçu au survol d'un lien [[fiche]] (les « popovers » de Quartz) */
 .apercu {
@@ -551,6 +588,11 @@ a.page-titre:hover { color: var(--accent-2); }
   background: var(--surligne); border-radius: 5px; padding: 0 .1rem;
 }
 .prose a:hover, .lien-fiche:hover { color: var(--accent-2); }
+/* Les cartes et listes posées dans une page (dossier, documents) ne sont pas du texte courant :
+   pas de surlignage de lien, sinon chaque ligne devient un pavé gris. */
+.prose .documents a, .prose .ressource, .prose .matiere-carte a, .prose .liste-exercices a { background: none; padding: 0; }
+.prose .ressource { padding: 4px 6px; }
+.prose .ressource:hover { background: var(--surligne); }
 .prose a.externe::after {
   content: "↗"; display: inline-block; margin-left: .15em; font-size: .8em; font-weight: 400; opacity: .8;
 }
@@ -631,6 +673,32 @@ details.encadre:not([open]) .encadre-fleche { transform: rotate(-90deg); }
 .encadre-echec, .encadre-danger, .encadre-bug { --c: #db4242; }
 .encadre-exemple { --c: #7a43b5; }
 .encadre-citation { --c: #9e9e9e; }
+.encadre-exercice { --c: #5b6ee1; }
+.encadre-corrige { --c: #09ad7a; }
+.encadre-titre code { font-size: .92em; }
+
+/* Suivi des exercices : un bouton sous chaque corrigé. */
+.exo-fait {
+  display: flex; align-items: center; gap: 6px; margin: -.55rem 0 1rem auto; padding: 3px 10px;
+  border: 1px solid var(--bordure); border-radius: 999px; background: var(--fond);
+  color: var(--texte-faible); font-size: .84rem; cursor: pointer;
+}
+.exo-fait:hover:not(:disabled) { color: var(--titre); border-color: var(--bordure-forte); }
+.exo-fait[aria-pressed="true"] { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, transparent); background: color-mix(in srgb, var(--ok) 8%, transparent); }
+.exo-fait:disabled { opacity: .6; cursor: default; }
+.encadre.exo-termine { border-color: color-mix(in srgb, var(--ok) 45%, transparent); }
+
+/* Diagrammes Mermaid, affichés en image (voir diagrammes.js). */
+.diagramme { margin: 0 0 1rem; text-align: center; }
+.diagramme-image { max-width: 100%; height: auto; }
+.diagramme-source { text-align: left; margin: 0; padding: .6rem .9rem; border: 1px dashed var(--bordure-forte); border-radius: 5px; overflow-x: auto; }
+.diagramme-source code { font-family: var(--police-mono); font-size: .85rem; }
+.diagramme.en-cours .diagramme-source { opacity: .55; }
+.diagramme-code { text-align: left; font-size: .85rem; color: var(--texte-faible); }
+.diagramme-code summary { cursor: pointer; display: inline-block; }
+.diagramme-code pre { margin: .4rem 0 0; padding: .6rem .9rem; border: 1px solid var(--bordure); border-radius: 5px; overflow-x: auto; }
+.diagramme-code code { font-family: var(--police-mono); }
+.diagramme-erreur { display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--alerte); font-size: .9rem; margin: 0 0 .4rem; }
 
 /* ---------- Éditeur ---------- */
 .vue-large { padding-left: 28px; padding-right: 28px; padding-top: 20px; }
@@ -786,14 +854,124 @@ details.encadre:not([open]) .encadre-fleche { transform: rotate(-90deg); }
 .admin-type { margin-left: 6px; color: var(--texte-faible); font-size: .85rem; }
 .mdp-affiche { margin: 0; padding: 10px 12px; border: 1px dashed var(--bordure-forte); border-radius: 5px; background: var(--surligne); }
 
+/* ---------- Pages Documents et Exercices ---------- */
+.page-transversale { max-width: 900px; }
+.page-section { margin: 0 0 2.4rem; }
+.page-section-tete { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 0 0 12px; }
+.page-matiere {
+  display: flex; align-items: center; gap: 10px; margin: 0 0 12px; font-family: var(--police-titre);
+  font-size: 1.35rem; color: var(--titre);
+}
+.page-section-tete .page-matiere { margin: 0; flex: 1 1 auto; }
+.page-matiere a { color: inherit; text-decoration: none; }
+.page-matiere a:hover { color: var(--accent); }
+.pastille-matiere { flex: 0 0 auto; width: 12px; height: 12px; border-radius: 50%; background: var(--texte-faible); }
+.filtres { display: grid; gap: 10px; margin: 0 0 26px; }
+.champ-filtre { max-width: 460px; }
+.puces { display: flex; flex-wrap: wrap; gap: 6px; }
+.filtre-type {
+  padding: 4px 12px; border: 1px solid var(--bordure-forte); border-radius: 999px; background: var(--surface);
+  color: var(--texte-doux); font-size: .88rem;
+}
+.filtre-type[aria-pressed="true"] { background: var(--accent-fort); border-color: var(--accent-fort); color: var(--sur-accent); font-weight: 600; }
+.documents { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 12px; }
+.documents-fiche { padding: 12px 14px; border: 1px solid var(--bordure); border-radius: var(--r-l); background: var(--surface); }
+.documents-titre { margin: 0 0 8px; font-family: var(--police-titre); font-size: .98rem; line-height: 1.3; }
+.documents-titre a { color: var(--titre); text-decoration: none; }
+.documents-titre a:hover { color: var(--accent); }
+.documents-liens { display: grid; gap: 2px; }
+.documents .ressource-titre { white-space: normal; }
+.progres { display: inline-block; width: 120px; height: 6px; border-radius: 6px; background: var(--bordure); overflow: hidden; vertical-align: middle; }
+.progres-rempli { display: block; height: 100%; background: var(--ok); border-radius: 6px; }
+.progres-global { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 14px 0 10px; }
+.progres-global .progres { width: 220px; }
+.progres-texte { color: var(--texte-faible); font-size: .9rem; }
+.liste-exercices { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.liste-exercices li {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: var(--r-m);
+}
+.liste-exercices li:hover { background: var(--surface-2); }
+.liste-exercices li > .bi { color: var(--texte-faible); }
+.liste-exercices li.exercice-fini > .bi { color: var(--ok); }
+.exercice-titre { color: var(--titre); font-weight: 600; text-decoration: none; }
+.exercice-titre:hover { color: var(--accent); }
+.exercice-compte { color: var(--texte-faible); font-size: .88rem; font-variant-numeric: tabular-nums; }
+.liste-exercices .progres { width: 90px; }
+
+/* Accueil : une carte par matière */
+.index-titre { font-family: var(--police-titre); font-size: 1.4rem; color: var(--titre); margin: 0 0 14px; }
+.matieres { list-style: none; margin: 0 0 2.4rem; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.matiere-carte {
+  --c: var(--accent); display: grid; gap: 6px; padding: 14px 16px 12px; border: 1px solid var(--bordure);
+  border-top: 4px solid var(--c); border-radius: var(--r-l); background: var(--surface);
+}
+.matiere-nom { font-family: var(--police-titre); font-weight: 700; font-size: 1.12rem; color: var(--titre); text-decoration: none; line-height: 1.25; }
+.matiere-nom:hover { color: var(--c); }
+.matiere-chiffres { color: var(--texte-faible); font-size: .88rem; }
+.matiere-liens { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 4px; font-size: .9rem; }
+.matiere-liens a { display: inline-flex; align-items: center; gap: 5px; color: var(--accent); text-decoration: none; font-weight: 600; }
+.matiere-liens a:hover { color: var(--c); }
+
+/* ---------- Révision (colonne de droite) ---------- */
+.carte-revision .btn { justify-self: start; margin-top: 10px; }
+.revision-etat { display: grid; gap: 6px; }
+.revision-texte { font-size: .92rem; color: var(--texte-doux); }
+.revision-barre { display: block; height: 5px; border-radius: 5px; background: var(--bordure); overflow: hidden; }
+.revision-rempli { display: block; height: 100%; width: 0; border-radius: 5px; background: var(--accent); transition: width .3s; }
+.revision-finie .revision-rempli { background: var(--ok); }
+
+/* ---------- Importer ---------- */
+.page-import .segments { justify-self: start; }
+.import-panneau { display: grid; gap: 14px; }
+.import-options { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.import-options .champ-label { margin: 0; }
+.import-options .champ-select { max-width: 360px; }
+.import-boutons, .import-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.import-aide summary, .import-avert summary { cursor: pointer; color: var(--texte-doux); font-size: .92rem; }
+.import-aide .prose { margin-top: 10px; font-size: .95rem; }
+.import-aide pre { padding: .6rem .9rem; border: 1px solid var(--bordure); border-radius: 5px; overflow-x: auto; }
+.import-aide code { font-family: var(--police-mono); font-size: .85rem; }
+.import-avert ul { margin: 6px 0 0; padding-left: 1.3rem; font-size: .9rem; color: var(--texte-faible); max-height: 220px; overflow-y: auto; }
+.import-resume { display: grid; gap: 8px; }
+.import-chiffres { margin: 0; }
+.import-table { overflow-x: auto; max-height: 60vh; overflow-y: auto; }
+.table-import td { font-size: .9rem; }
+.import-chemin { color: var(--texte-faible); }
+.import-titre { font-weight: 600; color: var(--titre); }
+.import-etat { color: var(--texte-faible); white-space: nowrap; }
+.table-import tr.import-creer .import-etat, .table-import tr.import-remplacer .import-etat { color: var(--accent); }
+.table-import tr.import-encours .import-etat { color: var(--alerte); }
+.table-import tr.import-ok .import-etat { color: var(--ok); }
+.table-import tr.import-erreur .import-etat { color: var(--danger); white-space: normal; }
+.table-import tr.import-ignorer, .table-import tr.import-doublon { opacity: .6; }
+.table-fichiers .champ-select { max-width: 300px; }
+.table-fichiers .champ { min-width: 120px; }
+.table-fichiers .envoi-barre { margin-top: 4px; }
+.table-fichiers .import-etat { white-space: normal; display: block; min-width: 140px; }
+.import-en-cours .depot { pointer-events: none; opacity: .6; }
+
 /* ---------- Responsive (mêmes paliers que Quartz) ---------- */
 /* Sous 1200 px : la colonne de droite passe sous le titre (sauf sur
    l'accueil, où elle n'apporte rien quand elle est repliée). */
 @media (max-width: 1199px) {
   .lecture.accueil .panneau { display: none; }
-  .lecture { grid-template-columns: minmax(0, 790px); grid-template-areas: "entete" "panneau" "corps"; }
+  /* Le cours d'abord : le panneau (révision, cité par…) passe après. Les
+     documents du cours restent en tête, sous le titre (.docs-rapides). */
+  .lecture { grid-template-columns: minmax(0, 790px); grid-template-areas: "entete" "corps" "panneau"; }
+  .docs-rapides {
+    display: grid; gap: 4px; margin: 14px 0 0; padding: 10px 12px;
+    border: 1px solid var(--bordure); border-radius: var(--r-l); background: var(--surface);
+  }
+  .docs-rapides-titre {
+    display: flex; align-items: center; gap: 8px; margin: 0 0 2px;
+    font-size: .78rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--texte-faible);
+  }
+  .docs-rapides .ressource { margin: 0; }
+  .docs-rapides .ressource-titre { white-space: normal; }
+  .lecture:has(.docs-rapides) .panneau .carte-ressources { display: none; }
   .panneau {
-    position: static; max-height: none; overflow: visible; margin: 0 0 28px; padding: 14px 0;
+    position: static; max-height: none; overflow: visible; margin: 28px 0 0; padding: 14px 0;
     border-top: 1px solid var(--bordure); border-bottom: 1px solid var(--bordure); gap: 1.2rem;
   }
   .panneau .carte-sommaire, .panneau .carte-graphe { display: none; }
@@ -840,6 +1018,7 @@ details.encadre:not([open]) .encadre-fleche { transform: rotate(-90deg); }
   .editeur-corps[data-onglet="apercu"] .editeur-panneau-source { display: none; }
   .ajout-lien { grid-template-columns: 1fr; }
   .admin-grille { grid-template-columns: 1fr; }
+  .import-options .champ-select { max-width: none; width: 100%; }
   .historique { grid-template-columns: 1fr; grid-template-rows: 160px 1fr; }
   .historique-liste { border-right: 0; border-bottom: 1px solid var(--bordure); padding: 0 0 8px; }
   .fiche-titre-ligne { flex-direction: column; gap: 10px; }

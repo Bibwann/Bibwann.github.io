@@ -15,15 +15,18 @@ Site statique (GitHub Pages) + Supabase. Pas de build, JS vanilla en IIFE sur un
 |---|---|
 | `supabase/accueil.sql` | La note d'accueil (page d'arrivée, premier nœud du graphe). |
 | `supabase/exemple.sql` / `exemple-retirer.sql` | Cours fictif pour la démo, et son retrait (tout est sous le dossier « Exemple »). |
-| `supabase/schema.sql` | **Toute la sécurité.** Tables, RLS, déclencheur d'historique, `rechercher()`, `graphe()`, `etiquettes()`, `stockage()`, `ping()`, comptes (`admin_creer_compte`, `admin_mot_de_passe`, `admin_supprimer_compte`), bucket privé. Rejouable. |
+| `supabase/schema.sql` | **Toute la sécurité.** Tables, RLS, déclencheur d'historique, `rechercher()`, `graphe()`, `etiquettes()`, `stockage()`, `ping()`, comptes (`admin_creer_compte`, `admin_mot_de_passe`, `admin_supprimer_compte`), `progression` (exercices faits, « chacun ses lignes »), bucket privé. Rejouable. |
 | `assets/js/config.js` | URL + clé anon. Publiques par conception. |
 | `commun.js` | `h()` (construction DOM sûre), dialogues, menus, toasts, dates, `plier()`, types de ressources. |
-| `rendu.js` | Markdown → HTML : marked + formules KaTeX + encadrés `:::` + liens `[[…]]` + code, puis **DOMPurify**. |
+| `rendu.js` | Markdown → HTML : marked + formules KaTeX + encadrés `:::` (titres en Markdown) + liens `[[…]]` + code, puis **DOMPurify**. |
+| `diagrammes.js` | Blocs ```` ```mermaid ```` : Mermaid chargé à la demande (SRI), dessin converti en **image** `data:` inerte. |
+| `pages.js` | Pages transversales : **Documents** (tous les supports par matière, filtres par type) et **Exercices** (progression par matière), cartes des matières de l'accueil. |
+| `import.js` | Page Importer : fiches `.md` / dossier / lot Codex (`@@`, `+++`), et fichiers en lot rangés par un CSV. Analyse pure exposée en `C.importer`. |
 | `api.js` | **Seul fichier qui parle à Supabase.** Erreurs traduites en français. |
 | `compression.js` / `pdf-worker.js` | Compression des PDF (pdf-lib puis Ghostscript WASM) dans un worker module. |
-| `navigation.js` | Arborescence de la barre latérale. |
+| `navigation.js` | Arborescence de la barre latérale : ordre de lecture (`ordre`, puis titre), matières et leurs couleurs (partagées avec le graphe), dossiers pliés mémorisés, tronc commun (« SI3 › Harmonisation ») replié en une ligne. |
 | `graphe.js` | Graphe sur canvas avec d3-force / d3-zoom / d3-drag (comme Quartz). |
-| `lecture.js` / `editeur.js` / `admin.js` | Les vues. |
+| `lecture.js` / `editeur.js` / `admin.js` | Les vues. `lecture.js` porte aussi la révision (bouton « fait » sous chaque corrigé, carte Révision), les documents (« Ouvrir » + « Télécharger » : URL signée avec `&download=<titre>.pdf`, re-signée au clic si périmée ; bloc « Documents du cours » sous le titre sur mobile) et « Reprendre ma lecture » (`localStorage` `codex.derniere`). |
 | `app.js` | Démarrage, session, routeur par `#`, recherche, accueil, graphe complet. |
 | `tools/versionner.py` | `?v=<hash>` sur les assets + régénère le banc. **Après chaque modif CSS/JS.** |
 | `tools/banc.html` | **Généré.** La vraie page avec `faux-supabase.js` à la place de supabase-js. |
@@ -82,6 +85,16 @@ Site statique (GitHub Pages) + Supabase. Pas de build, JS vanilla en IIFE sur un
 - Le **verrou optimiste** repose sur `update … where maj_le = <valeur lue>`. Ne pas le retirer : sans
   lui, deux éditeurs s'écrasent en silence.
 - Le banc est **généré** depuis `index.html` : ne jamais l'éditer, relancer `versionner.py`.
+- **Le SVG de Mermaid ne doit jamais entrer dans le DOM** : il est converti en `<img src="data:…">`
+  (`diagrammes.js`). Mermaid tourne sans étiquettes HTML (`htmlLabels: false`) et avec les polices
+  système : une image SVG ne charge ni `foreignObject` fiable ni polices web, et le texte doit y
+  avoir la largeur mesurée au dessin. `parse()` avant `render()`, sinon un dessin « Syntax error »
+  reste orphelin au bas de la page.
+- **Clé d'un exercice** (suivi « fait ») = ancre de la section qui précède + rang dans la section.
+  Renommer la section fait oublier les exercices déjà cochés : ne pas changer ce calcul sans
+  migrer la table `progression`.
+- `versionner.py` hache les fichiers **fins de ligne ramenées à LF** : sous Windows, git extrait en
+  CRLF, et sans cela chaque machine produisait d'autres `?v=` pour des fichiers identiques.
 - Tests Chrome : profil jetable à chaque lancement (sinon le cache HTTP sert d'anciens fichiers),
   `--no-sandbox` sous Windows.
 
@@ -89,5 +102,5 @@ Site statique (GitHub Pages) + Supabase. Pas de build, JS vanilla en IIFE sur un
 
 1. `python codex/tools/versionner.py`
 2. `schema.sql` touché → `cd codex/tests && npm test`
-3. JS/CSS/HTML touché → `npm run e2e` (58 vérifications, console propre attendue)
+3. JS/CSS/HTML touché → `npm run e2e` (95 vérifications, console propre attendue)
 4. Les contrôles de `../CLAUDE.md` §3 (hook, identité, rien hors de `codex/`).

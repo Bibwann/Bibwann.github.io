@@ -10,6 +10,9 @@
      #/editer/<id>[/ressources]
      #/nouvelle[/<dossier>]  nouvelle fiche
      #/graphe                graphe complet
+     #/importer              importer des fiches .md ou des fichiers en lot
+     #/documents[/<matière>] tous les documents, par matière (pages.js)
+     #/exercices[/<matière>] toutes les fiches à exercices, ma progression
      #/admin                 membres et comptes
    ============================================================ */
 (function (C) {
@@ -196,6 +199,8 @@
       document.documentElement.dataset.theme = t;
       theme.firstChild.className = "bi bi-" + (t === "sombre" ? "moon" : "sun");
       ecrireStockage("codex.theme", t);
+      // Les diagrammes (images figées) se redessinent aux nouvelles couleurs.
+      document.dispatchEvent(new CustomEvent("codex:theme"));
     });
     var lecture = h("button.btn-icone.btn-lecture", { type: "button", title: "Mode lecture", "aria-label": "Mode lecture", "aria-pressed": String(document.body.classList.contains("mode-lecture")) }, icone("book"));
     lecture.addEventListener("click", basculerLecture);
@@ -216,8 +221,11 @@
       h("div.nav-outils", boutonRecherche(), theme, lecture),
       arbre,
       h("div.nav-pied",
+        h("a.nav-lien", { href: "#/documents" }, icone("folder2-open"), "Documents"),
+        h("a.nav-lien", { href: "#/exercices" }, icone("pencil-square"), "Exercices"),
         h("a.nav-lien", { href: "#/graphe" }, icone("diagram-3"), "Graphe des cours"),
         h("a.nav-lien", { href: "#/tag" }, icone("hash"), "Tags"),
+        C.peutEcrire() ? h("a.nav-lien", { href: "#/importer" }, icone("box-arrow-in-down"), "Importer") : null,
         C.estAdmin() ? h("a.nav-lien", { href: "#/admin" }, icone("people"), "Membres") : null,
         h("div.nav-compte", compte)));
 
@@ -423,6 +431,20 @@
     zone.appendChild(liste);
     // Les tags arrivent après : la liste s'affiche d'abord sans eux.
     tags().then(function (t) { if (liste.isConnected) C.vider(liste).appendChild(C.vues.listeFiches(fiches, t.parFiche)); }).catch(function () {});
+
+    // Tous les documents du dossier et de ses sous-dossiers.
+    var toutes = C.nav.fichesSous(id);
+    if (toutes.length) {
+      var zoneDocs = h("div");
+      zone.appendChild(zoneDocs);
+      C.api.toutesRessources().then(function (res) {
+        if (!zoneDocs.isConnected) return;
+        var ids = {};
+        toutes.forEach(function (f) { ids[f.id] = true; });
+        var bloc = C.pages.blocDocuments(toutes, res.filter(function (r) { return ids[r.fiche_id]; }));
+        if (bloc) zoneDocs.appendChild(h("div", h("h2", "Documents"), bloc));
+      }).catch(function () { /* la page reste utilisable sans */ });
+    }
   }
 
   // ---- Tags ----
@@ -471,15 +493,16 @@
     el.appendChild(h("div.page-graphe",
       h("header.page-entete.page-entete-ligne",
         h("div", h("h1", "Graphe des cours"),
-          h("p.page-intro", "Chaque point est une fiche (les plus clairs sont les dossiers), en bleu la note d'accueil. Les traits pleins sont les liens [[Titre]] écrits dans les fiches, les pointillés le rangement. Glisse un point ou le fond, molette pour zoomer, clic pour ouvrir.")),
+          h("p.page-intro", "Une couleur par matière ; les gros points sont les matières, les petits leurs fiches. Survole un point pour voir ses voisins, zoome à la molette pour lire tous les titres, clique pour ouvrir.")),
         h("div.graphe-commandes",
           h("button.btn-icone", { type: "button", "aria-label": "Zoomer", on: { click: function () { ctrl && ctrl.zoomer(1.3); } } }, icone("zoom-in")),
           h("button.btn-icone", { type: "button", "aria-label": "Dézoomer", on: { click: function () { ctrl && ctrl.zoomer(1 / 1.3); } } }, icone("zoom-out")),
           h("button.btn-icone", { type: "button", "aria-label": "Tout voir", on: { click: function () { ctrl && ctrl.recadrer(); } } }, icone("fullscreen")))),
       zone,
       h("ul.legende",
-        h("li", h("span.puce.puce-fiche"), "Fiche"),
-        h("li", h("span.puce.puce-dossier"), "Dossier"),
+        C.nav.matieres().map(function (m) {
+          return h("li", h("span.puce", { style: "background:" + m.couleur }), m.dossier.titre);
+        }),
         h("li", h("span.trait.trait-lien"), "Lien [[…]]"),
         h("li", h("span.trait"), "Rangement"))));
     requestAnimationFrame(function () { if (zone.isConnected) ctrl = C.graphe.monter(zone, {}); });
@@ -538,6 +561,15 @@
         break;
       case "admin":
         r = C.vues.admin(vueEl);
+        break;
+      case "importer":
+        r = C.vues.importer(vueEl);
+        break;
+      case "documents":
+        r = C.vues.documents(vueEl, morceaux[1]);
+        break;
+      case "exercices":
+        r = C.vues.exercices(vueEl, morceaux[1]);
         break;
       default:
         r = vueAccueil(vueEl);

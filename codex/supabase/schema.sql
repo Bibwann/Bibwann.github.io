@@ -83,6 +83,11 @@ alter table public.fiches alter column dossier_id drop not null;
 -- et UNE fiche peut être la note d'accueil (la page d'arrivée du site).
 alter table public.fiches add column if not exists accueil boolean not null default false;
 create unique index if not exists fiches_une_seule_accueil on public.fiches ((true)) where accueil;
+-- L'ordre de lecture (1, 2, 3…) dans un dossier : sans lui, l'explorateur
+-- trie par titre et « Chaînage » passe avant « Classes ». NULL = après les
+-- éléments numérotés, par titre.
+alter table public.dossiers add column if not exists ordre integer;
+alter table public.fiches   add column if not exists ordre integer;
 
 
 -- ------------------------------------------------------------
@@ -227,6 +232,24 @@ $$;
 
 revoke all on function public.graphe() from public, anon;
 grant execute on function public.graphe() to authenticated;
+
+-- Nombre d'exercices corrigés par fiche, pour la page Exercices : on
+-- compte les encadrés « corrigé » (::: corrige…, ou succès replié), comme
+-- lecture.js qui pose un bouton « fait » sous chacun.
+create or replace function public.exercices()
+returns table (fiche_id uuid, nombre integer)
+language sql stable security invoker set search_path = ''
+as $$
+  select f.id, count(*)::integer
+  from public.fiches f
+  cross join lateral regexp_matches(f.contenu,
+    '^(:::[ \t]*(corrige|corrigé|correction|solution|reponse|réponse)[+-]?([ \t]|$)|:::[ \t]*succes-|>[ \t]?\[!(corrige|corrigé|correction|solution|reponse|réponse)\]|>[ \t]?\[!(succes|success|check|done)\]-)',
+    'gin') as m
+  group by f.id
+$$;
+
+revoke all on function public.exercices() from public, anon;
+grant execute on function public.exercices() to authenticated;
 
 -- Jauge de l'espace de stockage (1 Go sur l'offre gratuite).
 create or replace function public.stockage()
@@ -410,6 +433,44 @@ revoke all on function public.admin_supprimer_compte(text) from public, anon;
 grant execute on function public.admin_creer_compte(text, text, text) to authenticated;
 grant execute on function public.admin_mot_de_passe(text, text) to authenticated;
 grant execute on function public.admin_supprimer_compte(text) to authenticated;
+
+
+-- ------------------------------------------------------------
+-- 4 quater. Progression : les exercices que chacun a faits
+-- ------------------------------------------------------------
+-- Une ligne = « ce membre a fait cet exercice de cette fiche ». `cle`
+-- repère l'exercice dans la fiche (le titre de sa section + un numéro,
+-- calculé par lecture.js). Chacun ne voit, n'ajoute et ne retire QUE ses
+-- propres lignes, lecteurs compris : ce n'est pas du contenu, c'est un
+-- carnet personnel. Personne d'autre, admin compris, n'y a accès.
+-- L'e-mail est posé par défaut par la base (email_courant), et la règle
+-- d'ajout refuse toute autre valeur : impossible d'écrire pour autrui.
+create table if not exists public.progression (
+  email    text not null default public.email_courant()
+           references public.membres (email) on delete cascade,
+  fiche_id uuid not null references public.fiches (id) on delete cascade,
+  cle      text not null check (length(cle) between 1 and 200),
+  fait_le  timestamptz not null default now(),
+  primary key (email, fiche_id, cle)
+);
+create index if not exists progression_fiche_idx on public.progression (fiche_id);
+
+alter table public.progression enable row level security;
+revoke all on public.progression from anon;
+revoke update on public.progression from authenticated;
+grant select, insert, delete on public.progression to authenticated;
+
+drop policy if exists "progression_lecture" on public.progression;
+create policy "progression_lecture" on public.progression for select to authenticated
+  using (email = (select public.email_courant()));
+
+drop policy if exists "progression_ajout" on public.progression;
+create policy "progression_ajout" on public.progression for insert to authenticated
+  with check (email = (select public.email_courant()) and (select public.role_courant()) is not null);
+
+drop policy if exists "progression_retrait" on public.progression;
+create policy "progression_retrait" on public.progression for delete to authenticated
+  using (email = (select public.email_courant()));
 
 
 -- ------------------------------------------------------------

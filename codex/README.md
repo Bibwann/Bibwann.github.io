@@ -87,11 +87,31 @@ gauche). Un mot de passe oublié : menu « ⋯ » de la ligne → *Nouveau mot d
 
 - **Explorateur** à gauche : le chevron plie un dossier, son nom ouvre la page du dossier.
 - **Recherche** : `/` ou `Ctrl K`, avec l'aperçu du résultat à droite.
+- **Documents** : chaque document s'ouvre dans un onglet ou se **télécharge** (bouton « Télécharger »,
+  enregistré sous son titre). Sur téléphone, les documents du cours sont juste sous le titre.
+- **Reprendre ma lecture** : l'accueil propose la dernière fiche ouverte.
 - **À droite de chaque fiche** : ses ressources, le graphe des fiches voisines, le sommaire (les
   titres à l'écran restent nets) et « Cité par ».
 - **Survoler** un lien vers une fiche en montre l'aperçu. **Mode lecture** (icône livre) : il ne reste
   que le texte, Échap pour revenir.
 - **Tags** : `#mot` dans une fiche ; page *Tags* dans la colonne de gauche.
+- **Réviser** : sous chaque corrigé, « Marquer comme fait » ; la carte *Révision* à droite compte les
+  exercices faits et ouvre ou referme tous les corrigés. Le suivi est personnel : personne d'autre,
+  admin compris, ne le voit.
+
+## Importer (admins et éditeurs)
+
+Page **Importer** (colonne de gauche), sans passer par Supabase :
+
+- **Des fiches** : des fichiers `.md` (une fiche chacun ; titre tiré du `# Titre` ou de l'en-tête
+  `title:` d'Obsidian, dont les `tags:` deviennent des #tags), un **dossier entier** (ses
+  sous-dossiers deviennent des dossiers), ou un **lot Codex** (`@@ Matière / Sous-dossier`, puis des
+  fiches `+++ Titre`, avec leurs liens `+ type | titre | https://…`). Un aperçu montre ce qui sera
+  créé, gardé ou remplacé, et les liens `[[…]]` sans fiche ; rien n'est écrit avant « Importer ».
+- **Des fichiers en lot** : PDF, TD, archives… Chacun est rattaché à une fiche, devinée d'après son
+  nom ou donnée par un fichier de correspondance `.csv` choisi avec eux
+  (`fichier;fiche;type;titre`). Compression et envoi comme depuis l'éditeur ; un fichier déjà présent
+  dans la fiche (même titre) est ignoré.
 
 ## Écrire une fiche
 
@@ -108,9 +128,14 @@ gauche). Un mot de passe oublié : menu « ⋯ » de la ligne → *Nouveau mot d
 | `[[Titre d'une fiche]]` | lien vers une fiche (+ `[[Titre\|texte]]`, `[[Titre#section]]`) |
 | `#maths` | tag |
 | ```` ```python ```` | code coloré, lignes numérotées |
+| ```` ```mermaid ```` | diagramme (flowchart, séquence, classes, états…) |
+| `::: exercice Titre` … `:::` puis `::: corrige- Corrigé` … `:::` | énoncé, puis corrigé replié avec son bouton « fait » |
+
+Le titre d'un encadré accepte du Markdown : `` ::: attention `=` n'est pas `==` ``.
 
 Genres de callouts : `note`, `definition`, `theoreme`, `propriete`, `methode`, `exemple`, `astuce`,
-`info`, `attention`, `danger`, `question`, `succes`, `echec`, `citation`, `resume`, `todo` (et leurs
+`info`, `attention`, `danger`, `question`, `succes`, `echec`, `citation`, `resume`, `todo`,
+`exercice`, `corrige` (et leurs
 équivalents anglais d'Obsidian : `tip`, `warning`, `example`…). Raccourcis LaTeX : `\R \N \Z \Q \C \K
 \P \E \Ker \Im \Vect \rg \tr \Card \ch \sh \th`.
 

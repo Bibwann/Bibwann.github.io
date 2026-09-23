@@ -267,5 +267,55 @@ await comme('anon', async () => {
      (await db.query(`select count(*)::int n from dossiers where titre = 'Maths'`)).rows[0].n === 1, 'exemple-retirer.sql : dossiers d\'exemple supprimés, « Maths » intact');
 }
 
+// Ordre de lecture et comptage des exercices.
+{
+  const id = (await db.query(`insert into fiches (dossier_id, titre, ordre, contenu) values ($1, 'Exos', 3, $2) returning id`, [dossier,
+    '## Ex 1\n::: corrige- Corrigé\nA\n:::\n\n::: succes- Réponse\nB\n:::\n\n::: succes Pas un exercice\nC\n:::\n\n> [!solution]- S\n> D\n\n```\n::: corrige- dans du code, compté quand même\n```\n'])).rows[0].id;
+  await comme('lect', async () => {
+    const r = (await db.query('select nombre from public.exercices() where fiche_id = $1', [id])).rows[0];
+    ok(r && r.nombre === 4, 'exercices() : corrigés repliés comptés, succès non replié ignoré (' + (r && r.nombre) + ')');
+    ok((await db.query('select ordre from fiches where id = $1', [id])).rows[0].ordre === 3, 'ordre : lu par les membres');
+  });
+  await comme('anon', async () => { ok(!!(await essaie('select * from public.exercices()')).e, 'anonyme : exercices() refusé'); });
+  await db.query('delete from fiches where id = $1', [id]);
+}
+
+// Progression (exercices faits) : un carnet personnel, lecteurs compris.
+await comme('lect', async () => {
+  ok(!(await essaie(`insert into progression (fiche_id, cle) values ($1, 'exercice-1#1')`, [fiche])).e, 'progression : un membre marque un exercice fait');
+  ok((await db.query('select email from progression')).rows[0]?.email === 'lect@univ.fr', 'progression : ligne au nom du membre connecté (posé par la base)');
+  ok(!!(await essaie(`insert into progression (email, fiche_id, cle) values ('edit@univ.fr', $1, 'x')`, [fiche])).e, "progression : impossible d'écrire au nom d'un autre");
+  ok(!!(await essaie(`insert into progression (fiche_id, cle) values ($1, 'exercice-1#1')`, [fiche])).e, 'progression : doublon refusé');
+  ok(!!(await essaie(`update progression set cle = 'y'`)).e, 'progression : ni modification (seulement ajouter ou retirer)');
+});
+await comme('edit', async () => {
+  await db.query(`insert into progression (fiche_id, cle) values ($1, 'autre#1')`, [fiche]);
+  ok(await n('select * from progression') === 1, 'progression : chacun ne voit que ses propres lignes');
+  ok((await db.query(`delete from progression where email = 'lect@univ.fr' returning cle`)).rows.length === 0, "progression : impossible de retirer celles d'un autre");
+});
+await comme('admin', async () => {
+  ok(await n('select * from progression') === 0, "progression : l'admin ne voit pas celle des autres");
+});
+await comme('intrus', async () => {
+  ok(!!(await essaie(`insert into progression (fiche_id, cle) values ($1, 'x')`, [fiche])).e, 'progression : compte non membre refusé');
+});
+await comme('nonconf', async () => {
+  ok(!!(await essaie(`insert into progression (fiche_id, cle) values ($1, 'x')`, [fiche])).e, 'progression : e-mail non confirmé refusé');
+});
+await comme('anon', async () => {
+  ok(!!(await essaie('select * from progression')).e, 'progression : anonyme refusé');
+});
+await comme('lect', async () => {
+  ok((await db.query(`delete from progression where cle = 'exercice-1#1' returning cle`)).rows.length === 1, 'progression : un membre retire sa propre ligne');
+});
+{
+  const f2 = (await db.query(`insert into fiches (dossier_id, titre) values ($1, 'Fiche éphémère') returning id`, [dossier])).rows[0].id;
+  await comme('edit', async () => { await db.query(`insert into progression (fiche_id, cle) values ($1, 'x#1')`, [f2]); });
+  await db.query('delete from fiches where id = $1', [f2]);
+  ok(await n('select 1 from progression where fiche_id = $1', [f2]) === 0, 'progression : effacée avec la fiche');
+  await db.query(`delete from membres where email = 'edit@univ.fr'`);
+  ok(await n(`select 1 from progression where email = 'edit@univ.fr'`) === 0, 'progression : effacée avec le membre');
+}
+
 console.log(echecs ? `\n${echecs} ÉCHEC(S)` : '\nTout passe.');
 process.exit(echecs ? 1 : 0);

@@ -32,6 +32,9 @@ réglages Supabase recommandés, workflows GitHub du dépôt.
 | Aucune clé secrète nulle part : ni navigateur, ni dépôt, ni fonction serveur | conception + hook de pré-commit | `.githooks` |
 | Contenu de fiche : pas de script, de `on*`, de `javascript:`, d'iframe | DOMPurify + KaTeX `trust: false` | `e2e` |
 | Scripts CDN intègres | versions épinglées + SRI, bibliothèques du worker vérifiées par `fetch(…, { integrity })` | `e2e` (chargement sous CSP) |
+| Progression (exercices faits) : chacun ne lit, n'ajoute et ne retire que ses propres lignes, admin compris ; impossible d'écrire au nom d'un autre | RLS de `progression`, e-mail posé par la base | `rls.test.mjs` |
+| Diagrammes : le SVG de Mermaid n'entre jamais dans la page | image `data:` inerte (`diagrammes.js`), Mermaid en `securityLevel: strict`, chargé à la demande avec SRI | `e2e` |
+| Import : aucune écriture avant validation ; un lecteur n'a ni la page ni les droits | API habituelle, donc RLS | `e2e` |
 
 ## Corrigé lors de cet audit
 
@@ -66,6 +69,21 @@ réglages Supabase recommandés, workflows GitHub du dépôt.
   la clé secrète, écartée pour ne rien avoir à déployer.
 - **Adresse de la fac** dans d'anciens commits publics : effaçable seulement en réécrivant
   l'historique.
+- **Mermaid s'exécute dans la page** (≈ 5 Mo de code tiers) pour mesurer et dessiner un diagramme
+  écrit par un éditeur. Parades : version épinglée + SRI, `securityLevel: "strict"` (Mermaid nettoie
+  les libellés avec DOMPurify), étiquettes sans HTML, dessin converti en image : même un SVG piégé
+  ne pourrait rien exécuter. Il n'est chargé que sur les fiches qui ont un diagramme.
+- **Titres d'encadrés en Markdown** : ils passent par le même moteur que le reste de la fiche,
+  donc par DOMPurify ; aucun HTML n'y est admis autrement.
+
+## Évolution du 23 septembre 2026 (import, révision, diagrammes)
+
+- Nouvelle table `progression` : RLS « chacun ses lignes », sans règle de modification, suppression
+  en cascade avec la fiche et avec le membre. 14 cas ajoutés à `rls.test.mjs`.
+- Page Importer : lecture des fichiers dans le navigateur (2 Mo max par Markdown, 500 fiches max par
+  import), aucune requête avant la validation, puis les mêmes appels que l'éditeur. Le fichier de
+  correspondance CSV n'est jamais envoyé ; il ne sert qu'à ranger les autres fichiers.
+- Diagrammes : voir « Risques acceptés ». La CSP n'a pas changé (`img-src data:` existait déjà).
 
 ## Réglages Supabase à faire (tableau de bord)
 

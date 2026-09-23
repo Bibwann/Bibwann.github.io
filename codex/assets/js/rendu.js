@@ -5,10 +5,12 @@
      $…$ et $$…$$        formules, rendues par KaTeX
      > [!note] Titre     callouts Obsidian (repliables avec - ou +)
      ::: genre Titre     même chose, syntaxe « bloc » (définition, théorème…)
+                         Le titre accepte du Markdown en ligne : `code`, $x$…
      [[Titre]]           lien vers une autre fiche, aussi [[Titre|texte]]
                          et [[Titre#section]]
      #tag                tag (précédé d'un blanc), cliquable
      ```lang             code coloré, lignes numérotées, bouton Copier
+     ```mermaid          diagramme, dessiné par diagrammes.js (chargé à la demande)
 
    Les formules sont reconnues PENDANT l'analyse Markdown, pas avant : un
    remplacement préalable des $…$ attraperait aussi ceux des blocs de
@@ -66,7 +68,11 @@
     bug:        { icone: "bug",                  titre: "Bug" },
     exemple:    { icone: "list-ul",              titre: "Exemple" },
     citation:   { icone: "quote",                titre: "Citation" },
-    ressources: { icone: "box-seam",             titre: "Ressources" }
+    ressources: { icone: "box-seam",             titre: "Ressources" },
+    // Entraînement : l'énoncé, puis son corrigé (replié avec « - »). Les
+    // corrigés repliables portent le suivi « fait » de lecture.js.
+    exercice:   { icone: "pencil-square",        titre: "Exercice" },
+    corrige:    { icone: "check2-square",        titre: "Corrigé" }
   };
   var ALIAS = {
     note: "note", remarque: "note", rq: "note",
@@ -86,12 +92,18 @@
     danger: "danger", error: "danger", piege: "danger", "piège": "danger",
     bug: "bug",
     example: "exemple", exemple: "exemple", ex: "exemple",
-    quote: "citation", cite: "citation", citation: "citation"
+    quote: "citation", cite: "citation", citation: "citation",
+    exercice: "exercice", exercices: "exercice", exo: "exercice", exercise: "exercice", enonce: "exercice", "énoncé": "exercice",
+    corrige: "corrige", "corrigé": "corrige", correction: "corrige", solution: "corrige", reponse: "corrige", "réponse": "corrige"
   };
 
-  function encadre(parser, genre, titre, tokens, repli) {
+  // Le titre d'un encadré est du Markdown en ligne (`code`, $x$, **gras**) :
+  // ses jetons sont analysés comme le reste du texte, et le HTML produit
+  // passe par DOMPurify avec tout le rendu.
+  function encadre(parser, genre, titre, tokens, repli, titreTokens) {
     var g = GENRES[genre];
-    var tete = '<i class="bi bi-' + g.icone + '" aria-hidden="true"></i><span>' + echapper(titre || g.titre) + "</span>";
+    var texte = titre && titreTokens ? parser.parseInline(titreTokens) : echapper(titre || g.titre);
+    var tete = '<i class="bi bi-' + g.icone + '" aria-hidden="true"></i><span>' + texte + "</span>";
     var corps = '<div class="encadre-corps">' + parser.parse(tokens) + "</div>";
     if (repli) {
       return '<details class="encadre encadre-' + genre + '"' + (repli === "+" ? " open" : "") + ">" +
@@ -145,11 +157,12 @@
         var m = /^ {0,3}> ?\[!([\wÀ-ÿ-]+)\]([+-]?)[ \t]*([^\n]*)(?:\n|$)((?: {0,3}>[^\n]*(?:\n|$))*)/.exec(src);
         if (!m) return;
         var corps = m[4].replace(/^ {0,3}> ?/gm, "");
-        var t = { type: "callout", raw: m[0], genre: ALIAS[m[1].toLowerCase()] || "note", repli: m[2], titre: m[3].trim(), tokens: [] };
+        var t = { type: "callout", raw: m[0], genre: ALIAS[m[1].toLowerCase()] || "note", repli: m[2], titre: m[3].trim(), tokens: [], titreTokens: [] };
         this.lexer.blockTokens(corps, t.tokens);
+        this.lexer.inline(t.titre, t.titreTokens);
         return t;
       },
-      renderer: function (t) { return encadre(this.parser, t.genre, t.titre, t.tokens, t.repli); }
+      renderer: function (t) { return encadre(this.parser, t.genre, t.titre, t.tokens, t.repli, t.titreTokens); }
     },
     {
       name: "encadre", level: "block",
@@ -157,11 +170,12 @@
       tokenizer: function (src) {
         var m = /^:::[ \t]*([\wÀ-ÿ]+)([+-]?)[ \t]*([^\n]*)\n([\s\S]*?)\n:::[ \t]*(?:\n+|$)/.exec(src);
         if (!m) return;
-        var t = { type: "encadre", raw: m[0], genre: ALIAS[m[1].toLowerCase()] || "note", repli: m[2], titre: m[3].trim(), tokens: [] };
+        var t = { type: "encadre", raw: m[0], genre: ALIAS[m[1].toLowerCase()] || "note", repli: m[2], titre: m[3].trim(), tokens: [], titreTokens: [] };
         this.lexer.blockTokens(m[4], t.tokens);
+        this.lexer.inline(t.titre, t.titreTokens);
         return t;
       },
-      renderer: function (t) { return encadre(this.parser, t.genre, t.titre, t.tokens, t.repli); }
+      renderer: function (t) { return encadre(this.parser, t.genre, t.titre, t.tokens, t.repli, t.titreTokens); }
     },
     {
       name: "formuleBloc", level: "block",
@@ -192,6 +206,11 @@
       var langue = ((t.lang || "").match(/^\S*/) || [""])[0].toLowerCase();
       if (langue === "math" || langue === "latex" || langue === "tex") {
         return '<div class="formule-bloc">' + formule(t.text, true) + "</div>";
+      }
+      // Diagramme : on ne pose ici que la source, en texte. diagrammes.js
+      // le dessine ensuite (voir decorer), dans une image inerte.
+      if (langue === "mermaid") {
+        return '<figure class="diagramme"><pre class="diagramme-source"><code>' + echapper(t.text) + "</code></pre></figure>";
       }
       var corps;
       if (langue && window.hljs && hljs.getLanguage(langue)) {
@@ -301,6 +320,8 @@
       tb.parentNode.insertBefore(w, tb);
       w.appendChild(tb);
     });
+
+    if (C.diagrammes && racine.querySelector(".diagramme")) C.diagrammes.dessiner(racine);
 
     // Les liens « #section » écrits dans une fiche : le # sert déjà au
     // routage, on les transforme en défilement vers le titre visé.
