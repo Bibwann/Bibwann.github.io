@@ -8,8 +8,8 @@
    (ou « secret ») : elle contourne toutes les règles.
    ============================================================ */
 window.CODEX_CONFIG = {
-  supabaseUrl: "",   // ex. "https://abcdefghijkl.supabase.co"
-  supabaseCle: "",   // la clé anon / publishable
+  supabaseUrl: "https://zxgurhhrybheyctnvxie.supabase.co",
+  supabaseCle: "sb_publishable_kd4CK4cPCaALNKw3ksCwwA_4p7dQDKx",
 
   // Bouton « Continuer avec Google » sur l'écran de connexion. Demande
   // d'avoir configuré le fournisseur Google dans Supabase (voir README).

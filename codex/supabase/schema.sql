@@ -77,6 +77,13 @@ create index if not exists fiches_dossier_idx    on public.fiches (dossier_id);
 create index if not exists ressources_fiche_idx  on public.ressources (fiche_id);
 create index if not exists revisions_fiche_idx   on public.revisions (fiche_id, cree_le desc);
 
+-- Évolutions, rejouables sur une base déjà créée :
+-- une fiche peut vivre à la racine (hors dossier), comme une note Quartz ;
+alter table public.fiches alter column dossier_id drop not null;
+-- et UNE fiche peut être la note d'accueil (la page d'arrivée du site).
+alter table public.fiches add column if not exists accueil boolean not null default false;
+create unique index if not exists fiches_une_seule_accueil on public.fiches ((true)) where accueil;
+
 
 -- ------------------------------------------------------------
 -- 2. Qui est connecté, et avec quel rôle
@@ -213,7 +220,8 @@ as $$
   select distinct f.id, c.id
   from public.fiches f
   cross join lateral regexp_matches(f.contenu, '\[\[([^]|#[:cntrl:]]+)', 'g') as m (t)
-  join public.fiches c on public.plier(btrim(c.titre)) = public.plier(btrim(m.t[1]))
+  -- rtrim du « \ » : dans un tableau Markdown on écrit [[Titre\|texte]].
+  join public.fiches c on public.plier(btrim(c.titre)) = public.plier(btrim(rtrim(m.t[1], '\')))
   where c.id <> f.id
 $$;
 
@@ -233,6 +241,21 @@ $$;
 revoke all on function public.stockage() from public, anon;
 grant execute on function public.stockage() to authenticated;
 
+-- Tags : « #mot » dans le texte d'une fiche (précédé d'un blanc ou en
+-- début de ligne, comme dans Obsidian/Quartz). Extraits ici pour que les
+-- pages de tag n'aient pas à télécharger toutes les fiches.
+create or replace function public.etiquettes()
+returns table (fiche_id uuid, tag text)
+language sql stable security invoker set search_path = ''
+as $$
+  select distinct f.id, lower(m.t[1])
+  from public.fiches f
+  cross join lateral regexp_matches(f.contenu, '(?:^|\s)#([[:alpha:]_][[:alnum:]_/-]*)', 'g') as m (t)
+$$;
+
+revoke all on function public.etiquettes() from public, anon;
+grant execute on function public.etiquettes() to authenticated;
+
 -- Battement de cœur pour .github/workflows/keep-alive.yml : Supabase met
 -- en pause un projet gratuit resté 7 jours sans activité. La fonction ne
 -- lit aucune table, elle est donc la seule chose ouverte aux anonymes.
@@ -243,6 +266,150 @@ as $$ select 'ok'::text $$;
 
 revoke all on function public.ping() from public;
 grant execute on function public.ping() to anon, authenticated;
+
+
+-- ------------------------------------------------------------
+-- 4 ter. Comptes gérés depuis le site (admin seulement)
+-- ------------------------------------------------------------
+-- Créer un compte « identifiant + mot de passe » sans e-mail de
+-- confirmation, changer un mot de passe, supprimer un compte : trois
+-- fonctions appelées depuis la page Membres, sans rien déployer d'autre
+-- et sans jamais exposer de clé secrète au navigateur.
+--
+-- Elles écrivent dans auth.users / auth.identities, les tables internes
+-- de Supabase Auth, avec les droits du propriétaire (security definer).
+-- C'est la méthode des scripts de « seed » de Supabase ; si une future
+-- version d'Auth change ces tables, c'est ici qu'il faudra adapter.
+--
+-- Garde-fous : appelant admin vérifié à chaque appel, mot de passe haché
+-- en bcrypt (coût 10, comme Supabase Auth), pas d'action sur son propre
+-- compte, identifiants validés, aucun mot de passe stocké en clair ni
+-- renvoyé (il est généré dans le navigateur de l'admin).
+--
+-- Un identifiant « lea.martin » devient l'adresse technique
+-- « lea.martin@codex.invalid » : domaine réservé, aucun e-mail n'y part.
+
+create extension if not exists pgcrypto with schema extensions;
+
+create or replace function public.admin_verifier()
+returns void
+language plpgsql stable security definer set search_path = ''
+as $$
+begin
+  if public.role_courant() is distinct from 'admin' then
+    raise exception 'Réservé aux admins.' using errcode = '42501';
+  end if;
+end
+$$;
+
+-- « lea.martin » → « lea.martin@codex.invalid » ; un vrai e-mail reste tel quel.
+create or replace function public.email_de_compte(p_identifiant text)
+returns text
+language plpgsql immutable set search_path = ''
+as $$
+declare v text := lower(btrim(coalesce(p_identifiant, '')));
+begin
+  if position('@' in v) > 0 then
+    if v !~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$' or v like '%@codex.invalid' then
+      raise exception 'Adresse e-mail invalide : %', v using errcode = '22023';
+    end if;
+    return v;
+  end if;
+  if v !~ '^[a-z0-9][a-z0-9._-]{1,39}$' then
+    raise exception 'Identifiant invalide : % (lettres, chiffres, point, tiret, 2 à 40 caractères)', v using errcode = '22023';
+  end if;
+  return v || '@codex.invalid';
+end
+$$;
+
+create or replace function public.admin_creer_compte(p_identifiant text, p_mot_de_passe text, p_role text)
+returns text
+language plpgsql security definer set search_path = ''
+as $$
+declare
+  v_email text;
+  v_id uuid := gen_random_uuid();
+begin
+  perform public.admin_verifier();
+  if p_role not in ('admin', 'editeur', 'lecteur') then
+    raise exception 'Rôle invalide.' using errcode = '22023';
+  end if;
+  if length(coalesce(p_mot_de_passe, '')) < 10 then
+    raise exception 'Mot de passe trop court (10 caractères minimum).' using errcode = '22023';
+  end if;
+  v_email := public.email_de_compte(p_identifiant);
+  if exists (select 1 from auth.users u where lower(u.email) = v_email) then
+    raise exception 'Ce compte existe déjà : %', v_email using errcode = '23505';
+  end if;
+
+  -- Les colonnes *_token et email_change doivent valoir '' et non NULL :
+  -- Supabase Auth refuse sinon de lire le compte à la connexion.
+  insert into auth.users (
+    instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+    raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+    confirmation_token, recovery_token, email_change_token_new, email_change,
+    email_change_token_current, reauthentication_token, phone_change, phone_change_token
+  ) values (
+    '00000000-0000-0000-0000-000000000000', v_id, 'authenticated', 'authenticated', v_email,
+    extensions.crypt(p_mot_de_passe, extensions.gen_salt('bf', 10)), now(),
+    '{"provider": "email", "providers": ["email"]}'::jsonb, '{}'::jsonb, now(), now(),
+    '', '', '', '', '', '', '', ''
+  );
+  insert into auth.identities (user_id, provider_id, provider, identity_data, last_sign_in_at, created_at, updated_at)
+  values (v_id, v_id::text, 'email',
+    jsonb_build_object('sub', v_id::text, 'email', v_email, 'email_verified', true, 'phone_verified', false),
+    now(), now(), now());
+
+  insert into public.membres (email, role) values (v_email, p_role)
+  on conflict (email) do update set role = excluded.role;
+  return v_email;
+end
+$$;
+
+create or replace function public.admin_mot_de_passe(p_email text, p_mot_de_passe text)
+returns void
+language plpgsql security definer set search_path = ''
+as $$
+begin
+  perform public.admin_verifier();
+  if lower(p_email) = public.email_courant() then
+    raise exception 'Pas sur ton propre compte : change ton mot de passe depuis le menu du compte.' using errcode = '22023';
+  end if;
+  if length(coalesce(p_mot_de_passe, '')) < 10 then
+    raise exception 'Mot de passe trop court (10 caractères minimum).' using errcode = '22023';
+  end if;
+  update auth.users
+  set encrypted_password = extensions.crypt(p_mot_de_passe, extensions.gen_salt('bf', 10)), updated_at = now()
+  where lower(email) = lower(p_email);
+  if not found then
+    raise exception 'Aucun compte pour %', p_email using errcode = 'P0002';
+  end if;
+end
+$$;
+
+create or replace function public.admin_supprimer_compte(p_email text)
+returns void
+language plpgsql security definer set search_path = ''
+as $$
+begin
+  perform public.admin_verifier();
+  if lower(p_email) = public.email_courant() then
+    raise exception 'Tu ne peux pas supprimer ton propre compte.' using errcode = '22023';
+  end if;
+  -- D'abord l'accès (effet immédiat grâce à la RLS), ensuite le compte ;
+  -- ses sessions et identités partent avec lui (clés étrangères d'Auth).
+  delete from public.membres where email = lower(p_email);
+  delete from auth.users where lower(email) = lower(p_email);
+end
+$$;
+
+revoke all on function public.admin_verifier() from public, anon;
+revoke all on function public.admin_creer_compte(text, text, text) from public, anon;
+revoke all on function public.admin_mot_de_passe(text, text) from public, anon;
+revoke all on function public.admin_supprimer_compte(text) from public, anon;
+grant execute on function public.admin_creer_compte(text, text, text) to authenticated;
+grant execute on function public.admin_mot_de_passe(text, text) to authenticated;
+grant execute on function public.admin_supprimer_compte(text) to authenticated;
 
 
 -- ------------------------------------------------------------
@@ -260,6 +427,16 @@ alter table public.revisions  enable row level security;
 
 -- Les visiteurs non connectés n'ont rien à faire ici, même en lecture.
 revoke all on public.membres, public.dossiers, public.fiches, public.ressources, public.revisions from anon;
+
+-- Droits de table explicites pour les comptes connectés. Ne pas compter
+-- sur ceux que Supabase donne par défaut : l'option « Automatically
+-- expose new tables » peut être désactivée (c'est la recommandation), et
+-- tout répondrait alors « permission denied ». Ces droits ouvrent la
+-- porte ; ce sont les règles RLS ci-dessous qui décident ligne par ligne.
+grant select, insert, update, delete on public.membres, public.dossiers, public.fiches, public.ressources to authenticated;
+-- L'historique n'est écrit que par le déclencheur (security definer).
+revoke insert, update, delete on public.revisions from authenticated;
+grant select on public.revisions to authenticated;
 
 -- membres : chacun voit sa propre ligne (pour connaître son rôle),
 -- l'admin voit et gère tout — sauf sa propre ligne, pour ne jamais
@@ -320,9 +497,24 @@ create policy "revisions_lecture" on public.revisions for select to authenticate
 -- valables une heure, que seul un membre peut obtenir. 50 Mo par
 -- fichier, le plafond de l'offre gratuite.
 
-insert into storage.buckets (id, name, public, file_size_limit)
-values ('ressources', 'ressources', false, 52428800)
-on conflict (id) do update set public = false, file_size_limit = excluded.file_size_limit;
+-- Types autorisés : documents, images, archives, texte. Pas de HTML ni de
+-- SVG : servis depuis le domaine Supabase, ils pourraient exécuter du
+-- script dans le navigateur de qui ouvre le lien.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('ressources', 'ressources', false, 52428800, array[
+  'application/pdf',
+  'image/png', 'image/jpeg', 'image/webp', 'image/gif',
+  'application/zip', 'application/x-zip-compressed',
+  'text/plain', 'text/markdown', 'text/csv',
+  'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.oasis.opendocument.text', 'application/vnd.oasis.opendocument.presentation',
+  'application/vnd.oasis.opendocument.spreadsheet',
+  'application/x-ipynb+json', 'application/json', 'application/octet-stream'
+])
+on conflict (id) do update set public = false, file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
 
 drop policy if exists "codex_fichiers_lecture" on storage.objects;
 create policy "codex_fichiers_lecture" on storage.objects for select to authenticated

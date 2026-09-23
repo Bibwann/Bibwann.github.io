@@ -78,6 +78,18 @@
       { id: uuid(), fiche_id: reduction, type: "video", titre: "Diagonalisation en 15 minutes", url: "https://www.youtube.com/watch?v=exemple", fichier: null, taille: null, cree_le: maintenant(600) },
       { id: uuid(), fiche_id: reduction, type: "code", titre: "Notebook de vérification", url: "https://github.com/exemple/algebre", fichier: null, taille: null, cree_le: maintenant(500) });
     db.revisions.push({ id: 1, fiche_id: reduction, titre: "Réduction des endomorphismes", contenu: "## Première version\n\nBrouillon.", auteur: EMAILS.admin, cree_le: maintenant(60 * 24 * 2) });
+
+    // La note d'accueil, à la racine : la page d'arrivée du site.
+    db.fiches.push({ id: uuid(), dossier_id: null, accueil: true, titre: "Bienvenue sur Codex", cree_le: maintenant(20000), maj_le: maintenant(300), maj_par: EMAILS.admin, contenu: [
+      "Codex rassemble les cours de la promo : **une fiche par chapitre**, et à côté de chaque fiche toutes ses ressources. #accueil", "",
+      "> [!tip] Par où commencer",
+      "> Ouvre [[Réduction des endomorphismes]] pour voir une fiche complète, ou parcours l'explorateur à gauche.", "",
+      "## Se repérer", "",
+      "- La **recherche** (touche `/`) fouille le texte de toutes les fiches.",
+      "- Le **graphe** montre comment les chapitres se citent entre eux.", "",
+      "> [!info]- Écrire une fiche (cliquer pour déplier)",
+      "> Les formules s'écrivent en LaTeX : $e^{i\\pi} + 1 = 0$."
+    ].join("\n") });
   }
 
   // ---- Droits simulés (reflet de la RLS, pour que l'interface réagisse pareil) ----
@@ -87,6 +99,7 @@
   }
   function refus() { return { data: null, error: { code: "42501", message: "new row violates row-level security policy" } }; }
 
+  function erreurRpc(code, message) { return { code: code, message: message }; }
   function repondre(v) { return new Promise(function (ok) { setTimeout(function () { ok(v); }, LATENCE); }); }
   function copie(x) { return JSON.parse(JSON.stringify(x)); }
 
@@ -151,7 +164,13 @@
         } else {
           v.id = uuid();
           v.cree_le = maintenant();
-          if (t === "fiches") { v.maj_le = maintenant(); v.maj_par = email; v.contenu = v.contenu || ""; }
+          if (t === "fiches") {
+            v.maj_le = maintenant(); v.maj_par = email; v.contenu = v.contenu || "";
+            v.dossier_id = v.dossier_id || null; v.accueil = !!v.accueil;
+            if (v.accueil && db.fiches.some(function (f) { return f.accueil; })) {
+              return { data: null, error: { code: "23505", message: "duplicate key value violates unique constraint" } };
+            }
+          }
         }
         lignes.push(v);
         ajoutees.push(v);
@@ -221,6 +240,40 @@
       });
       return aretes;
     },
+    // Comptes (fonctions admin_* de schema.sql), simulées.
+    admin_creer_compte: function (a) {
+      if (monRole() !== "admin") throw erreurRpc("42501", "Réservé aux admins.");
+      var v = String(a.p_identifiant || "").trim().toLowerCase();
+      var e = v.indexOf("@") >= 0 ? v : v + "@codex.invalid";
+      if (v.indexOf("@") < 0 && !/^[a-z0-9][a-z0-9._-]{1,39}$/.test(v)) throw erreurRpc("22023", "Identifiant invalide : " + v);
+      if ((a.p_mot_de_passe || "").length < 10) throw erreurRpc("22023", "Mot de passe trop court (10 caractères minimum).");
+      if (db.membres.some(function (m) { return m.email === e; })) throw erreurRpc("23505", "Ce compte existe déjà : " + e);
+      motsDePasse[e] = a.p_mot_de_passe;
+      db.membres.push({ email: e, role: a.p_role, ajoute_le: maintenant() });
+      return e;
+    },
+    admin_mot_de_passe: function (a) {
+      if (monRole() !== "admin") throw erreurRpc("42501", "Réservé aux admins.");
+      if (a.p_email === email) throw erreurRpc("22023", "Pas sur ton propre compte.");
+      motsDePasse[a.p_email] = a.p_mot_de_passe;
+    },
+    admin_supprimer_compte: function (a) {
+      if (monRole() !== "admin") throw erreurRpc("42501", "Réservé aux admins.");
+      if (a.p_email === email) throw erreurRpc("22023", "Tu ne peux pas supprimer ton propre compte.");
+      db.membres = db.membres.filter(function (m) { return m.email !== a.p_email; });
+    },
+    etiquettes: function () {
+      if (!monRole()) return [];
+      var sortie = [];
+      db.fiches.forEach(function (f) {
+        var vus = {}, re = /(?:^|\s)#([\p{L}_][\p{L}\p{N}_\/-]*)/gu, m;
+        while ((m = re.exec(f.contenu))) {
+          var t = m[1].toLowerCase();
+          if (!vus[t]) { vus[t] = 1; sortie.push({ fiche_id: f.id, tag: t }); }
+        }
+      });
+      return sortie;
+    },
     stockage: function () {
       var f = db.ressources.filter(function (r) { return r.fichier; });
       return [{ octets: f.reduce(function (s, r) { return s + (r.taille || 0); }, 0), fichiers: f.length }];
@@ -228,6 +281,7 @@
   };
 
   // ---- Session ----
+  var motsDePasse = {};
   var session = role === "deconnecte" ? null : { access_token: "jeton-du-banc", user: { email: email } };
   var abonnes = [];
   var auth = {
@@ -235,7 +289,18 @@
     onAuthStateChange: function (fn) { abonnes.push(fn); return { data: { subscription: { unsubscribe: function () {} } } }; },
     signInWithOtp: function (o) { console.info("[banc] lien magique pour", o.email); return repondre({ data: {}, error: null }); },
     signInWithOAuth: function () { return repondre({ data: {}, error: { message: "Google n'est pas disponible dans le banc d'essai." } }); },
-    signOut: function () { session = null; abonnes.forEach(function (f) { f("SIGNED_OUT", null); }); return repondre({ error: null }); }
+    signOut: function () { session = null; abonnes.forEach(function (f) { f("SIGNED_OUT", null); }); return repondre({ error: null }); },
+    // Mot de passe du banc : « motdepasse-banc » pour tous les comptes connus.
+    signInWithPassword: function (o) {
+      var connu = db.membres.some(function (m) { return m.email === o.email; }) || motsDePasse[o.email];
+      var bon = o.password === (motsDePasse[o.email] || "motdepasse-banc");
+      if (!connu || !bon) return repondre({ data: null, error: { message: "Invalid login credentials" } });
+      email = o.email;
+      session = { access_token: "jeton-du-banc", user: { email: email } };
+      setTimeout(function () { abonnes.forEach(function (f) { f("SIGNED_IN", session); }); }, 0);
+      return repondre({ data: { session: session }, error: null });
+    },
+    updateUser: function (o) { motsDePasse[email] = o.password; return repondre({ data: {}, error: null }); }
   };
 
   var storage = {
@@ -255,7 +320,8 @@
         auth: auth, storage: storage,
         from: function (t) { return new Requete(t); },
         rpc: function (nom, args) {
-          var r = RPC[nom](args || {});
+          var r;
+          try { r = RPC[nom](args || {}); } catch (e) { return repondre({ data: null, error: e }); }
           return repondre({ data: r === undefined || r === null ? null : copie(r), error: null });
         }
       };

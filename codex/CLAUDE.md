@@ -13,20 +13,23 @@ Site statique (GitHub Pages) + Supabase. Pas de build, JS vanilla en IIFE sur un
 
 | Fichier | Rôle |
 |---|---|
-| `supabase/schema.sql` | **Toute la sécurité.** Tables, RLS, déclencheur d'historique, `rechercher()`, `graphe()`, `stockage()`, `ping()`, bucket privé. Rejouable. |
+| `supabase/accueil.sql` | La note d'accueil (page d'arrivée, premier nœud du graphe). |
+| `supabase/exemple.sql` / `exemple-retirer.sql` | Cours fictif pour la démo, et son retrait (tout est sous le dossier « Exemple »). |
+| `supabase/schema.sql` | **Toute la sécurité.** Tables, RLS, déclencheur d'historique, `rechercher()`, `graphe()`, `etiquettes()`, `stockage()`, `ping()`, comptes (`admin_creer_compte`, `admin_mot_de_passe`, `admin_supprimer_compte`), bucket privé. Rejouable. |
 | `assets/js/config.js` | URL + clé anon. Publiques par conception. |
 | `commun.js` | `h()` (construction DOM sûre), dialogues, menus, toasts, dates, `plier()`, types de ressources. |
 | `rendu.js` | Markdown → HTML : marked + formules KaTeX + encadrés `:::` + liens `[[…]]` + code, puis **DOMPurify**. |
 | `api.js` | **Seul fichier qui parle à Supabase.** Erreurs traduites en français. |
 | `compression.js` / `pdf-worker.js` | Compression des PDF (pdf-lib puis Ghostscript WASM) dans un worker module. |
 | `navigation.js` | Arborescence de la barre latérale. |
-| `graphe.js` | Graphe par forces sur canvas (maison, sans d3). |
+| `graphe.js` | Graphe sur canvas avec d3-force / d3-zoom / d3-drag (comme Quartz). |
 | `lecture.js` / `editeur.js` / `admin.js` | Les vues. |
 | `app.js` | Démarrage, session, routeur par `#`, recherche, accueil, graphe complet. |
 | `tools/versionner.py` | `?v=<hash>` sur les assets + régénère le banc. **Après chaque modif CSS/JS.** |
 | `tools/banc.html` | **Généré.** La vraie page avec `faux-supabase.js` à la place de supabase-js. |
-| `tests/rls.test.mjs` | RLS sur PGlite (vrai Postgres en WASM). |
+| `tests/rls.test.mjs` | RLS et fonctions de comptes sur PGlite (vrai Postgres en WASM, avec pgcrypto). |
 | `tests/e2e.test.mjs` | Toute l'interface dans Chrome headless, sur le banc. |
+| `SECURITE.md` | Audit : ce qui est vérifié, corrigé, accepté ; réglages Supabase. |
 
 ## 2. Invariants de sécurité
 
@@ -37,6 +40,12 @@ Site statique (GitHub Pages) + Supabase. Pas de build, JS vanilla en IIFE sur un
   aucun droit, même s'il est dans `membres`.
 - `maj_le` / `maj_par` sont posés par le déclencheur, jamais par le client.
 - L'admin ne peut ni se retirer ni se rétrograder (impossible de s'enfermer dehors).
+- Comptes sans e-mail : adresse technique `identifiant@codex.invalid` (domaine réservé, aucun e-mail
+  ne peut y partir). Créés par les fonctions SQL `admin_*`, qui écrivent `auth.users` +
+  `auth.identities` (jetons à chaîne vide, pas NULL : sinon Supabase Auth refuse la connexion).
+  Aucune clé secrète nulle part.
+- Le HTML des fiches ne garde `style` que dans les formules KaTeX, ni `id` ni `name`, et seulement
+  des cases à cocher comme champs : voir `SECURITE.md` pour le pourquoi.
 - Seul HTML injecté : celui de `rendu.js`, après DOMPurify. Partout ailleurs `h()` / `textContent`.
 - Scripts CDN : **version épinglée + SRI**, et domaines autorisés par la CSP d'`index.html`. Les
   bibliothèques du worker (pas d'attribut `integrity` possible sur un `import()`) sont téléchargées
@@ -49,6 +58,16 @@ Site statique (GitHub Pages) + Supabase. Pas de build, JS vanilla en IIFE sur un
   combinants invisibles, un espace insécable devient indiscernable d'un espace. Après une écriture
   de fichier contenant de tels échappements, vérifier : aucun caractère de catégorie Unicode
   `Mn`/`Cf` ni `U+00A0` ne doit apparaître dans les `.js` (petit script Python avec `unicodedata`).
+- **Les scripts Python en heredoc mangent les barres obliques inverses** (`\s`, `\|`, `'\'`) :
+  une regex JS ou une chaîne SQL ressort fausse sans erreur. Pour du code qui en contient, utiliser
+  l'outil d'édition directe, puis relire la ligne produite.
+- **Le graphe maison oscillait** : remplacé par d3-force, 300 pas pré-calculés puis cadrage ; il
+  arrive posé et ne bouge que quand on le touche.
+- **Un canvas ne doit jamais peser sur la mise en page** : `graphe.js` le met en position absolue et
+  mesure `clientWidth`. Dans le flux, il élargissait sa colonne, l'observateur de taille le voyait,
+  agrandissait le canvas… (304 → 550 → 1178 px en trois secondes, graphe dessiné hors cadre).
+- **`$$` dans un bloc `do $$ … $$`** : les formules LaTeX le ferment en plein milieu. Les scripts
+  SQL qui insèrent du contenu utilisent un délimiteur nommé (`$exemple$`, `$md$`).
 - **Ghostscript depuis un blob** : `gs.js` fait `new URL(…, import.meta.url)` ; depuis un blob, cette
   base est `blob:…` et lève « Invalid URL ». `pdf-worker.js` remplace `import.meta.url` par l'URL
   CDN dans le texte vérifié. Sans ça, la compression forte échoue **en silence** (le fichier part
@@ -70,5 +89,5 @@ Site statique (GitHub Pages) + Supabase. Pas de build, JS vanilla en IIFE sur un
 
 1. `python codex/tools/versionner.py`
 2. `schema.sql` touché → `cd codex/tests && npm test`
-3. JS/CSS/HTML touché → `npm run e2e` (48 vérifications, console propre attendue)
+3. JS/CSS/HTML touché → `npm run e2e` (58 vérifications, console propre attendue)
 4. Les contrôles de `../CLAUDE.md` §3 (hook, identité, rien hors de `codex/`).

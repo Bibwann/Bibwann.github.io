@@ -49,6 +49,30 @@ window.Codex = window.Codex || {};
     return h("i", { class: "bi bi-" + nom, "aria-hidden": "true" });
   }
 
+  // Le logo : un marque-page (une fiche qu'on garde sous la main) et le
+  // nom. Construit en SVG plutôt qu'en image pour suivre la couleur
+  // d'accent des deux thèmes.
+  var SVG = "http://www.w3.org/2000/svg";
+  function logo(lien) {
+    var svg = document.createElementNS(SVG, "svg");
+    svg.setAttribute("viewBox", "0 0 17 22");
+    svg.setAttribute("class", "logo-marque");
+    svg.setAttribute("aria-hidden", "true");
+    var ruban = document.createElementNS(SVG, "path");
+    ruban.setAttribute("d", "M2 0h13a2 2 0 0 1 2 2v20l-8.5-5.2L0 22V2a2 2 0 0 1 2-2z");
+    ruban.setAttribute("fill", "currentColor");
+    var trait = document.createElementNS(SVG, "path");
+    trait.setAttribute("d", "M5 6.5h7");
+    trait.setAttribute("stroke", "var(--fond)");
+    trait.setAttribute("stroke-width", "1.8");
+    trait.setAttribute("stroke-linecap", "round");
+    svg.appendChild(ruban);
+    svg.appendChild(trait);
+    return lien
+      ? h("a.logo", { href: "#/", "aria-label": "Codex, accueil" }, svg, h("span", "Codex"))
+      : h("div.logo", svg, h("span", "Codex"));
+  }
+
   function vider(el) {
     while (el.firstChild) el.removeChild(el.firstChild);
     return el;
@@ -102,6 +126,7 @@ window.Codex = window.Codex || {};
   }
 
   function dateComplete(iso) { return iso ? fmtComplet.format(new Date(iso)) : ""; }
+  function dateCourte(iso) { return iso ? fmtJour.format(new Date(iso)) : ""; }
 
   function taille(o) {
     if (o == null) return "";
@@ -145,6 +170,20 @@ window.Codex = window.Codex || {};
       clearTimeout(t);
       t = setTimeout(function () { fn.apply(self, a); }, ms);
     };
+  }
+
+  // Mot de passe aléatoire lisible (sans 0/O, 1/l/I), ~71 bits d'entropie.
+  // Tirage par rejet : 256 n'est pas un multiple de 56, un simple modulo
+  // favoriserait les premières lettres.
+  function motDePasse() {
+    var alphabet = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    var limite = 256 - (256 % alphabet.length), s = "";
+    while (s.length < 12) {
+      crypto.getRandomValues(new Uint8Array(16)).forEach(function (o) {
+        if (o < limite && s.length < 12) s += alphabet[o % alphabet.length];
+      });
+    }
+    return s.slice(0, 4) + "-" + s.slice(4, 8) + "-" + s.slice(8);
   }
 
   var mouvementReduit = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -260,11 +299,11 @@ window.Codex = window.Codex || {};
   }
 
   Object.assign(C, {
-    h: h, ajouter: ajouter, icone: icone, vider: vider,
+    h: h, ajouter: ajouter, icone: icone, vider: vider, logo: logo,
     TYPES: TYPES, TYPE: TYPE, ROLES: ROLES, devinerType: devinerType,
-    dateRelative: dateRelative, dateComplete: dateComplete, taille: taille,
+    dateRelative: dateRelative, dateComplete: dateComplete, dateCourte: dateCourte, taille: taille,
     trier: trier, collator: collator, plier: plier, slug: slug, domaine: domaine, prenom: prenom,
-    retarder: retarder, mouvementReduit: mouvementReduit,
+    retarder: retarder, mouvementReduit: mouvementReduit, motDePasse: motDePasse,
     toast: toast, dialogue: dialogue, menu: menu, fermerMenu: fermerMenu,
     chargement: chargement, etatVide: etatVide
   });

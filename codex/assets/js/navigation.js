@@ -22,8 +22,11 @@
   function sousDossiers(parentId) {
     return C.trier(C.etat.dossiers.filter(function (d) { return (d.parent_id || null) === (parentId || null); }), "titre");
   }
+  // La note d'accueil n'apparaît dans aucune liste : on y va par le logo.
   function fichesDe(dossierId) {
-    return C.trier(C.etat.fiches.filter(function (f) { return f.dossier_id === dossierId; }), "titre");
+    return C.trier(C.etat.fiches.filter(function (f) {
+      return (f.dossier_id || null) === (dossierId || null) && !f.accueil;
+    }), "titre");
   }
   function nbFiches(dossierId) {
     return fichesDe(dossierId).length + sousDossiers(dossierId).reduce(function (n, d) { return n + nbFiches(d.id); }, 0);
@@ -102,61 +105,68 @@
   }
 
   // ---- Rendu ----
+  // Comme l'explorateur de Quartz : le chevron plie/déplie, le nom du
+  // dossier ouvre sa page (la liste de ce qu'il contient).
 
   function brancheDossier(d) {
     var ouvert = !fermes[d.id];
     var enfants = h("ul.arbre-enfants", { hidden: !ouvert },
       sousDossiers(d.id).map(brancheDossier),
       fichesDe(d.id).map(feuille));
-    var bascule = h("button.arbre-dossier", { type: "button", "aria-expanded": String(ouvert) },
-      icone("chevron-right"), icone(ouvert ? "folder2-open" : "folder2"),
-      h("span.arbre-titre", d.titre), h("span.arbre-compte", String(nbFiches(d.id))));
+    var bascule = h("button.arbre-bascule", {
+      type: "button", "aria-expanded": String(ouvert), "aria-label": (ouvert ? "Replier " : "Déplier ") + d.titre
+    }, icone("chevron-right"));
     bascule.addEventListener("click", function () {
       var o = bascule.getAttribute("aria-expanded") !== "true";
       bascule.setAttribute("aria-expanded", String(o));
-      bascule.children[1].className = "bi bi-" + (o ? "folder2-open" : "folder2");
+      bascule.setAttribute("aria-label", (o ? "Replier " : "Déplier ") + d.titre);
       enfants.hidden = !o;
       if (o) delete fermes[d.id]; else fermes[d.id] = true;
       memoriser();
     });
-    var ligne = h("div.arbre-ligne", bascule);
+    var ligne = h("div.arbre-ligne", bascule,
+      h("a.arbre-dossier", { href: "#/dossier/" + d.id, dataset: { dossier: d.id } }, h("span.arbre-titre", d.titre)));
     if (C.peutEcrire()) {
       var plus = h("button.arbre-plus", { type: "button", "aria-label": "Actions sur « " + d.titre + " »", title: "Actions" }, icone("three-dots"));
       plus.addEventListener("click", function (e) { e.stopPropagation(); menuDossier(plus, d); });
       ligne.appendChild(plus);
     }
-    return h("li.arbre-noeud", { dataset: { dossier: d.id } }, ligne, enfants);
+    return h("li.arbre-noeud", ligne, enfants);
   }
 
   function feuille(f) {
     return h("li.arbre-noeud",
-      h("a.arbre-fiche", { href: "#/fiche/" + f.id, dataset: { fiche: f.id } },
-        icone("file-earmark-text"), h("span.arbre-titre", f.titre)));
+      h("a.arbre-fiche", { href: "#/fiche/" + f.id, dataset: { fiche: f.id } }, h("span.arbre-titre", f.titre)));
   }
 
   function rendre() {
     if (!racine) return;
     C.vider(racine);
-    var entete = h("div.nav-entete", h("span.nav-titre", "Cours"));
+    var liste = h("div.explorateur-liste");
+    var repli = h("button.explorateur-titre", { type: "button", "aria-expanded": "true" }, "Explorateur", icone("chevron-down"));
+    repli.addEventListener("click", function () {
+      var o = repli.getAttribute("aria-expanded") !== "true";
+      repli.setAttribute("aria-expanded", String(o));
+      liste.hidden = !o;
+    });
+    var entete = h("div.nav-entete", repli);
     if (C.peutEcrire()) {
-      entete.appendChild(h("button.btn.btn-mini", { type: "button", on: { click: function () { nouveauDossier(null); } } },
-        icone("folder-plus"), "Dossier"));
+      entete.appendChild(h("button.btn-icone.btn-petit", {
+        type: "button", title: "Nouveau dossier", "aria-label": "Nouveau dossier",
+        on: { click: function () { nouveauDossier(null); } }
+      }, icone("folder-plus")));
     }
     racine.appendChild(entete);
 
-    var dossiers = sousDossiers(null);
-    if (!dossiers.length) {
-      racine.appendChild(h("p.nav-vide", C.peutEcrire()
+    var dossiers = sousDossiers(null), libres = fichesDe(null);
+    if (!dossiers.length && !libres.length) {
+      liste.appendChild(h("p.nav-vide", C.peutEcrire()
         ? "Aucun cours pour l'instant. Commence par un dossier : un semestre ou une matière."
         : "Aucun cours pour l'instant."));
     } else {
-      racine.appendChild(h("ul.arbre", { "aria-label": "Cours" }, dossiers.map(brancheDossier)));
+      liste.appendChild(h("ul.arbre", { "aria-label": "Cours" }, dossiers.map(brancheDossier), libres.map(feuille)));
     }
-
-    racine.appendChild(h("div.nav-pied",
-      h("a.nav-lien", { href: "#/graphe" }, icone("diagram-3"), "Graphe des cours"),
-      C.estAdmin() ? h("a.nav-lien", { href: "#/admin" }, icone("people"), "Membres") : null));
-
+    racine.appendChild(liste);
     activer(actif);
   }
 
@@ -173,7 +183,7 @@
     var n = lien.parentNode;
     while (n && n !== racine) {
       if (n.classList && n.classList.contains("arbre-enfants") && n.hidden) {
-        var b = n.previousElementSibling.querySelector(".arbre-dossier");
+        var b = n.previousElementSibling.querySelector(".arbre-bascule");
         if (b) b.click();
       }
       n = n.parentNode;
@@ -185,6 +195,7 @@
 
   C.nav = {
     monter: monter, rendre: rendre, activer: activer, chemin: chemin,
-    optionsDossiers: optionsDossiers, nouveauDossier: nouveauDossier, fichesDe: fichesDe
+    optionsDossiers: optionsDossiers, nouveauDossier: nouveauDossier, fichesDe: fichesDe,
+    sousDossiers: sousDossiers, nbFiches: nbFiches
   };
 })(window.Codex);

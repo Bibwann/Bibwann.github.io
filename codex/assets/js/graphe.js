@@ -1,31 +1,38 @@
 /* ============================================================
-   CODEX — graphe des fiches (l'idée de Quartz, en privé)
+   CODEX — graphe des fiches, comme celui de Quartz (d3-force)
 
    Deux sortes d'arêtes :
-     - les liens [[Titre]] écrits dans les fiches (calculés par la
-       fonction SQL `graphe()`), en couleur d'accent ;
-     - la structure dossier → fiche et dossier → sous-dossier, en trait
-       discret, pour que le graphe ne soit pas une poussière de points
-       isolés tant que personne n'a encore écrit de [[lien]].
+     - les liens [[Titre]] écrits dans les fiches (fonction SQL graphe()) ;
+     - le rangement : dossier → fiche, dossier → sous-dossier, et la note
+       d'accueil reliée aux dossiers racines (c'est le premier nœud).
 
-   Disposition par forces, maison, sur un canvas : répulsion entre tous
-   les nœuds (O(n²), sans souci jusqu'à quelques centaines de fiches),
-   ressorts sur les arêtes, gravité vers le centre, refroidissement
-   progressif. Pas de d3 : quatre scripts de plus pour ~150 lignes.
+   d3-force plutôt qu'un moteur maison : le moteur précédent partait en
+   oscillations et laissait des nœuds hors cadre. La disposition est
+   calculée d'avance (300 pas), puis cadrée : le graphe arrive posé, et
+   ne bouge que quand on le touche.
    ============================================================ */
 (function (C) {
   "use strict";
 
-  // Construit nœuds et arêtes depuis C.etat. `centre` + `profondeur`
-  // → sous-graphe local (panneau d'une fiche), sinon tout.
+  // Nœuds et arêtes depuis C.etat. `centre` + `profondeur` → voisinage
+  // d'une fiche (colonne de droite), sinon tout le cours.
   function donnees(centre, profondeur) {
     var noeuds = {}, aretes = [];
     C.etat.dossiers.forEach(function (d) { noeuds["d:" + d.id] = { id: "d:" + d.id, type: "dossier", titre: d.titre, ref: d.id }; });
-    C.etat.fiches.forEach(function (f) { noeuds["f:" + f.id] = { id: "f:" + f.id, type: "fiche", titre: f.titre, ref: f.id }; });
+    C.etat.fiches.forEach(function (f) { noeuds["f:" + f.id] = { id: "f:" + f.id, type: "fiche", titre: f.titre, ref: f.id, accueil: !!f.accueil }; });
     C.etat.dossiers.forEach(function (d) {
       if (d.parent_id && noeuds["d:" + d.parent_id]) aretes.push({ a: "d:" + d.parent_id, b: "d:" + d.id, lien: false });
     });
-    C.etat.fiches.forEach(function (f) { aretes.push({ a: "d:" + f.dossier_id, b: "f:" + f.id, lien: false }); });
+    // Une fiche à la racine se raccroche à la note d'accueil, qui porte
+    // aussi les dossiers racines.
+    var accueil = C.etat.fiches.filter(function (f) { return f.accueil; })[0];
+    C.etat.fiches.forEach(function (f) {
+      if (f.dossier_id && noeuds["d:" + f.dossier_id]) aretes.push({ a: "d:" + f.dossier_id, b: "f:" + f.id, lien: false });
+      else if (accueil && f !== accueil) aretes.push({ a: "f:" + accueil.id, b: "f:" + f.id, lien: false });
+    });
+    if (accueil) {
+      C.etat.dossiers.forEach(function (d) { if (!d.parent_id) aretes.push({ a: "f:" + accueil.id, b: "d:" + d.id, lien: false }); });
+    }
     C.etat.aretes.forEach(function (x) {
       if (noeuds["f:" + x.source] && noeuds["f:" + x.cible]) aretes.push({ a: "f:" + x.source, b: "f:" + x.cible, lien: true });
     });
@@ -52,245 +59,181 @@
     aretes.forEach(function (e) {
       noeuds[e.a].degre++; noeuds[e.b].degre++;
       noeuds[e.a].voisins[e.b] = true; noeuds[e.b].voisins[e.a] = true;
-      e.na = noeuds[e.a]; e.nb = noeuds[e.b];
     });
-    return { noeuds: liste, aretes: aretes, parId: noeuds };
+    return { noeuds: liste, liens: aretes.map(function (e) { return { source: e.a, target: e.b, lien: e.lien }; }) };
   }
 
   function couleurs() {
     var s = getComputedStyle(document.documentElement);
     var v = function (n) { return s.getPropertyValue(n).trim(); };
     return {
-      fond: v("--surface-graphe"), fiche: v("--accent"), dossier: v("--texte-doux"),
-      centre: v("--accent-2"), lien: v("--accent"), structure: v("--bordure-forte"),
-      texte: v("--texte"), halo: v("--fond")
+      noeud: v("--texte-faible"), dossier: v("--bordure-forte"), courant: v("--accent"), voisin: v("--accent-2"),
+      lien: v("--bordure-forte"), rangement: v("--bordure"), texte: v("--texte"), halo: v("--fond")
     };
   }
 
-  // Monte un graphe interactif dans `conteneur`. Renvoie une fonction de
-  // nettoyage (à appeler quand la vue change).
+  // Taille d'un nœud : comme Quartz, elle grandit avec le nombre de liens.
+  function rayon(n) { return (n.type === "dossier" ? 2.5 : 3) + Math.sqrt(n.degre) * 1.1; }
+
   function monter(conteneur, options) {
     options = options || {};
-    var g = donnees(options.centre, options.profondeur || 2);
+    var compact = !!options.compact;
+    var g = donnees(options.centre, options.profondeur || 1);
+    var noeuds = g.noeuds, liens = g.liens;
     var canvas = document.createElement("canvas");
     canvas.className = "graphe-canvas";
     canvas.setAttribute("role", "img");
-    canvas.setAttribute("aria-label", "Graphe de " + g.noeuds.length + " éléments reliés par " + g.aretes.length + " liens. La liste des fiches est dans la barre latérale.");
+    canvas.setAttribute("aria-label", "Graphe de " + noeuds.length + " éléments. La liste des fiches est dans l'explorateur.");
     conteneur.appendChild(canvas);
     var ctx = canvas.getContext("2d");
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
-    var L = 0, H = 0, coul = couleurs();
-    var vue = { x: 0, y: 0, k: 1 };
-    var survol = null, tenu = null, alpha = 1, raf = 0, fini = false;
-    var compact = !!options.compact;
+    var L = 0, H = 0, coul = couleurs(), t = d3.zoomIdentity, survol = null, fini = false;
+    var police = getComputedStyle(document.body).fontFamily;
+    var centreId = options.centre ? "f:" + options.centre : (noeuds.filter(function (n) { return n.accueil; })[0] || {}).id;
 
-    // Positions de départ en spirale : pas d'aléa, même dessin à chaque
-    // ouverture tant que les données ne changent pas.
-    g.noeuds.forEach(function (n, i) {
-      var r = 12 * Math.sqrt(i + 1), a = i * 2.39996;
-      n.x = r * Math.cos(a); n.y = r * Math.sin(a); n.vx = 0; n.vy = 0;
-      if (options.centre && n.id === "f:" + options.centre) { n.x = 0; n.y = 0; n.fixe = true; }
-    });
+    // ---- Forces : les réglages de Quartz, un peu resserrés pour le cadre local ----
+    var sim = d3.forceSimulation(noeuds)
+      .force("charge", d3.forceManyBody().strength(compact ? -70 : -120))
+      .force("lien", d3.forceLink(liens).id(function (d) { return d.id; })
+        .distance(function (l) { return l.lien ? (compact ? 45 : 60) : (compact ? 32 : 42); })
+        .strength(function (l) { return l.lien ? 0.8 : 0.5; }))
+      .force("x", d3.forceX(0).strength(0.05))
+      .force("y", d3.forceY(0).strength(0.05))
+      .force("collision", d3.forceCollide(function (d) { return rayon(d) + 5; }))
+      .stop();
+    // Pré-calcul : la disposition est stable avant la première image.
+    for (var i = 0; i < 300; i++) sim.tick();
 
-    function rayon(n) {
-      var base = n.type === "dossier" ? 5 : 4;
-      return Math.min(14, base + Math.sqrt(n.degre) * (compact ? 1.2 : 1.6));
-    }
-
-    function pas() {
-      var N = g.noeuds, i, j, a, b, dx, dy, d2, f;
-      var repulsion = compact ? 900 : 1400;
-      for (i = 0; i < N.length; i++) {
-        a = N[i];
-        for (j = i + 1; j < N.length; j++) {
-          b = N[j];
-          dx = b.x - a.x; dy = b.y - a.y; d2 = dx * dx + dy * dy + 0.01;
-          if (d2 > 250000) continue;
-          f = repulsion / d2 * alpha;
-          a.vx -= dx * f; a.vy -= dy * f; b.vx += dx * f; b.vy += dy * f;
-        }
-      }
-      g.aretes.forEach(function (e) {
-        var cible = e.lien ? 70 : 45;
-        dx = e.nb.x - e.na.x; dy = e.nb.y - e.na.y;
-        var d = Math.sqrt(dx * dx + dy * dy) || 1;
-        f = (d - cible) / d * 0.08 * alpha * (e.lien ? 1 : 0.7);
-        e.na.vx += dx * f; e.na.vy += dy * f; e.nb.vx -= dx * f; e.nb.vy -= dy * f;
-      });
-      N.forEach(function (n) {
-        n.vx -= n.x * 0.012 * alpha; n.vy -= n.y * 0.012 * alpha;
-        if (n.fixe || n === tenu) { n.vx = 0; n.vy = 0; return; }
-        n.vx *= 0.82; n.vy *= 0.82;
-        n.x += n.vx; n.y += n.vy;
-      });
-      alpha *= 0.985;
-    }
-
-    function cadrer() {
-      if (!g.noeuds.length) return;
-      var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-      g.noeuds.forEach(function (n) { x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y); x1 = Math.max(x1, n.x); y1 = Math.max(y1, n.y); });
-      var marge = compact ? 24 : 60;
-      var k = Math.min((L - marge * 2) / Math.max(x1 - x0, 1), (H - marge * 2) / Math.max(y1 - y0, 1));
-      vue.k = Math.max(0.3, Math.min(compact ? 1.6 : 2.2, k));
-      vue.x = L / 2 - (x0 + x1) / 2 * vue.k;
-      vue.y = H / 2 - (y0 + y1) / 2 * vue.k;
-    }
-
+    // ---- Dessin ----
     function dessiner() {
+      if (fini) return;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, L, H);
       ctx.save();
-      ctx.translate(vue.x, vue.y);
-      ctx.scale(vue.k, vue.k);
-      var focus = survol || tenu;
+      ctx.translate(t.x, t.y);
+      ctx.scale(t.k, t.k);
+      var focus = survol;
 
-      g.aretes.forEach(function (e) {
-        var eclaire = focus && (e.na === focus || e.nb === focus);
-        ctx.globalAlpha = focus ? (eclaire ? 0.95 : 0.12) : (e.lien ? 0.7 : 0.35);
-        ctx.strokeStyle = e.lien ? coul.lien : coul.structure;
-        ctx.lineWidth = (e.lien ? 1.6 : 1) / Math.sqrt(vue.k);
-        ctx.beginPath(); ctx.moveTo(e.na.x, e.na.y); ctx.lineTo(e.nb.x, e.nb.y); ctx.stroke();
+      liens.forEach(function (l) {
+        var eclaire = focus && (l.source === focus || l.target === focus);
+        ctx.globalAlpha = focus ? (eclaire ? 1 : 0.25) : (l.lien ? 0.9 : 0.6);
+        ctx.strokeStyle = eclaire ? coul.courant : (l.lien ? coul.lien : coul.rangement);
+        ctx.lineWidth = (l.lien ? 1.2 : 1) / Math.sqrt(t.k);
+        ctx.setLineDash(l.lien ? [] : [3 / t.k, 3 / t.k]);
+        ctx.beginPath(); ctx.moveTo(l.source.x, l.source.y); ctx.lineTo(l.target.x, l.target.y); ctx.stroke();
       });
+      ctx.setLineDash([]);
 
-      g.noeuds.forEach(function (n) {
+      noeuds.forEach(function (n) {
         var proche = !focus || n === focus || focus.voisins[n.id];
-        ctx.globalAlpha = proche ? 1 : 0.18;
-        var centre = options.centre && n.ref === options.centre;
-        ctx.fillStyle = centre ? coul.centre : n.type === "dossier" ? coul.dossier : coul.fiche;
+        ctx.globalAlpha = proche ? 1 : 0.3;
+        ctx.fillStyle = n.id === centreId || n === focus ? coul.courant
+          : focus && focus.voisins[n.id] ? coul.voisin
+          : n.type === "dossier" ? coul.dossier : coul.noeud;
         ctx.beginPath(); ctx.arc(n.x, n.y, rayon(n), 0, Math.PI * 2); ctx.fill();
-        if (centre || n === focus) {
-          ctx.lineWidth = 2 / vue.k; ctx.strokeStyle = coul.texte; ctx.stroke();
-        }
       });
 
-      // Étiquettes : toutes quand on est assez près, sinon seulement le
-      // nœud visé, ses voisins et les dossiers.
-      var taille = (compact ? 11 : 12.5) / vue.k;
-      ctx.font = "500 " + taille + "px Outfit, system-ui, sans-serif";
+      // Étiquettes : fondu avec le zoom (comme Quartz), toujours visibles
+      // pour le nœud courant, le nœud survolé et ses voisins.
+      var fondu = compact ? Math.max(0, Math.min(1, (t.k - 1.3) * 1.5)) : Math.max(0, Math.min(1, (t.k - 0.7) * 1.8));
+      if (!compact && noeuds.length <= 25) fondu = 1;
+      ctx.font = "600 " + (12 / t.k) + "px " + police;
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
       ctx.lineJoin = "round";
-      g.noeuds.forEach(function (n) {
-        // Petit graphe : toutes les étiquettes tiennent, autant les montrer.
-        var montrer = (!compact && g.noeuds.length <= 40) || vue.k > 1.25 || n === focus || (focus && focus.voisins[n.id]) ||
-          (!focus && (n.type === "dossier" || (options.centre && n.ref === options.centre)));
-        if (!montrer || (compact && !focus && n.type === "fiche" && n.ref !== options.centre && vue.k <= 1.25)) return;
-        var proche = !focus || n === focus || focus.voisins[n.id];
-        ctx.globalAlpha = proche ? 1 : 0.25;
-        var t = n.titre.length > 34 ? n.titre.slice(0, 32) + "…" : n.titre;
-        var y = n.y + rayon(n) + 3 / vue.k;
-        ctx.lineWidth = 3.5 / vue.k; ctx.strokeStyle = coul.halo; ctx.strokeText(t, n.x, y);
-        ctx.fillStyle = coul.texte; ctx.fillText(t, n.x, y);
+      noeuds.forEach(function (n) {
+        var fort = n.id === centreId || n === focus || (focus && focus.voisins[n.id]);
+        var a = fort ? 1 : (focus ? fondu * 0.25 : fondu);
+        if (a <= 0.02) return;
+        ctx.globalAlpha = a;
+        var texte = n.titre.length > 30 ? n.titre.slice(0, 28) + "…" : n.titre;
+        var y = n.y + rayon(n) + 4 / t.k;
+        ctx.lineWidth = 3 / t.k; ctx.strokeStyle = coul.halo; ctx.strokeText(texte, n.x, y);
+        ctx.fillStyle = coul.texte; ctx.fillText(texte, n.x, y);
       });
       ctx.restore();
     }
+    sim.on("tick", dessiner);
 
-    function boucle() {
-      if (fini) return;
-      if (alpha > 0.02) pas();
-      dessiner();
-      raf = alpha > 0.02 || tenu ? requestAnimationFrame(boucle) : 0;
-    }
-    function relancer(a) {
-      alpha = Math.max(alpha, a || 0.3);
-      if (!raf) raf = requestAnimationFrame(boucle);
+    // Cadre tout le graphe dans la zone.
+    function cadrer() {
+      if (!noeuds.length) return;
+      var x0 = d3.min(noeuds, function (n) { return n.x; }), x1 = d3.max(noeuds, function (n) { return n.x; });
+      var y0 = d3.min(noeuds, function (n) { return n.y; }), y1 = d3.max(noeuds, function (n) { return n.y; });
+      var marge = compact ? 28 : 60;
+      var k = Math.min((L - marge * 2) / Math.max(x1 - x0, 1), (H - marge * 2) / Math.max(y1 - y0, 1));
+      k = Math.max(0.3, Math.min(compact ? 1.6 : 2, k));
+      selection.call(zoom.transform, d3.zoomIdentity.translate(L / 2 - (x0 + x1) / 2 * k, H / 2 - (y0 + y1) / 2 * k).scale(k));
     }
 
-    function taillerCanvas() {
-      var r = conteneur.getBoundingClientRect();
-      L = Math.max(120, r.width); H = Math.max(120, r.height);
+    function tailler() {
+      L = Math.max(120, conteneur.clientWidth); H = Math.max(120, conteneur.clientHeight);
       canvas.width = Math.round(L * dpr); canvas.height = Math.round(H * dpr);
       canvas.style.width = L + "px"; canvas.style.height = H + "px";
-      cadrer();
-      dessiner();
     }
 
-    // ---- Interaction ----
-    function versMonde(ev) {
-      var r = canvas.getBoundingClientRect();
-      return { x: (ev.clientX - r.left - vue.x) / vue.k, y: (ev.clientY - r.top - vue.y) / vue.k };
+    // ---- Interaction : glisser un nœud (installé avant le zoom, pour être
+    // prioritaire), déplacer la vue, molette pour zoomer, clic pour ouvrir. ----
+    function noeudSous(evenement) {
+      var p = t.invert(d3.pointer(evenement, canvas));
+      return sim.find(p[0], p[1], 12 / t.k) || null;
     }
-    function noeudSous(p) {
-      var meilleur = null, dmin = Infinity;
-      g.noeuds.forEach(function (n) {
-        var d = Math.hypot(n.x - p.x, n.y - p.y);
-        if (d < rayon(n) + 6 / vue.k && d < dmin) { dmin = d; meilleur = n; }
+    var depart = null;
+    var glisser = d3.drag().container(canvas)
+      .subject(function (e) { return noeudSous(e); })
+      .on("start", function (e) {
+        depart = d3.pointer(e, canvas);
+        if (!C.mouvementReduit) sim.alphaTarget(0.25).restart();
+        e.subject.fx = e.subject.x; e.subject.fy = e.subject.y;
+      })
+      .on("drag", function (e) {
+        var p = t.invert(d3.pointer(e, canvas));
+        e.subject.fx = p[0]; e.subject.fy = p[1];
+        if (C.mouvementReduit) { e.subject.x = p[0]; e.subject.y = p[1]; dessiner(); }
+      })
+      .on("end", function (e) {
+        sim.alphaTarget(0);
+        e.subject.fx = null; e.subject.fy = null;
+        var fin = d3.pointer(e, canvas);
+        // Un clic sans déplacement ouvre la fiche (ou la page du dossier).
+        if (depart && Math.hypot(fin[0] - depart[0], fin[1] - depart[1]) < 4) {
+          var n = e.subject;
+          location.hash = n.type === "fiche" ? (n.accueil ? "#/" : "#/fiche/" + n.ref) : "#/dossier/" + n.ref;
+        }
+        depart = null;
       });
-      return meilleur;
-    }
-
-    var glisse = null, bouge = false;
-    canvas.addEventListener("pointerdown", function (ev) {
-      canvas.setPointerCapture(ev.pointerId);
-      var p = versMonde(ev), n = noeudSous(p);
-      bouge = false;
-      if (n) { tenu = n; relancer(0.3); }
-      else glisse = { x: ev.clientX - vue.x, y: ev.clientY - vue.y };
-    });
-    canvas.addEventListener("pointermove", function (ev) {
-      var p = versMonde(ev);
-      if (tenu) { tenu.x = p.x; tenu.y = p.y; bouge = true; relancer(0.2); return; }
-      if (glisse) { vue.x = ev.clientX - glisse.x; vue.y = ev.clientY - glisse.y; bouge = true; dessiner(); return; }
-      var n = noeudSous(p);
+    var zoom = d3.zoom().scaleExtent([0.2, 4]).on("zoom", function (e) { t = e.transform; dessiner(); });
+    var selection = d3.select(canvas).call(glisser).call(zoom).on("dblclick.zoom", null);
+    canvas.addEventListener("mousemove", function (e) {
+      var n = noeudSous(e);
       if (n !== survol) {
         survol = n;
         canvas.style.cursor = n ? "pointer" : "grab";
-        canvas.title = n ? n.titre + (n.type === "dossier" ? " (dossier)" : "") : "";
+        canvas.title = n ? n.titre : "";
         dessiner();
       }
     });
-    function lacher(ev) {
-      var clic = !bouge && tenu;
-      var n = tenu;
-      tenu = null; glisse = null;
-      if (clic && ev.type === "pointerup") {
-        if (n.type === "fiche") location.hash = "#/fiche/" + n.ref;
-        else if (options.surDossier) options.surDossier(n.ref);
-      }
-    }
-    canvas.addEventListener("pointerup", lacher);
-    canvas.addEventListener("pointercancel", lacher);
-    canvas.addEventListener("pointerleave", function () { if (survol) { survol = null; dessiner(); } });
-    canvas.addEventListener("wheel", function (ev) {
-      ev.preventDefault();
-      var r = canvas.getBoundingClientRect(), mx = ev.clientX - r.left, my = ev.clientY - r.top;
-      var k = Math.max(0.2, Math.min(5, vue.k * Math.exp(-ev.deltaY * 0.0015)));
-      vue.x = mx - (mx - vue.x) * k / vue.k; vue.y = my - (my - vue.y) * k / vue.k; vue.k = k;
-      dessiner();
-    }, { passive: false });
+    canvas.addEventListener("mouseleave", function () { if (survol) { survol = null; dessiner(); } });
 
-    var ro = new ResizeObserver(taillerCanvas);
+    var ro = new ResizeObserver(function () { tailler(); dessiner(); });
     ro.observe(conteneur);
     var themeObs = new MutationObserver(function () { coul = couleurs(); dessiner(); });
     themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
-    // Mouvement réduit : on calcule la disposition d'un coup, sans
-    // animation, et on affiche le résultat final.
-    if (C.mouvementReduit) {
-      while (alpha > 0.02) pas();
-      taillerCanvas();
-    } else {
-      for (var i = 0; i < 60; i++) pas(); // dégrossit avant la première image
-      taillerCanvas();
-      raf = requestAnimationFrame(boucle);
-      // Recadre une fois la disposition à peu près posée.
-      setTimeout(function () { if (!fini && !glisse && !tenu) { cadrer(); dessiner(); } }, 900);
-    }
+    tailler();
+    cadrer();
+    dessiner();
 
     return {
-      nb: g.noeuds.length,
-      recadrer: function () { cadrer(); dessiner(); },
-      zoomer: function (f) {
-        var k = Math.max(0.2, Math.min(5, vue.k * f));
-        vue.x = L / 2 - (L / 2 - vue.x) * k / vue.k; vue.y = H / 2 - (H / 2 - vue.y) * k / vue.k; vue.k = k;
-        dessiner();
-      },
+      nb: noeuds.length,
+      recadrer: cadrer,
+      zoomer: function (f) { selection.call(zoom.scaleBy, f, [L / 2, H / 2]); },
       detruire: function () {
         fini = true;
-        cancelAnimationFrame(raf);
+        sim.stop();
         ro.disconnect();
         themeObs.disconnect();
+        selection.on(".zoom", null).on(".drag", null);
         canvas.remove();
       }
     };

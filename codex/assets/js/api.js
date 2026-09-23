@@ -24,10 +24,17 @@
   function erreur(e) {
     var code = e && e.code, msg = (e && e.message) || String(e);
     var texte;
-    if (code === "42501" || /row-level security|permission denied/i.test(msg)) texte = "Tu n'as pas les droits pour faire ça.";
+    // Messages déjà rédigés en français par les fonctions SQL : on les garde tels quels.
+    if (/^(Ce compte|Identifiant invalide|Adresse e-mail invalide|Mot de passe trop court|Rôle invalide|Aucun compte|Pas sur ton|Tu ne peux pas|Réservé aux admins)/.test(msg)) texte = msg;
+    else if (code === "42501" || /row-level security|permission denied/i.test(msg)) texte = "Tu n'as pas les droits pour faire ça.";
     else if (code === "23503") texte = "Impossible : cet élément contient encore des fiches ou des sous-dossiers.";
     else if (code === "23505" || /duplicate|already exists/i.test(msg)) texte = "Cet élément existe déjà.";
     else if (code === "23514") texte = "Valeur refusée : vérifie ce que tu as saisi.";
+    // Site plus récent que la base : colonne ou fonction ajoutée par une
+    // nouvelle version de schema.sql, pas encore exécutée dans Supabase.
+    else if (code === "42703" || code === "PGRST202" || /column .* does not exist|could not find the function/i.test(msg)) {
+      texte = "La base n'est pas à jour : relance supabase/schema.sql dans Supabase (SQL Editor), puis recharge la page.";
+    }
     else if (/failed to fetch|networkerror|load failed/i.test(msg)) texte = "Connexion impossible. Vérifie ton réseau puis réessaie.";
     else if (/payload too large|exceeded the maximum|too large/i.test(msg)) texte = "Fichier trop lourd : 50 Mo maximum. Mets-le sur un Drive et ajoute le lien à la place.";
     else if (/rate limit|too many/i.test(msg)) texte = "Trop de demandes d'affilée. Attends quelques minutes puis réessaie.";
@@ -59,11 +66,52 @@
     sb.auth.onAuthStateChange(function (evenement, s) { fn(evenement, s); });
   }
 
+  // Les comptes sans e-mail ont une adresse technique « identifiant@codex.invalid »
+  // (voir admin_creer_compte dans schema.sql). On tape l'identifiant, on se connecte
+  // avec l'adresse.
+  var DOMAINE = "codex.invalid";
+  function versEmail(identifiant) {
+    var v = String(identifiant || "").trim().toLowerCase();
+    return v.indexOf("@") >= 0 ? v : v + "@" + DOMAINE;
+  }
+  function identifiantDe(email) {
+    return String(email || "").replace("@" + DOMAINE, "");
+  }
+
+  function connexion(identifiant, motDePasse) {
+    return q(sb.auth.signInWithPassword({ email: versEmail(identifiant), password: motDePasse }))
+      .catch(function (e) {
+        if (/invalid login|invalid credentials/i.test((e.cause && e.cause.message) || e.message)) {
+          throw new Error("Identifiant ou mot de passe incorrect.");
+        }
+        throw e;
+      });
+  }
+
+  // shouldCreateUser: false : le lien n'ouvre QUE des comptes existants.
+  // Les comptes se créent depuis la page Membres, pas en tapant une adresse.
   function envoyerLien(email) {
     return q(sb.auth.signInWithOtp({
       email: email.trim().toLowerCase(),
-      options: { emailRedirectTo: urlRetour(), shouldCreateUser: true }
+      options: { emailRedirectTo: urlRetour(), shouldCreateUser: false }
     }));
+  }
+
+  function changerMotDePasse(mdp) {
+    return q(sb.auth.updateUser({ password: mdp }));
+  }
+
+  // Comptes gérés par un admin : fonctions SQL admin_* de schema.sql (elles
+  // vérifient elles-mêmes que l'appelant est admin). Le mot de passe est
+  // tiré dans le navigateur de l'admin ; la base n'en garde que le haché.
+  function creerCompte(identifiant, motDePasse, role) {
+    return q(sb.rpc("admin_creer_compte", { p_identifiant: identifiant, p_mot_de_passe: motDePasse, p_role: role }));
+  }
+  function reinitialiserMotDePasse(email, motDePasse) {
+    return q(sb.rpc("admin_mot_de_passe", { p_email: email, p_mot_de_passe: motDePasse }));
+  }
+  function supprimerCompte(email) {
+    return q(sb.rpc("admin_supprimer_compte", { p_email: email }));
   }
 
   function connexionGoogle() {
@@ -81,7 +129,7 @@
   function arbre() {
     return Promise.all([
       q(sb.from("dossiers").select("id, parent_id, titre")),
-      q(sb.from("fiches").select("id, dossier_id, titre, maj_le, maj_par"))
+      q(sb.from("fiches").select("id, dossier_id, titre, maj_le, maj_par, accueil"))
     ]).then(function (r) { return { dossiers: r[0], fiches: r[1] }; });
   }
 
@@ -111,7 +159,7 @@
   }
 
   function creerFiche(v) {
-    return q(sb.from("fiches").insert({ dossier_id: v.dossier_id, titre: v.titre, contenu: v.contenu }).select().single());
+    return q(sb.from("fiches").insert({ dossier_id: v.dossier_id || null, titre: v.titre, contenu: v.contenu, accueil: !!v.accueil }).select().single());
   }
 
   // Verrou optimiste : l'écriture ne passe que si la fiche n'a pas bougé
@@ -119,7 +167,7 @@
   // conflit, et c'est à l'utilisateur de trancher plutôt qu'à la
   // dernière sauvegarde d'écraser la précédente en silence.
   function enregistrerFiche(id, v, majLeLu) {
-    var req = sb.from("fiches").update({ dossier_id: v.dossier_id, titre: v.titre, contenu: v.contenu }).eq("id", id);
+    var req = sb.from("fiches").update({ dossier_id: v.dossier_id || null, titre: v.titre, contenu: v.contenu }).eq("id", id);
     if (majLeLu) req = req.eq("maj_le", majLeLu);
     return q(req.select()).then(function (lignes) {
       if (!lignes || !lignes.length) {
@@ -151,6 +199,9 @@
 
   // Arêtes [[liens]] entre fiches, calculées par la base.
   function graphe() { return q(sb.rpc("graphe")); }
+
+  // Couples (fiche, #tag) de toutes les fiches.
+  function etiquettes() { return q(sb.rpc("etiquettes")); }
 
   function stockage() {
     return q(sb.rpc("stockage")).then(function (r) {
@@ -236,24 +287,18 @@
 
   function membres() { return q(sb.from("membres").select("*").order("email")); }
 
-  // `ignoreDuplicates` : coller toute la liste de la promo deux fois ne
-  // fait pas d'erreur, et ne change pas le rôle de ceux déjà inscrits.
-  function ajouterMembres(emails, role) {
-    var lignes = emails.map(function (e) { return { email: e, role: role }; });
-    return q(sb.from("membres").upsert(lignes, { onConflict: "email", ignoreDuplicates: true }));
-  }
-
   function changerRole(email, role) {
     return q(sb.from("membres").update({ role: role }).eq("email", email).select()).then(function (l) {
       if (!l || !l.length) throw new Error("Rôle inchangé : tu n'as pas les droits sur ce compte.");
     });
   }
 
-  function retirerMembre(email) { return q(sb.from("membres").delete().eq("email", email)); }
-
   C.api = {
     pret: pret, urlRetour: urlRetour, DUREE_LIEN: DUREE_LIEN,
-    graphe: graphe, stockage: stockage,
+    graphe: graphe, stockage: stockage, etiquettes: etiquettes,
+    connexion: connexion, changerMotDePasse: changerMotDePasse,
+    creerCompte: creerCompte, reinitialiserMotDePasse: reinitialiserMotDePasse, supprimerCompte: supprimerCompte,
+    versEmail: versEmail, identifiantDe: identifiantDe,
     // Offre gratuite Supabase. Les deux plafonds sont aussi imposés côté
     // serveur (bucket à 50 Mo) : ici, on prévient avant d'essayer.
     MAX_FICHIER: 50 * 1024 * 1024, QUOTA: 1024 * 1024 * 1024,
@@ -264,6 +309,6 @@
     revisions: revisions, revision: revision, rechercher: rechercher,
     ajouterLien: ajouterLien, ajouterFichier: ajouterFichier, supprimerRessource: supprimerRessource,
     liensSignes: liensSignes,
-    membres: membres, ajouterMembres: ajouterMembres, changerRole: changerRole, retirerMembre: retirerMembre
+    membres: membres, changerRole: changerRole
   };
 })(window.Codex);

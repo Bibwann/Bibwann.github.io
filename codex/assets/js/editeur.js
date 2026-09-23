@@ -105,18 +105,13 @@
   function construire(el, fiche, params, nettoyages) {
     var nouveau = !fiche;
     var options = C.nav.optionsDossiers();
-    if (!options.length) {
-      el.appendChild(C.etatVide("folder-plus", "Crée d'abord un dossier",
-        "Une fiche se range dans un dossier (un semestre, une matière…).",
-        h("button.btn.btn-primaire", { type: "button", on: { click: function () { C.nav.nouveauDossier(null); } } }, icone("folder-plus"), "Nouveau dossier")));
-      return;
-    }
     var etat = {
       id: fiche ? fiche.id : null,
       majLe: fiche ? fiche.maj_le : null,
       sauve: {
         titre: fiche ? fiche.titre : "",
-        dossier_id: fiche ? fiche.dossier_id : (params.dossier && C.etat.dossierParId[params.dossier] ? params.dossier : options[0].id),
+        // "" = à la racine (aucun dossier), comme une note Quartz hors dossier.
+        dossier_id: fiche ? (fiche.dossier_id || "") : (params.dossier && C.etat.dossierParId[params.dossier] ? params.dossier : ""),
         contenu: fiche ? fiche.contenu : ""
       },
       enCours: false
@@ -125,9 +120,11 @@
 
     // ---- Barre du haut ----
     var titre = h("input.editeur-titre", { type: "text", value: etat.sauve.titre, placeholder: "Titre de la fiche", maxlength: 200, "aria-label": "Titre de la fiche" });
-    var dossier = h("select.champ.champ-select", { "aria-label": "Dossier" }, options.map(function (o) {
-      return h("option", { value: o.id, selected: o.id === etat.sauve.dossier_id }, "\u00a0\u00a0".repeat(o.profondeur) + o.libelle);
-    }));
+    var dossier = h("select.champ.champ-select", { "aria-label": "Dossier" },
+      h("option", { value: "", selected: !etat.sauve.dossier_id }, "Racine (aucun dossier)"),
+      options.map(function (o) {
+        return h("option", { value: o.id, selected: o.id === etat.sauve.dossier_id }, "\u00a0\u00a0".repeat(o.profondeur + 1) + o.libelle);
+      }));
     var indicateur = h("span.etat-sauvegarde");
     var btnSauver = h("button.btn.btn-primaire", { type: "button", title: "Enregistrer (Ctrl+S)" }, icone("check2"), h("span", "Enregistrer"));
     var btnFermer = h("a.btn", { href: nouveau ? "#/" : "#/fiche/" + etat.id }, icone("x-lg"), h("span", "Fermer"));

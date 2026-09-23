@@ -16,7 +16,7 @@
 
   // Chemin du worker résolu depuis CE script : la page peut vivre à
   // un autre niveau (le banc d'essai est dans tools/).
-  var urlWorker = new URL("pdf-worker.js?v=38c14a32b7", document.currentScript.src).href;
+  var urlWorker = new URL("pdf-worker.js?v=58cc6cf848", document.currentScript.src).href;
   var worker = null, minuterie = null, compteur = 0, attentes = {};
 
   function obtenirWorker() {

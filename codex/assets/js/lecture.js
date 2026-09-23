@@ -84,55 +84,68 @@
 
   function carteGraphe(fiche, nettoyages) {
     var zone = h("div.graphe-local");
+    zone.appendChild(h("a.graphe-global", { href: "#/graphe", title: "Graphe complet", "aria-label": "Graphe complet" }, icone("arrows-angle-expand")));
     var carte = h("section.carte.carte-graphe", { "aria-labelledby": "titre-graphe" },
-      h("div.carte-titre-ligne",
-        h("h2.carte-titre", { id: "titre-graphe" }, icone("diagram-3"), "Graphe"),
-        h("a.btn.btn-mini.btn-fantome", { href: "#/graphe", title: "Graphe complet" }, icone("arrows-fullscreen"))),
-      zone);
+      h("h2.carte-titre", { id: "titre-graphe" }, "Graphe"), zone);
     // Monté après insertion dans la page : il lui faut une taille.
     requestAnimationFrame(function () {
       if (!zone.isConnected) return;
-      var g = C.graphe.monter(zone, { centre: fiche.id, profondeur: 2, compact: true });
+      // Sur l'accueil : tout le cours ; sur une fiche : ses voisins directs (comme Quartz).
+      var g = C.graphe.monter(zone, fiche.accueil ? { compact: true } : { centre: fiche.id, profondeur: 1, compact: true });
       nettoyages.push(g.detruire);
     });
     return carte;
   }
 
+  // Sommaire à la Quartz : repliable, et les titres actuellement à l'écran
+  // restent nets tandis que les autres s'estompent — on voit d'un coup
+  // d'œil où l'on se trouve dans une longue fiche.
   function sommaire(plan, ficheId, nettoyages) {
     if (plan.length < 2) return null;
     var liens = {};
-    var nav = h("nav.carte.carte-sommaire", { "aria-labelledby": "titre-sommaire" },
-      h("h2.carte-titre", { id: "titre-sommaire" }, icone("list-nested"), "Sur cette page"),
-      h("ol.sommaire", plan.map(function (p) {
-        var a = h("a", {
-          href: "#/fiche/" + ficheId + "/" + p.section, class: "niveau-" + p.niveau,
-          on: {
-            click: function (e) {
-              e.preventDefault();
-              var cible = document.getElementById(p.id);
-              if (cible) cible.scrollIntoView({ behavior: C.mouvementReduit ? "auto" : "smooth" });
-              // replaceState : l'adresse devient partageable sans relancer le routeur.
-              history.replaceState(null, "", "#/fiche/" + ficheId + "/" + p.section);
-            }
+    var liste = h("ol.sommaire", plan.map(function (p) {
+      var a = h("a", {
+        href: "#/fiche/" + ficheId + "/" + p.section, class: "niveau-" + p.niveau,
+        on: {
+          click: function (e) {
+            e.preventDefault();
+            var cible = document.getElementById(p.id);
+            if (cible) cible.scrollIntoView({ behavior: C.mouvementReduit ? "auto" : "smooth" });
+            // replaceState : l'adresse devient partageable sans relancer le routeur.
+            history.replaceState(null, "", "#/fiche/" + ficheId + "/" + p.section);
           }
-        }, p.texte);
-        liens[p.id] = a;
-        return h("li", a);
-      })));
+        }
+      }, p.texte);
+      liens[p.id] = a;
+      return h("li", a);
+    }));
+    var bascule = h("button.carte-repli", { type: "button", "aria-expanded": "true" }, "Sommaire", icone("chevron-down"));
+    bascule.addEventListener("click", function () {
+      var o = bascule.getAttribute("aria-expanded") !== "true";
+      bascule.setAttribute("aria-expanded", String(o));
+      liste.hidden = !o;
+    });
+    var nav = h("nav.carte.carte-sommaire", { "aria-label": "Sommaire" }, h("h2.carte-titre", bascule), liste);
 
-    // Le titre actif est le dernier passé sous le haut de l'écran.
+    // Une section est « à l'écran » tant qu'une partie de son contenu
+    // (du titre jusqu'au titre suivant) est visible.
     var visibles = {};
     var obs = new IntersectionObserver(function (entrees) {
-      entrees.forEach(function (e) { visibles[e.target.id] = e.isIntersecting; });
-      var actif = null;
-      for (var i = 0; i < plan.length; i++) {
-        if (visibles[plan[i].id]) { actif = plan[i].id; break; }
-      }
-      if (!actif) return;
-      Object.keys(liens).forEach(function (id) { liens[id].classList.toggle("actif", id === actif); });
-    }, { rootMargin: "-72px 0px -65% 0px" });
+      entrees.forEach(function (e) { visibles[e.target.dataset.section] = e.isIntersecting; });
+      var aucun = !Object.keys(visibles).some(function (k) { return visibles[k]; });
+      plan.forEach(function (p) { liens[p.id].classList.toggle("dans-vue", aucun || !!visibles[p.id]); });
+    });
     requestAnimationFrame(function () {
-      plan.forEach(function (p) { var el = document.getElementById(p.id); if (el) obs.observe(el); });
+      plan.forEach(function (p, i) {
+        var titre = document.getElementById(p.id);
+        if (!titre) return;
+        // On observe le titre et ce qui le suit jusqu'au titre suivant.
+        var fin = plan[i + 1] ? document.getElementById(plan[i + 1].id) : null;
+        for (var n = titre; n && n !== fin; n = n.nextElementSibling) {
+          n.dataset.section = p.id;
+          obs.observe(n);
+        }
+      });
     });
     nettoyages.push(function () { obs.disconnect(); });
     return nav;
@@ -188,11 +201,52 @@
     });
   }
 
+  // ---- Listes de pages (dossier, tag, récents), comme les pages de
+  // dossier de Quartz : date, titre, emplacement, tags. ----
+  function listeFiches(fiches, tagsParFiche) {
+    if (!fiches.length) return h("p.prose-vide", "Aucune fiche ici pour l'instant.");
+    return h("ul.liste-pages", fiches.map(function (f) {
+      var chemin = C.nav.chemin(f.dossier_id).map(function (d) { return d.titre; }).join(" › ");
+      var tags = (tagsParFiche && tagsParFiche[f.id]) || [];
+      return h("li.page-item",
+        h("span.page-date", { title: C.dateComplete(f.maj_le) }, C.dateCourte(f.maj_le)),
+        h("div.page-desc",
+          h("a.page-titre", { href: "#/fiche/" + f.id }, f.titre),
+          chemin ? h("span.page-chemin", chemin) : null),
+        tags.length ? h("ul.page-tags", tags.map(function (t) { return h("li", h("a.etiquette", { href: "#/tag/" + encodeURIComponent(t) }, "#" + t)); })) : null);
+    }));
+  }
+
+  // Sous la note d'accueil : les dossiers et les fiches modifiées récemment.
+  function indexAccueil() {
+    var e = C.etat;
+    var racines = C.nav.sousDossiers(null);
+    var recentes = e.fiches.filter(function (f) { return !f.accueil; })
+      .sort(function (a, b) { return b.maj_le < a.maj_le ? -1 : 1; }).slice(0, 8);
+    if (!racines.length && !recentes.length) return null;
+    return h("div.prose.index-accueil",
+      racines.length ? h("h2", "Les cours") : null,
+      racines.length ? h("ul.index-dossiers", racines.map(function (d) {
+        var sous = C.nav.sousDossiers(d.id);
+        return h("li.index-dossier",
+          h("a.page-titre", { href: "#/dossier/" + d.id }, d.titre),
+          h("span.page-chemin", C.nav.nbFiches(d.id) + " fiche" + (C.nav.nbFiches(d.id) > 1 ? "s" : "")),
+          sous.length ? h("ul.index-sous", sous.map(function (s) {
+            return h("li", h("a", { href: "#/dossier/" + s.id }, s.titre));
+          })) : null);
+      })) : null,
+      recentes.length ? h("h2", "Modifié récemment") : null,
+      recentes.length ? listeFiches(recentes) : null);
+  }
+
   // ---- La vue ----
-  function vue(el, id, section) {
+  // options.accueil : c'est la note d'accueil (page d'arrivée) ; on
+  // ajoute alors l'index des cours sous son contenu.
+  function vue(el, id, section, options) {
+    options = options || {};
     var nettoyages = [];
     el.appendChild(C.chargement("Ouverture de la fiche…"));
-    C.nav.activer(id);
+    C.nav.activer(options.accueil ? null : id);
 
     C.api.fiche(id).then(function (fiche) {
       if (!el.isConnected) return;
@@ -207,7 +261,7 @@
       var signesLe = Date.now();
       return C.api.liensSignes(chemins).catch(function () { return {}; }).then(function (signes) {
         if (!el.isConnected) return;
-        construire(el, fiche, section, signes, signesLe, nettoyages);
+        construire(el, fiche, section, signes, signesLe, nettoyages, options);
       });
     }).catch(function (e) {
       C.vider(el);
@@ -218,35 +272,43 @@
     return function () { nettoyages.forEach(function (f) { f(); }); };
   }
 
-  function construire(el, fiche, section, signes, signesLe, nettoyages) {
-    document.title = fiche.titre + " · Codex";
+  function construire(el, fiche, section, signes, signesLe, nettoyages, options) {
+    document.title = options.accueil ? "Codex" : fiche.titre + " · Codex";
     var fil = C.nav.chemin(fiche.dossier_id);
     var prose = h("div.prose", { id: "prose" });
-    var plan = C.rendu.rendre(prose, fiche.contenu, { titre: fiche.titre });
-    if (!fiche.contenu.trim()) {
-      prose.appendChild(h("p.prose-vide", "Cette fiche est encore vide."));
-    }
+    var base = options.accueil ? "#/" : "#/fiche/" + fiche.id + "/";
+    var plan = C.rendu.rendre(prose, fiche.contenu, {
+      titre: fiche.titre,
+      lienSection: options.accueil ? null : function (s) { return base + s; }
+    });
+    if (!fiche.contenu.trim()) prose.appendChild(h("p.prose-vide", "Cette fiche est encore vide."));
 
     var entete = h("header.fiche-entete",
-      h("nav.fil", { "aria-label": "Emplacement" }, fil.map(function (d, i) {
-        return [i ? h("span.fil-sep", { "aria-hidden": "true" }, "›") : null, h("span", d.titre)];
-      })),
+      options.accueil ? null : h("nav.fil", { "aria-label": "Emplacement" },
+        h("a", { href: "#/" }, "Accueil"),
+        fil.map(function (d) {
+          return [h("span.fil-sep", { "aria-hidden": "true" }, "›"), h("a", { href: "#/dossier/" + d.id }, d.titre)];
+        })),
       h("div.fiche-titre-ligne",
         h("h1.fiche-titre", fiche.titre),
-        C.peutEcrire() ? h("a.btn", { href: "#/editer/" + fiche.id }, icone("pencil-square"), "Modifier") : null),
-      h("p.fiche-meta", icone("clock-history"),
-        h("span", { title: C.dateComplete(fiche.maj_le) }, "Mis à jour " + C.dateRelative(fiche.maj_le)),
-        fiche.maj_par ? h("span", "par " + C.prenom(fiche.maj_par)) : null,
-        h("span.fiche-meta-sep", "·"),
-        h("span", Math.max(1, Math.round(fiche.contenu.split(/\s+/).length / 220)) + " min de lecture")));
+        C.peutEcrire() ? h("a.btn.btn-mini", { href: "#/editer/" + fiche.id, title: "Modifier cette fiche" }, icone("pencil"), "Modifier") : null),
+      h("p.fiche-meta",
+        h("span", { title: C.dateComplete(fiche.maj_le) }, C.dateCourte(fiche.maj_le)),
+        h("span", Math.max(1, Math.round(fiche.contenu.split(/\s+/).length / 220)) + " min de lecture"),
+        fiche.maj_par ? h("span", "par " + C.prenom(C.api.identifiantDe(fiche.maj_par))) : null),
+      null);
 
     var panneau = h("aside.panneau", { "aria-label": "Ressources et navigation" },
-      carteRessources(fiche, signes, signesLe),
-      carteCitePar(fiche),
+      options.accueil && !fiche.ressources.length ? null : carteRessources(fiche, signes, signesLe),
       carteGraphe(fiche, nettoyages),
-      sommaire(plan, fiche.id, nettoyages));
+      sommaire(plan, fiche.id, nettoyages),
+      carteCitePar(fiche));
 
-    el.appendChild(h("div.lecture", entete, panneau, h("article.fiche-corps", prose)));
+    var corps = h("article.fiche-corps", prose, options.accueil ? indexAccueil() : null,
+      h("footer.pied", h("hr"), h("p", "Codex · les cours de la promo · ",
+        h("a", { href: "#/graphe" }, "graphe"), " · ", h("a", { href: "#/" }, "accueil"))));
+
+    el.appendChild(h("div.lecture" + (options.accueil ? ".accueil" : ""), entete, panneau, corps));
     brancherApercus(el, nettoyages);
 
     if (section) {
@@ -259,4 +321,5 @@
 
   C.vues = C.vues || {};
   C.vues.lecture = vue;
+  C.vues.listeFiches = listeFiches;
 })(window.Codex);
