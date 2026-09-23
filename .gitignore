@@ -1,0 +1,34 @@
+# ---- Secrets : jamais dans un dépôt public ----
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
+service-account*.json
+
+# ---- Données : les cours et les polys vivent dans Supabase, pas ici ----
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+supabase/.temp/
+supabase/.branches/
+
+# ---- Outillage local ----
+node_modules/
+__pycache__/
+*.pyc
+.claude/settings.local.json
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Captures et profils Chrome jetables des harnais de test
+_verify*.png
+_capture*/
+_profil*/

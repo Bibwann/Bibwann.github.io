@@ -1,0 +1,25 @@
+# Filet de sécurité côté serveur : le même détecteur que le hook local,
+# rejoué sur chaque push et chaque pull request. Il attrape ce qui serait
+# passé par un clone sans hook ou un `--no-verify`.
+name: Sécurité
+
+on:
+  push:
+  pull_request:
+
+# Moindre privilège : ce job ne fait que lire le dépôt.
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # Épinglé par empreinte de commit (v7.0.1) : une étiquette peut être
+      # déplacée par un attaquant, un SHA non.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Recherche de secrets et de fichiers trop lourds
+        run: bash .githooks/scan-secrets.sh --tout

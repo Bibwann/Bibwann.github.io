@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Hook de pré-commit du dépôt. Activé une fois par clone :
+#   git config core.hooksPath .githooks
+# Ne JAMAIS le contourner avec --no-verify : la CI refera le même
+# contrôle, mais un secret poussé est déjà publié.
+exec "$(git rev-parse --show-toplevel)/.githooks/scan-secrets.sh"

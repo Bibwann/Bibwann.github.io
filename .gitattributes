@@ -1,0 +1,7 @@
+# Les scripts du hook et des workflows restent en LF sur toutes les
+# machines : converti en CRLF par Windows, un script bash ne s'exécute plus
+# (« bad interpreter ») et le contrôle des secrets saute sans bruit.
+.githooks/*   text eol=lf
+*.sh          text eol=lf
+*.yml         text eol=lf
+*.sql         text eol=lf

@@ -1,0 +1,8 @@
+# Faux positifs du détecteur de secrets (.githooks/scan-secrets.sh).
+# Format : chemin:fragment exact de la ligne signalée.
+# Chaque entrée a été relue : ce sont des exemples de documentation.
+
+# BDD-Steam : chaînes MongoDB d'exemple (user:pass, conteneur local).
+portfolio/assets/files/BDD-Steam-main/README.md:mongodb://root:rootpass@localhost:27017
+portfolio/assets/files/BDD-Steam-main/src/config/db.js:mongodb+srv://user:pass@cluster0.xyz.mongodb.net
+portfolio/assets/files/BDD-Steam-main/src/server.js:mongodb+srv://user:pass@cluster/steam
