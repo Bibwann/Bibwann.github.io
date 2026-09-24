@@ -460,9 +460,23 @@ try {
   await p.waitForSelector('.admin-bilan', { timeout: 5000 });
   const bilan = await p.evaluate(() => ({ mdp: document.querySelectorAll('.admin-bilan code').length, err: document.querySelectorAll('.admin-bilan .admin-erreur').length }));
   ok(bilan.mdp === 1 && bilan.err === 1, 'création de comptes : mot de passe généré affiché, doublon signalé');
+  await p.click('.nav .compte');
+  await p.waitForSelector('.menu');
+  ok(!(await p.$eval('.menu', m => m.textContent)).includes('mot de passe'), 'admin : pas de « Changer mon mot de passe » non plus');
+  await p.keyboard.press('Escape');
   await pause(400);
   ok((await p.$$('.table-membres tbody tr')).length === avantComptes + 1, 'le nouveau compte apparaît dans la liste');
   ok(await p.evaluate(() => [...document.querySelectorAll('.admin-email')].some(td => td.textContent.startsWith('nouveau.compte'))), 'identifiant affiché sans le domaine technique');
+  const presence = await p.evaluate(() => {
+    const ligne = debut => [...document.querySelectorAll('.table-membres tbody tr')].find(tr => tr.querySelector('.admin-email').textContent.startsWith(debut));
+    const etat = debut => { const tr = ligne(debut); return { point: tr.querySelector('.presence').classList.contains('presence-en-ligne'), vu: tr.querySelector('.admin-vu').textContent }; };
+    return { admin: etat('bastien.nieto'), editeur: etat('lea.martin'), lecteur: etat('hugo.petit'), nouveau: etat('nouveau.compte'),
+      compteur: document.querySelector('.admin-compteurs').textContent,
+      signale: !!CODEX_BANC.db.membres.find(m => m.role === 'admin').vu_le };
+  });
+  ok(presence.admin.point && presence.editeur.point && presence.editeur.vu === 'en ligne', 'présence : pastille verte pour soi et pour un membre vu il y a 1 min');
+  ok(!presence.lecteur.point && /hier|jour/.test(presence.lecteur.vu) && !presence.nouveau.point && presence.nouveau.vu === 'jamais', 'présence : hors ligne, avec la dernière connexion (« hier ») ou « jamais »');
+  ok(/· 2 en ligne$/.test(presence.compteur) && presence.signale, 'présence : compteur « 2 en ligne », et le site a signalé la présence de l\'admin');
   await cap(p, '07-comptes');
   const nouveauMdp = await p.evaluate(() => [...document.querySelectorAll('.admin-bilan tr')].find(tr => tr.textContent.startsWith('nouveau.compte')).querySelector('code').textContent);
   await p.close();
@@ -523,6 +537,13 @@ try {
   await aller(p, '#/admin');
   await pause(300);
   ok(!(await p.$('.table-membres')), 'lecteur : pas de page Membres');
+  await p.click('.nav .compte');
+  await p.waitForSelector('.menu');
+  const menuCompte = await p.$eval('.menu', m => m.textContent);
+  ok(!menuCompte.includes('mot de passe') && menuCompte.includes('Se déconnecter'), 'lecteur : pas de « Changer mon mot de passe » dans le menu du compte');
+  const mdpRefuse = await p.evaluate(() => window.supabase.createClient().auth.updateUser({ password: 'mon-vrai-mdp-perso' }).then(r => !!r.error));
+  ok(mdpRefuse, 'lecteur : un appel direct pour changer son mot de passe est refusé');
+  await p.keyboard.press('Escape');
   ok(!(await p.$('a.nav-lien[href="#/importer"]')), 'lecteur : pas de lien Importer');
   await aller(p, '#/importer');
   await pause(300);

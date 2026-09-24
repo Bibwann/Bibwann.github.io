@@ -78,8 +78,10 @@ sans commit (il prévient par e-mail).
 Page **Membres** : un identifiant par ligne (`lea.martin`, `hugo.petit`… ou une adresse e-mail),
 choisir le rôle, *Créer les comptes*. Un mot de passe est généré pour chacun et affiché **une seule
 fois** : *Tout copier* ou *Télécharger (.txt)*, puis transmets à chacun son identifiant, son mot de
-passe et l'adresse du site. Chacun peut ensuite changer son mot de passe (menu du compte, en bas à
-gauche). Un mot de passe oublié : menu « ⋯ » de la ligne → *Nouveau mot de passe*.
+passe et l'adresse du site. Personne ne choisit son mot de passe, pour que personne n'y mette celui
+qu'il utilise ailleurs : seul un admin en tire un nouveau, pour quelqu'un d'autre (le déclencheur `mdp_verrouille` de `schema.sql`
+refuse tout le reste, même un appel direct à Supabase Auth). Un mot de passe oublié : menu « ⋯ » de
+la ligne → *Nouveau mot de passe*.
 
 ---
 

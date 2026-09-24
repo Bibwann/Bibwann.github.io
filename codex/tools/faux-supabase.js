@@ -33,8 +33,8 @@
   var fichiers = {}; // chemin → Blob
 
   db.membres.push({ email: EMAILS.admin, role: "admin", ajoute_le: maintenant(60 * 24 * 30) });
-  db.membres.push({ email: EMAILS.editeur, role: "editeur", ajoute_le: maintenant(60 * 24 * 12) });
-  db.membres.push({ email: EMAILS.lecteur, role: "lecteur", ajoute_le: maintenant(60 * 24 * 3) });
+  db.membres.push({ email: EMAILS.editeur, role: "editeur", ajoute_le: maintenant(60 * 24 * 12), vu_le: maintenant(1) });
+  db.membres.push({ email: EMAILS.lecteur, role: "lecteur", ajoute_le: maintenant(60 * 24 * 3), vu_le: maintenant(60 * 26) });
 
   if (!params.has("vide")) {
     var s1 = uuid(), s2 = uuid(), maths = uuid(), info = uuid(), phys = uuid();
@@ -203,6 +203,10 @@
     if (t === "progression") cibles = cibles.filter(function (p) { return p.email === email; });
 
     if (this.op === "update") {
+      // Comme `grant update (role)` : dans membres, seul le rôle se modifie.
+      if (t === "membres" && Object.keys(this.valeurs).some(function (k) { return k !== "role"; })) {
+        return { data: null, error: { code: "42501", message: "permission denied for table membres" } };
+      }
       cibles.forEach(function (l) {
         if (t === "fiches" && (self.valeurs.contenu !== l.contenu || self.valeurs.titre !== l.titre)) {
           db.revisions.push({ id: db.revisions.length + 100, fiche_id: l.id, titre: l.titre, contenu: l.contenu, auteur: l.maj_par, cree_le: l.maj_le });
@@ -238,6 +242,10 @@
   // ---- Fonctions SQL ----
   var RPC = {
     role_courant: function () { return monRole(); },
+    signaler_presence: function () {
+      db.membres.forEach(function (m) { if (m.email === email) m.vu_le = maintenant(); });
+      return null;
+    },
     rechercher: function (a) {
       if (!monRole()) return [];
       var q = plier(a.q);
@@ -332,7 +340,8 @@
       setTimeout(function () { abonnes.forEach(function (f) { f("SIGNED_IN", session); }); }, 0);
       return repondre({ data: { session: session }, error: null });
     },
-    updateUser: function (o) { motsDePasse[email] = o.password; return repondre({ data: {}, error: null }); }
+    // Comme le déclencheur mdp_verrouille : personne ne change son mot de passe.
+    updateUser: function () { return repondre({ data: null, error: { status: 500, message: "Database error updating user" } }); }
   };
 
   var storage = {

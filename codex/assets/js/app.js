@@ -165,20 +165,6 @@
     });
   }
 
-  function changerMotDePasse() {
-    C.dialogue({
-      titre: "Changer mon mot de passe",
-      texte: "10 caractères minimum. Une phrase de quelques mots est plus sûre et plus facile à retenir qu'un mot compliqué.",
-      champ: { type: "password", label: "Nouveau mot de passe", max: 200 },
-      confirmer: "Changer"
-    }).then(function (v) {
-      if (!v) return;
-      if (v.length < 10) { C.toast("Trop court : 10 caractères minimum.", "erreur"); return; }
-      C.api.changerMotDePasse(v).then(function () { C.toast("Mot de passe changé.", "ok"); })
-        .catch(function (e) { C.toast(e.message, "erreur"); });
-    });
-  }
-
   // ---- Coquille : colonne de gauche (titre, recherche, explorateur,
   // compte) et zone de vue, disposées comme Quartz. L'en-tête ne sert
   // qu'au mobile. ----
@@ -211,7 +197,6 @@
     compte.addEventListener("click", function () {
       C.menu(compte, [
         { icone: "person-circle", texte: C.api.identifiantDe(C.etat.email) + " · " + C.ROLES[C.etat.role], desactive: true, action: function () {} },
-        { icone: "key", texte: "Changer mon mot de passe", action: changerMotDePasse },
         { icone: "box-arrow-right", texte: "Se déconnecter", action: deconnexion }
       ]);
     });
@@ -595,6 +580,22 @@
     return p.get("error_description") || "La connexion a échoué. Réessaie.";
   }
 
+  // Présence : tant que l'onglet est visible, la base note « vu à l'instant »
+  // une fois par minute (page Membres : en ligne = vu il y a moins de 3 min).
+  // Un onglet caché ne signale rien : il n'est pas « là ». Au retour, on
+  // signale tout de suite, sauf si le dernier signal a moins de 20 s.
+  function presence() {
+    var dernier = 0;
+    function signaler() {
+      if (document.visibilityState !== "visible" || Date.now() - dernier < 20000) return;
+      dernier = Date.now();
+      C.api.signalerPresence().catch(function () { dernier = 0; });
+    }
+    signaler();
+    setInterval(signaler, 60000);
+    document.addEventListener("visibilitychange", signaler);
+  }
+
   function demarrer(session) {
     if (demarre) return;
     demarre = true;
@@ -602,6 +603,7 @@
     C.api.monRole().then(function (role) {
       if (!role) { ecranNonMembre(C.etat.email); return; }
       C.etat.role = role;
+      presence();
       coquille();
       vueEl.appendChild(C.chargement("Chargement des cours…"));
       return recharger().then(function () {

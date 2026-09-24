@@ -15,7 +15,7 @@ Site statique (GitHub Pages) + Supabase. Pas de build, JS vanilla en IIFE sur un
 |---|---|
 | `supabase/accueil.sql` | La note d'accueil (page d'arrivée, premier nœud du graphe). |
 | `supabase/exemple.sql` / `exemple-retirer.sql` | Cours fictif pour la démo, et son retrait (tout est sous le dossier « Exemple »). |
-| `supabase/schema.sql` | **Toute la sécurité.** Tables, RLS, déclencheur d'historique, `rechercher()`, `graphe()`, `etiquettes()`, `stockage()`, `ping()`, comptes (`admin_creer_compte`, `admin_mot_de_passe`, `admin_supprimer_compte`), `progression` (exercices faits, « chacun ses lignes »), bucket privé. Rejouable. |
+| `supabase/schema.sql` | **Toute la sécurité.** Tables, RLS, déclencheur d'historique, `rechercher()`, `graphe()`, `etiquettes()`, `stockage()`, `ping()`, `signaler_presence()` (colonne `membres.vu_le` : pastille « en ligne » de la page Membres ; seul `role` est modifiable dans `membres` par l'API), comptes (`admin_creer_compte`, `admin_mot_de_passe`, `admin_supprimer_compte`), `progression` (exercices faits, « chacun ses lignes »), bucket privé. Rejouable. |
 | `assets/js/config.js` | URL + clé anon. Publiques par conception. |
 | `commun.js` | `h()` (construction DOM sûre), dialogues, menus, toasts, dates, `plier()`, types de ressources. |
 | `rendu.js` | Markdown → HTML : marked + formules KaTeX + encadrés `:::` (titres en Markdown) + liens `[[…]]` + code, puis **DOMPurify**. |
@@ -43,6 +43,10 @@ Site statique (GitHub Pages) + Supabase. Pas de build, JS vanilla en IIFE sur un
   aucun droit, même s'il est dans `membres`.
 - `maj_le` / `maj_par` sont posés par le déclencheur, jamais par le client.
 - L'admin ne peut ni se retirer ni se rétrograder (impossible de s'enfermer dehors).
+- **Personne ne choisit son mot de passe, admins compris** : le déclencheur `mdp_verrouille` sur
+  `auth.users` refuse tout changement de `encrypted_password`, sauf depuis `admin_mot_de_passe()`
+  (laissez-passer `codex.mdp_admin`, local à la transaction), qui refuse le compte de l'appelant.
+  Il n'y a pas de menu pour en changer, mais le verrou compte seul : Supabase Auth ne passe pas par la RLS.
 - Comptes sans e-mail : adresse technique `identifiant@codex.invalid` (domaine réservé, aucun e-mail
   ne peut y partir). Créés par les fonctions SQL `admin_*`, qui écrivent `auth.users` +
   `auth.identities` (jetons à chaîne vide, pas NULL : sinon Supabase Auth refuse la connexion).
@@ -102,5 +106,5 @@ Site statique (GitHub Pages) + Supabase. Pas de build, JS vanilla en IIFE sur un
 
 1. `python codex/tools/versionner.py`
 2. `schema.sql` touché → `cd codex/tests && npm test`
-3. JS/CSS/HTML touché → `npm run e2e` (96 vérifications, console propre attendue)
+3. JS/CSS/HTML touché → `npm run e2e` (102 vérifications, console propre attendue)
 4. Les contrôles de `../CLAUDE.md` §3 (hook, identité, rien hors de `codex/`).

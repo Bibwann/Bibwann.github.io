@@ -317,5 +317,46 @@ await comme('lect', async () => {
   ok(await n(`select 1 from progression where email = 'edit@univ.fr'`) === 0, 'progression : effacée avec le membre');
 }
 
+// Présence : signaler_presence() ne date que la ligne de l'appelant, et
+// vu_le / ajoute_le ne sont modifiables par personne, admin compris.
+{
+  const vu = async (email) => (await db.query('select vu_le from membres where email = $1', [email])).rows[0]?.vu_le ?? null;
+  await db.exec(`update membres set vu_le = null`);
+  await comme('lect', async () => { await db.query('select public.signaler_presence()'); });
+  ok(await vu('lect@univ.fr') !== null && await vu('boss@univ.fr') === null, 'présence : signaler_presence() date sa propre ligne, et elle seule');
+  await comme('intrus', async () => { await db.query('select public.signaler_presence()'); });
+  await comme('nonconf', async () => { await db.query('select public.signaler_presence()'); });
+  ok(await vu('lect2@univ.fr') === null && await n('select 1 from membres where vu_le is not null') === 1, 'présence : non membre et e-mail non confirmé ne datent rien');
+  await comme('anon', async () => {
+    ok(!!(await essaie('select public.signaler_presence()')).e, 'anonyme : signaler_presence() refusé');
+  });
+  await comme('lect', async () => {
+    ok(!!(await essaie(`update membres set vu_le = now() where email = 'lect@univ.fr'`)).e, 'présence : un membre ne pose pas vu_le lui-même');
+  });
+  await comme('admin', async () => {
+    ok(!!(await essaie(`update membres set vu_le = '2000-01-01' where email = 'lect@univ.fr'`)).e, "présence : l'admin ne falsifie pas vu_le");
+    ok(!!(await essaie(`update membres set ajoute_le = '2000-01-01' where email = 'lect@univ.fr'`)).e, "l'admin ne falsifie pas ajoute_le");
+    ok((await db.query(`update membres set role = 'lecteur' where email = 'lect@univ.fr' returning email, vu_le`)).rows.length === 1, "l'admin change toujours un rôle (et relit la ligne)");
+  });
+}
+
+// Mots de passe : seul un admin en fixe. Supabase Auth écrit auth.users
+// avec son propre rôle, hors RLS : on le simule par un update direct.
+{
+  const hache = async (email) => (await db.query('select encrypted_password p from auth.users where lower(email) = $1', [email])).rows[0]?.p ?? null;
+  const avant = await hache('lect@univ.fr');
+  ok(!!(await essaie(`update auth.users set encrypted_password = 'choisi-par-moi' where email = 'lect@univ.fr'`)).e, 'mot de passe : un lecteur ne change pas le sien (Auth refusé par le déclencheur)');
+  ok(!!(await essaie(`update auth.users set encrypted_password = 'choisi-par-moi' where email = 'edit@univ.fr'`)).e, 'mot de passe : un éditeur non plus');
+  ok(await hache('lect@univ.fr') === avant, 'mot de passe : inchangé après le refus');
+  ok(!!(await essaie(`update auth.users set encrypted_password = 'nouveau' where email = 'boss@univ.fr'`)).e, 'mot de passe : un admin ne choisit pas le sien non plus');
+  ok(!(await essaie(`update auth.users set updated_at = now() where email = 'lect@univ.fr'`)).e, 'mot de passe : le reste de la ligne Auth reste modifiable (Auth y note les connexions)');
+  await comme('admin', async () => {
+    ok(!(await essaie(`select public.admin_mot_de_passe('lect@univ.fr', 'Tire-Au-Hasard-42')`)).e, "mot de passe : l'admin réinitialise celui d'un lecteur");
+  });
+  ok(await hache('lect@univ.fr') !== avant, 'mot de passe : la réinitialisation par l\'admin est bien écrite');
+  ok((await db.query(`select current_setting('codex.mdp_admin', true) v`)).rows[0].v !== 'oui', 'mot de passe : le laissez-passer ne survit pas à la transaction');
+  ok(!!(await essaie(`update auth.users set encrypted_password = 'apres-coup' where email = 'lect@univ.fr'`)).e, 'mot de passe : et le verrou est de nouveau actif juste après');
+}
+
 console.log(echecs ? `\n${echecs} ÉCHEC(S)` : '\nTout passe.');
 process.exit(echecs ? 1 : 0);
