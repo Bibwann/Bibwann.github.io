@@ -88,6 +88,10 @@ create unique index if not exists fiches_une_seule_accueil on public.fiches ((tr
 -- éléments numérotés, par titre.
 alter table public.dossiers add column if not exists ordre integer;
 alter table public.fiches   add column if not exists ordre integer;
+-- La dernière fois que le membre avait Codex ouvert (pastille « en ligne »
+-- et « vu il y a… » de la page Membres). Posée par signaler_presence(),
+-- jamais par le client : la colonne n'est pas modifiable par l'API.
+alter table public.membres add column if not exists vu_le timestamptz;
 
 
 -- ------------------------------------------------------------
@@ -290,6 +294,19 @@ as $$ select 'ok'::text $$;
 revoke all on function public.ping() from public;
 grant execute on function public.ping() to anon, authenticated;
 
+-- Présence : le site l'appelle toutes les minutes tant que l'onglet est
+-- visible. Chacun ne date que SA ligne (l'e-mail vient de la base, pas
+-- d'un paramètre) ; un compte non membre ne touche rien.
+create or replace function public.signaler_presence()
+returns void
+language sql volatile security definer set search_path = ''
+as $$
+  update public.membres set vu_le = now() where email = public.email_courant()
+$$;
+
+revoke all on function public.signaler_presence() from public, anon;
+grant execute on function public.signaler_presence() to authenticated;
+
 
 -- ------------------------------------------------------------
 -- 4 ter. Comptes gérés depuis le site (admin seulement)
@@ -396,11 +413,14 @@ as $$
 begin
   perform public.admin_verifier();
   if lower(p_email) = public.email_courant() then
-    raise exception 'Pas sur ton propre compte : change ton mot de passe depuis le menu du compte.' using errcode = '22023';
+    raise exception 'Pas sur ton propre compte : un autre admin peut t''en tirer un nouveau.' using errcode = '22023';
   end if;
   if length(coalesce(p_mot_de_passe, '')) < 10 then
     raise exception 'Mot de passe trop court (10 caractères minimum).' using errcode = '22023';
   end if;
+  -- Laissez-passer pour le déclencheur mdp_verrouille (plus bas), valable
+  -- jusqu'à la fin de cette transaction seulement.
+  perform set_config('codex.mdp_admin', 'oui', true);
   update auth.users
   set encrypted_password = extensions.crypt(p_mot_de_passe, extensions.gen_salt('bf', 10)), updated_at = now()
   where lower(email) = lower(p_email);
@@ -433,6 +453,34 @@ revoke all on function public.admin_supprimer_compte(text) from public, anon;
 grant execute on function public.admin_creer_compte(text, text, text) to authenticated;
 grant execute on function public.admin_mot_de_passe(text, text) to authenticated;
 grant execute on function public.admin_supprimer_compte(text) to authenticated;
+
+-- Les mots de passe ne se choisissent pas, admins compris : ils sont tirés
+-- au hasard par la page Membres, pour que personne n'y mette celui qu'il
+-- utilise ailleurs. Il n'y a plus de menu pour en changer, mais ça ne
+-- suffit pas : Supabase Auth accepte un changement direct, sans nos règles
+-- RLS. Le verrou est donc ici, sur la table d'Auth elle-même. Seul passe
+-- admin_mot_de_passe() (laissez-passer de transaction), qui refuse déjà
+-- le compte de l'appelant : un admin en réinitialise un AUTRE. Le reste
+-- (appel direct à l'API d'Auth, lien « mot de passe oublié ») est refusé.
+create or replace function public.mdp_verrouille()
+returns trigger
+language plpgsql security definer set search_path = ''
+as $$
+begin
+  if current_setting('codex.mdp_admin', true) = 'oui' then
+    return new;
+  end if;
+  raise exception 'Les mots de passe ne se changent pas : un admin en tire un nouveau depuis la page Membres.' using errcode = '42501';
+end
+$$;
+
+revoke all on function public.mdp_verrouille() from public, anon, authenticated;
+
+drop trigger if exists mdp_verrouille on auth.users;
+create trigger mdp_verrouille
+  before update on auth.users
+  for each row when (old.encrypted_password is distinct from new.encrypted_password)
+  execute function public.mdp_verrouille();
 
 
 -- ------------------------------------------------------------
@@ -495,6 +543,12 @@ revoke all on public.membres, public.dossiers, public.fiches, public.ressources,
 -- tout répondrait alors « permission denied ». Ces droits ouvrent la
 -- porte ; ce sont les règles RLS ci-dessous qui décident ligne par ligne.
 grant select, insert, update, delete on public.membres, public.dossiers, public.fiches, public.ressources to authenticated;
+-- Dans `membres`, seul le rôle se modifie par l'API : `vu_le` et
+-- `ajoute_le` sont posés par la base, et même un admin ne peut pas les
+-- falsifier. (Retirer le droit de table retire aussi ceux des colonnes :
+-- rejouable dans cet ordre.)
+revoke update on public.membres from authenticated;
+grant update (role) on public.membres to authenticated;
 -- L'historique n'est écrit que par le déclencheur (security definer).
 revoke insert, update, delete on public.revisions from authenticated;
 grant select on public.revisions to authenticated;

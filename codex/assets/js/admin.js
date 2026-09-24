@@ -11,6 +11,12 @@
   "use strict";
   var h = C.h, icone = C.icone;
 
+  // « En ligne » = vu il y a moins de 3 minutes : le site signale la
+  // présence toutes les minutes (app.js), on laisse de la marge pour un
+  // navigateur qui ralentit ses minuteries.
+  var EN_LIGNE_MS = 3 * 60 * 1000;
+  function enLigne(m) { return !!m.vu_le && Date.now() - new Date(m.vu_le).getTime() < EN_LIGNE_MS; }
+
   function vue(el) {
     if (!C.estAdmin()) { location.hash = "#/"; return; }
     document.title = "Membres · Codex";
@@ -35,7 +41,7 @@
     var ligne = identifiant + " : " + mdp;
     C.dialogue({
       titre: "Nouveau mot de passe",
-      texte: "Transmets-le à la personne. Il ne sera plus affiché ensuite ; elle pourra le changer depuis le menu de son compte.",
+      texte: "Transmets-le à la personne. Il ne sera plus affiché ensuite. Personne ne choisit son mot de passe : en cas d'oubli, c'est ici qu'on en tire un nouveau.",
       contenu: h("p.mdp-affiche", h("code", ligne)),
       confirmer: "Copier et fermer", annuler: "Fermer"
     }).then(function (ok) { if (ok) copier(ligne, "Identifiant et mot de passe copiés."); });
@@ -47,10 +53,25 @@
     var compteurs = h("p.admin-compteurs");
 
     function majCompteurs() {
-      var n = { admin: 0, editeur: 0, lecteur: 0 };
-      membres.forEach(function (m) { n[m.role]++; });
+      var n = { admin: 0, editeur: 0, lecteur: 0 }, presents = 0;
+      membres.forEach(function (m) { n[m.role]++; if (m.email === moi || enLigne(m)) presents++; });
       C.vider(compteurs).appendChild(document.createTextNode(
-        membres.length + " compte(s) : " + n.admin + " admin, " + n.editeur + " éditeur(s), " + n.lecteur + " lecteur(s)"));
+        membres.length + " compte(s) : " + n.admin + " admin, " + n.editeur + " éditeur(s), " + n.lecteur + " lecteur(s) · " +
+        presents + " en ligne"));
+    }
+
+    // La pastille et « vu il y a… » d'un membre. Sa propre ligne est
+    // toujours en ligne : on est justement sur la page.
+    var cases = {};
+    function peindrePresence(m) {
+      var c = cases[m.email];
+      if (!c) return;
+      var la = m.email === moi || enLigne(m);
+      c.point.className = "presence" + (la ? " presence-en-ligne" : "");
+      c.point.title = la ? "En ligne" : "Hors ligne";
+      C.vider(c.vu).appendChild(la ? h("span.presence-texte", "en ligne")
+        : document.createTextNode(m.vu_le ? C.dateRelative(m.vu_le) : "jamais"));
+      c.vu.title = m.vu_le ? C.dateComplete(m.vu_le) : "Pas encore venu depuis l'ajout de ce suivi";
     }
 
     function ligne(m) {
@@ -91,16 +112,22 @@
           } }
         ]);
       });
+      var point = h("span.presence", { "aria-hidden": "true" });
+      var vu = h("td.admin-date.admin-vu");
+      cases[m.email] = { point: point, vu: vu };
+      peindrePresence(m);
       return h("tr",
-        h("td.admin-email", id, soi ? h("span.pastille.pastille-accent", "toi") : null,
+        h("td.admin-email", point, id, soi ? h("span.pastille.pastille-accent", "toi") : null,
           m.email.indexOf("@codex.invalid") < 0 ? h("span.admin-type", { title: "Compte avec e-mail : peut aussi se connecter par lien" }, icone("envelope")) : null),
         h("td", role),
-        h("td.admin-date", C.dateRelative(m.ajoute_le)),
+        vu,
+        h("td.admin-date", { title: C.dateComplete(m.ajoute_le) }, C.dateRelative(m.ajoute_le)),
         h("td.admin-actions", actions));
     }
 
     function dessiner() {
       C.vider(corpsTable);
+      cases = {};
       C.trier(membres.map(function (m) { return Object.assign({ tri: C.api.identifiantDe(m.email) }, m); }), "tri")
         .forEach(function (m) { corpsTable.appendChild(ligne(m)); });
       majCompteurs();
@@ -176,9 +203,24 @@
       h("section.carte",
         compteurs,
         h("div.table-defile", h("table.table-membres",
-          h("thead", h("tr", h("th", "Identifiant"), h("th", "Rôle"), h("th", "Ajouté"), h("th", h("span.visuellement-cache", "Actions")))),
+          h("thead", h("tr", h("th", "Identifiant"), h("th", "Rôle"), h("th", "Dernière connexion"), h("th", "Ajouté"), h("th", h("span.visuellement-cache", "Actions")))),
           corpsTable)))));
     dessiner();
+
+    // Les pastilles se tiennent à jour tant que la page est ouverte : on
+    // relit la liste chaque minute et on ne repeint que la présence (un
+    // menu de rôle ouvert n'est pas reconstruit sous le curseur).
+    var minuterie = setInterval(function () {
+      if (!el.isConnected) { clearInterval(minuterie); return; }
+      if (document.visibilityState !== "visible") return;
+      C.api.membres().then(function (liste) {
+        liste.forEach(function (x) {
+          var m = membres.filter(function (y) { return y.email === x.email; })[0];
+          if (m) { m.vu_le = x.vu_le; peindrePresence(m); }
+        });
+        majCompteurs();
+      }).catch(function () {});
+    }, 60000);
   }
 
   C.vues = C.vues || {};

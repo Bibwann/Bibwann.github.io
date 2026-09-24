@@ -98,9 +98,6 @@
     }));
   }
 
-  function changerMotDePasse(mdp) {
-    return q(sb.auth.updateUser({ password: mdp }));
-  }
 
   // Comptes gérés par un admin : fonctions SQL admin_* de schema.sql (elles
   // vérifient elles-mêmes que l'appelant est admin). Le mot de passe est
@@ -122,6 +119,8 @@
   function deconnexion() { return q(sb.auth.signOut()); }
 
   function monRole() { return q(sb.rpc("role_courant")); }
+  // Date la ligne de l'appelant dans `membres` (pastille « en ligne » de la page Membres).
+  function signalerPresence() { return q(sb.rpc("signaler_presence")); }
 
   // ---- Arborescence ----
   // Une seule lecture pour tout l'arbre, sans le contenu des fiches :
@@ -353,14 +352,14 @@
   C.api = {
     pret: pret, urlRetour: urlRetour, DUREE_LIEN: DUREE_LIEN,
     graphe: graphe, stockage: stockage, etiquettes: etiquettes,
-    connexion: connexion, changerMotDePasse: changerMotDePasse,
+    connexion: connexion,
     creerCompte: creerCompte, reinitialiserMotDePasse: reinitialiserMotDePasse, supprimerCompte: supprimerCompte,
     versEmail: versEmail, identifiantDe: identifiantDe,
     // Offre gratuite Supabase. Les deux plafonds sont aussi imposés côté
     // serveur (bucket à 50 Mo) : ici, on prévient avant d'essayer.
     MAX_FICHIER: 50 * 1024 * 1024, QUOTA: 1024 * 1024 * 1024,
     session: session, surChangement: surChangement, envoyerLien: envoyerLien,
-    connexionGoogle: connexionGoogle, deconnexion: deconnexion, monRole: monRole,
+    connexionGoogle: connexionGoogle, deconnexion: deconnexion, monRole: monRole, signalerPresence: signalerPresence,
     arbre: arbre, creerDossier: creerDossier, renommerDossier: renommerDossier, supprimerDossier: supprimerDossier,
     fiche: fiche, creerFiche: creerFiche, enregistrerFiche: enregistrerFiche, supprimerFiche: supprimerFiche,
     revisions: revisions, revision: revision, rechercher: rechercher,
