@@ -312,7 +312,7 @@
   // ---- Aperçu au survol d'un lien [[fiche]] ----
   var cache = {};
   function brancherApercus(racine, nettoyages) {
-    var bulle = null, minuterie = 0, courant = null;
+    var bulle = null, minuterie = 0, courant = null, fini = false;
     function fermer() {
       clearTimeout(minuterie);
       courant = null;
@@ -323,7 +323,8 @@
       courant = a;
       var p = cache[id] || (cache[id] = C.api.fiche(id));
       p.then(function (f) {
-        if (courant !== a || !f) return;
+        // Fiche arrivée après un changement de page, ou lien retiré entre-temps.
+        if (fini || courant !== a || !f || !a.isConnected) return;
         fermer();
         courant = a;
         var corps = h("div.prose.prose-apercu");
@@ -353,8 +354,13 @@
     racine.addEventListener("mouseover", entree);
     racine.addEventListener("mouseout", sortie);
     window.addEventListener("scroll", fermer, { passive: true });
+    // `racine` est le conteneur de la vue, réutilisé par la page suivante : sans
+    // ce retrait, les anciens écouteurs ouvraient des bulles que plus rien ne fermait.
     nettoyages.push(function () {
+      fini = true;
       fermer();
+      racine.removeEventListener("mouseover", entree);
+      racine.removeEventListener("mouseout", sortie);
       window.removeEventListener("scroll", fermer);
     });
   }
@@ -416,12 +422,14 @@
   // ajoute alors l'index des cours sous son contenu.
   function vue(el, id, section, options) {
     options = options || {};
-    var nettoyages = [];
+    // `el` reste dans la page d'une vue à l'autre : `isConnected` ne dit pas si
+    // on l'a quittée. `quittee` empêche une fiche lente d'écraser la page suivante.
+    var nettoyages = [], quittee = false;
     el.appendChild(C.chargement("Ouverture de la fiche…"));
     C.nav.activer(options.accueil ? null : id);
 
     C.api.fiche(id).then(function (fiche) {
-      if (!el.isConnected) return;
+      if (quittee || !el.isConnected) return;
       C.vider(el);
       if (!fiche) {
         el.appendChild(C.etatVide("file-earmark-x", "Fiche introuvable", "Elle a peut-être été supprimée ou déplacée.",
@@ -432,16 +440,17 @@
       var chemins = fiche.ressources.filter(function (r) { return r.fichier; }).map(function (r) { return r.fichier; });
       var signesLe = Date.now();
       return C.api.liensSignes(chemins).catch(function () { return {}; }).then(function (signes) {
-        if (!el.isConnected) return;
+        if (quittee || !el.isConnected) return;
         construire(el, fiche, section, signes, signesLe, nettoyages, options);
       });
     }).catch(function (e) {
+      if (quittee) return;
       C.vider(el);
       el.appendChild(C.etatVide("wifi-off", "Impossible d'ouvrir la fiche", e.message,
         h("button.btn", { type: "button", on: { click: function () { C.routeur(); } } }, "Réessayer")));
     });
 
-    return function () { nettoyages.forEach(function (f) { f(); }); };
+    return function () { quittee = true; nettoyages.forEach(function (f) { f(); }); };
   }
 
   function construire(el, fiche, section, signes, signesLe, nettoyages, options) {

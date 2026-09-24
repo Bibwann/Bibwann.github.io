@@ -102,5 +102,5 @@ Site statique (GitHub Pages) + Supabase. Pas de build, JS vanilla en IIFE sur un
 
 1. `python codex/tools/versionner.py`
 2. `schema.sql` touché → `cd codex/tests && npm test`
-3. JS/CSS/HTML touché → `npm run e2e` (95 vérifications, console propre attendue)
+3. JS/CSS/HTML touché → `npm run e2e` (96 vérifications, console propre attendue)
 4. Les contrôles de `../CLAUDE.md` §3 (hook, identité, rien hors de `codex/`).
