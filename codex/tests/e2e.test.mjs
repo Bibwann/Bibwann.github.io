@@ -133,6 +133,25 @@ try {
   await p.hover('#prose a.lien-fiche');
   await p.waitForSelector('.apercu', { timeout: 3000 }).catch(() => {});
   ok(!!(await p.$('.apercu')), "aperçu au survol d'un lien [[fiche]]");
+  // Changer de page ferme l'aperçu, et les écouteurs de la page quittée ne
+  // survivent pas : revenu sur la fiche, un survol n'ouvre qu'une bulle.
+  const ficheAvecLien = await p.evaluate(() => location.hash);
+  await aller(p, '#/');
+  await pause(500);
+  const apresNav = await p.$$eval('.apercu', b => b.length);
+  await aller(p, ficheAvecLien);
+  await p.waitForSelector('#prose a.lien-fiche');
+  await p.mouse.move(5, 5);
+  await p.hover('#prose a.lien-fiche');
+  await pause(900);
+  const bulles = await p.$$eval('.apercu', b => b.length);
+  await aller(p, '#/documents');
+  await pause(500);
+  const apresNav2 = await p.$$eval('.apercu', b => b.length);
+  ok(apresNav === 0 && bulles === 1 && apresNav2 === 0,
+    `aperçu fermé au changement de page, sans bulle fantôme (${apresNav} / ${bulles} / ${apresNav2})`);
+  await aller(p, ficheAvecLien);
+  await p.waitForSelector('#prose a.lien-fiche');
   await p.mouse.move(5, 5);
 
   // XSS et durcissements du rendu
